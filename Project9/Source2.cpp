@@ -26,9 +26,17 @@ using namespace std;
 int i, j, ss[20][15];
 string s[26][60];
 class player {
-public:
+public: 
     wstring name, story;
     int lv ,mhp,hp,dex,move,isize,asize,x,y,pturn,speed,abox,act;
+    player(wstring a,wstring b,int c,int d,int e,int f,int g,int h,int i,int j,int k,int l,int m,int n,int o):name(a),story(b), lv(c), mhp(d), hp(e), dex(f), move(g), isize(h), asize(i), x(j), y(k), pturn(l), speed(m), abox(n), act(o) {}
+   
+};
+class enemy {
+public:
+    wstring name, story;
+    int lv, mhp,hp,dex, str,x,y,speed,turn,move,baid;
+    enemy(wstring a,wstring b,int c,int d,int e,int f,int g,int h,int i,int j,int k,int l,int m):name(a),story(b),lv(c),mhp(d),hp(e),dex(f),str(g),x(h),y(i),speed(j),turn(k),move(l),baid(m){}
 };
 void clearQpair(std::queue<pair<int, int>>& q)
 {
@@ -1310,14 +1318,16 @@ int main() {
     mciSendString(L"open ./Game/Sound/sgm/魔王魂_効果音_ワンポイント33.mp3", NULL, 0, NULL);
     mciSendString(L"play ./Game/Sound/bgm/魔王魂_ファンタジー12.mp3 repeat", NULL, 0, NULL);
     int x[1], y[1], bx[2], by[2], hp[1], mhp[1], str[1], dex[1], con[1], Int[1], wis[1], cha[1], id, P_id, dmg = 0, lv[1], second, range[2], move[1], item[1], isize[1], i_id, bullet[1], mbullet[1], load = 0;
-    player p1[1];
+    player p1(L"夏洛特", L"主人公", 1, 10, 10, 10, 6, 1, 1, 10, 10, 1, 10, 0, 1);
+    enemy  b1(L"野狼1",L"團體行動的動物 隨著數量增加危險性也會大幅上升",1,11,11,15,12,1,3,14,0,8,1);
+    enemy  b2(L"野狼1", L"團體行動的動物 隨著數量增加危險性也會大幅上升", 1, 11, 11, 15, 12, 11, 11, 14, 0, 8, 1);
     int ix, iy, n,abox1[1];
     int act[1], asize[1], bhp[2], bmhp[2], bdex[2], blv[2], pturn[1], bturn[2], t, speed[1], bspeed[2], psize = 1, bsize = 2, roundp = 0, roundb = 0, bmove[2], baid[2], bstr[2];
     string  chose = "e", walk, attack, story[2], iname[1], aname[2], bstory[2], bname[2], mark[1], bmark[2], admg[2], ahit[2];
     string a, b = ".txt", read = "";
     wstring name[2],Admg[2],Bname[2],Iname[1];
-    p1[0].name = L"夏洛特"; p1[0].lv = 1; p1[0].story = L"主人公"; p1[0].mhp = 10; p1[0].hp = 10; p1[0].dex = 10; p1[0].move = 6; p1[0].isize = 1; p1[0].asize = 1; p1[0].x = 10; p1[0].y = 10; p1[0].speed = 10; p1[0].pturn = 0; p1[0].abox = 0; p1[0].act = 1;
     mark[0] = "P "; name[0] = L"夏洛特"; lv[0] = 1; story[0] = "主人公"; mhp[0] = 10; hp[0] = 10; dex[0] = 10; move[0] = 6, isize[0] = 1; act[0] = 1; asize[0] = 1; x[0] = 10; y[0] = 10; speed[0] = 10; pturn[0] = 0; abox1[0] = 0;/*主角*/
+    
     bmark[0] = "1 "; bname[0] = "野狼1"; Bname[0] = L"野狼1"; blv[0] = 1; bstory[0] = "團體行動的動物 隨著數量增加危險性也會大幅上升"; bmhp[0] = 11; bhp[0] = 11; bdex[0] = 15; bstr[0] = 12; bx[0] = 1; by[0] = 3; bspeed[0] = 14; bturn[0] = 0; bmove[0] = 8; baid[0] = 1;
     bmark[1] = "2 "; bname[1] = "野狼2"; Bname[1] = L"野狼2"; blv[1] = 1; bstory[1] = "團體行動的動物 隨著數量增加危險性也會大幅上升"; bmhp[1] = 11; bhp[1] = 11; bdex[1] = 15; bstr[1] = 12; bx[1] = 11; by[1] = 11; bspeed[1] = 14; bturn[1] = 0; bmove[1] = 8; baid[1] = 1;
     /*敵人*/
