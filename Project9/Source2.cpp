@@ -317,6 +317,25 @@ void Bplayer( int* bx, int* by, int bsize) {
         transparentimage(NULL, (bx[I]) * 48, ((by[I]) * 48), &bplayer, 0xFF55FF);
     }
 }
+void mbplayer(int* bx, int* by, int bid,int bsize) {
+    for (int I = 0; I < bsize; I++) {
+        if (I != bid) {
+            IMAGE bplayer;
+            loadimage(&bplayer, L"./Game/picture/wolf1.png", 0, 0, false);
+            transparentimage(NULL, (bx[I]) * 48, ((by[I]) * 48), &bplayer, 0xFF55FF);
+        }
+    }
+}
+void Player(int P_id,int *x,int*y,wstring *name) {
+    IMAGE c;
+    loadimage(&c, L"./Game/picture/c.png", 0, 0, false);
+    transparentimage(NULL,0, 730, &c, 0xFF55FF);
+    wchar_t* ptr = _wcsdup(name[P_id].c_str());
+    outtextxy(60, 721, ptr);
+    IMAGE player;
+    loadimage(&player, L"./Game/picture/p1.png", 0, 0, false);
+transparentimage(NULL, (x[P_id]) * 48, ((y[P_id]-1) * 48), &player, 0xFF55FF);
+}
 int roll(string d, int a) {
     int t = 0, s = 0, g = 0, n = 1, k, j, l, sum = 0;
     if (a == 1) {
@@ -1117,24 +1136,32 @@ void Bmove(int id, int P_id, int* bmove, int* bx, int* by, int* x, int* y) {
         }
     }
 }
-void BMove(int id, int P_id, int* bmove, int* bx, int* by, int* x, int* y) {
+void BMove(int id, int P_id, int* bmove, int* bx, int* by, int* x, int* y,wstring* name,int bsize) {
     int box[1000],w=0,k,xbox,ybox;
     Bbfs(bx[id],by[id],x[P_id],y[P_id],box);
     xbox = bx[id]; ybox = by[id];
     IMAGE wolf1;
     loadimage(&wolf1, L"./Game/picture/wolf1.png", 0, 0, false);
+    IMAGE wolf2;
+    loadimage(&wolf2, L"./Game/picture/wolf2.png", 0, 0, false);
+    IMAGE wolf3;
+    loadimage(&wolf3, L"./Game/picture/wolf3.png", 0, 0, false);
+    IMAGE wolf4;
+    loadimage(&wolf4, L"./Game/picture/wolf4.png", 0, 0, false);
     IMAGE map;
     loadimage(&map, L"./Game/picture/map01.png", 0, 0, false);
     while (bmove[id]--) {
         clearrectangle(0, 0, 960, 720);
         putimage(0, 0, &map);
-
+        
         if (box[w] == 2) {
 
             for (k = 0; k <= 48; k += 16) {
 
                 BeginBatchDraw();
                 putimage(0, 0, &map);
+                Player(P_id,x,y,name);
+                mbplayer(bx, by, id, bsize);
                 transparentimage(NULL, xbox * 48, ((ybox - 1) * 48 + k), &wolf1, 0xFF55FF);
                 EndBatchDraw();
                 Sleep(30);
@@ -1146,7 +1173,9 @@ void BMove(int id, int P_id, int* bmove, int* bx, int* by, int* x, int* y) {
 
                 BeginBatchDraw();
                 putimage(0, 0, &map);
-                transparentimage(NULL, xbox * 48 - k, ((ybox - 1) * 48), &wolf1, 0xFF55FF);
+                Player(P_id, x, y, name);
+                mbplayer(bx, by, id, bsize);
+                transparentimage(NULL, xbox * 48 - k, ((ybox - 1) * 48), &wolf2, 0xFF55FF);
                 EndBatchDraw();
                 Sleep(30);
             }
@@ -1158,7 +1187,9 @@ void BMove(int id, int P_id, int* bmove, int* bx, int* by, int* x, int* y) {
 
                 BeginBatchDraw();
                 putimage(0, 0, &map);
-                transparentimage(NULL, xbox * 48 + k, ((ybox - 1) * 48), &wolf1, 0xFF55FF);
+                Player(P_id, x, y, name);
+                mbplayer(bx, by, id, bsize);
+                transparentimage(NULL, xbox * 48 + k, ((ybox - 1) * 48), &wolf3, 0xFF55FF);
                 EndBatchDraw();
                 Sleep(30);
             }
@@ -1167,8 +1198,11 @@ void BMove(int id, int P_id, int* bmove, int* bx, int* by, int* x, int* y) {
         else if (box[w] == 8) {
             for (k = 0; k <= 48; k += 16) {
                 BeginBatchDraw();
+                
                 putimage(0, 0, &map);
-                transparentimage(NULL, xbox * 48, ((ybox - 1) * 48) - k, &wolf1, 0xFF55FF);
+                Player(P_id, x, y, name);
+                mbplayer(bx, by, id, bsize);
+                transparentimage(NULL, xbox * 48, ((ybox - 1) * 48) - k, &wolf4, 0xFF55FF);
                 EndBatchDraw();
                 Sleep(30);
             }
@@ -1296,16 +1330,7 @@ void Battack(int id, string* aname, int* range, int P_id, int* dex, wstring* nam
         }
     }
 }
-void Player(int P_id,int *x,int*y,wstring *name) {
-    IMAGE c;
-    loadimage(&c, L"./Game/picture/c.png", 0, 0, false);
-    transparentimage(NULL,0, 730, &c, 0xFF55FF);
-    wchar_t* ptr = _wcsdup(name[P_id].c_str());
-    outtextxy(60, 721, ptr);
-    IMAGE player;
-    loadimage(&player, L"./Game/picture/p1.png", 0, 0, false);
-transparentimage(NULL, (x[P_id]) * 48, ((y[P_id]-1) * 48), &player, 0xFF55FF);
-}
+
 
 
 int main() {    
@@ -1318,7 +1343,7 @@ int main() {
     mciSendString(L"open ./Game/Sound/sgm/魔王魂_効果音_ワンポイント33.mp3", NULL, 0, NULL);
     mciSendString(L"play ./Game/Sound/bgm/魔王魂_ファンタジー12.mp3 repeat", NULL, 0, NULL);
     int x[1], y[1], bx[2], by[2], hp[1], mhp[1], str[1], dex[1], con[1], Int[1], wis[1], cha[1], id, P_id, dmg = 0, lv[1], second, range[2], move[1], item[1], isize[1], i_id, bullet[1], mbullet[1], load = 0;
-    player p1(L"夏洛特", L"主人公", 1, 10, 10, 10, 6, 1, 1, 10, 10, 1, 10, 0, 1);
+    player pl(L"夏洛特", L"主人公", 1, 10, 10, 10, 6, 1, 1, 10, 10, 1, 10, 0, 1);
     enemy  b1(L"野狼1",L"團體行動的動物 隨著數量增加危險性也會大幅上升",1,11,11,15,12,1,3,14,0,8,1);
     enemy  b2(L"野狼1", L"團體行動的動物 隨著數量增加危險性也會大幅上升", 1, 11, 11, 15, 12, 11, 11, 14, 0, 8, 1);
     int ix, iy, n,abox1[1];
@@ -1850,7 +1875,7 @@ int main() {
             cout << "第" << second << "秒" << endl;
             Target(P_id, id, bx, by, x, y, psize, bname, name); 
             maps(y, x, bx, by, P_id, id, psize, bsize, mark, bmark, hp, mhp,bname);
-            BMove(id, P_id, bmove, bx, by, x, y);
+            BMove(id, P_id, bmove, bx, by, x, y,name,bsize);
             Player(P_id, x, y,name);
             Bplayer(bx, by, bsize);
             Battack(id, aname, range, P_id, dex, name, bname, admg, baid, by, bx, y, x, ahit, hp,Admg);
