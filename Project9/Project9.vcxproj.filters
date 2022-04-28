@@ -20,9 +20,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="button.h">
-      <Filter>標頭檔</Filter>
-    </ClInclude>
     <ClInclude Include="Clickable.h">
       <Filter>標頭檔</Filter>
     </ClInclude>

@@ -144,7 +144,6 @@
     <ClCompile Include="Source2.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="button.h" />
     <ClInclude Include="Clickable.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
