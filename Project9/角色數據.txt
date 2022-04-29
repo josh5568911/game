@@ -1,0 +1,8 @@
+
+ p[0].name = L"夏洛特"; p[0].story = L"主人公"; p[0].lv = 1; p[0].mhp = 10; p[0].hp = 10; p[0].dex = 10; p[0].move = 6; p[0].isize = 1; p[0].asize = 1; p[0].x = 10; p[0].y = 10; p[0].speed = 10; p[0].turn = 0; p[0].abox = 0; p[0].pose = 1;
+    p[0].name = L"夏洛特"; p[0].story = L"主人公"; p[0].lv = 1; p[0].mhp = 10; p[0].hp = 10; p[0].dex = 10; p[0].move = 6; p[0].isize = 1; p[0].asize = 1; p[0].x = 10; p[0].y = 10; p[0].speed = 10; p[0].turn = 0; p[0].abox = 0; p[0].pose = 1;
+    e[0].name = L"野狼1"; e[0].story = L"團體行動的動物 隨著數量增加危險性也會大幅上升"; e[0].lv = 1; e[0].mhp = 11; e[0].hp = 11; e[0].dex = 15; e[0].move = 8;  e[0].x = 1; e[0].y = 3; e[0].speed = 14; e[0].turn = 0; e[0].baid = 1; e[0].str = 12; e[0].pose = 1;
+    e[1].name = L"野狼2"; e[1].story = L"團體行動的動物 隨著數量增加危險性也會大幅上升"; e[1].lv = 1; e[1].mhp = 11; e[1].hp = 11; e[1].dex = 15; e[1].move = 8;  e[1].x = 11; e[1].y = 11; e[1].speed = 14; e[1].turn = 0; e[1].baid = 1; e[1].str = 12; e[1].pose = 1;
+    ar[0].name = L"栓動步槍"; ar[0].dmg = "2d8"; ar[0].Dmg = L"2d8"; ar[0].bullet = 5; ar[0].mbullet = 5; ar[0].range=5;
+    ar[1].name = L"栓動步槍"; ar[1].dmg = "2d8"; ar[1].Dmg = L"2d8"; ar[1].hit = "1d4+2"; ar[1].range = 1; ar[1].bullet = 1; ar[1].mbullet = 1;
+    it[0].Name = L"通常彈"; it[0].name = "通常彈"; it[0].number = 30;

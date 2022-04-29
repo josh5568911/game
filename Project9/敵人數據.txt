@@ -1,0 +1,2 @@
+ e[0].name = L"野狼1"; e[0].story = L"團體行動的動物 隨著數量增加危險性也會大幅上升"; e[0].lv = 1; e[0].mhp = 11; e[0].hp = 11; e[0].dex = 15; e[0].move = 8;  e[0].x = 1; e[0].y = 3; e[0].speed = 14; e[0].turn = 0; e[0].baid = 1; e[0].str = 12; e[0].pose = 1;
+    e[1].name = L"野狼2"; e[1].story = L"團體行動的動物 隨著數量增加危險性也會大幅上升"; e[1].lv = 1; e[1].mhp = 11; e[1].hp = 11; e[1].dex = 15; e[1].move = 8;  e[1].x = 11; e[1].y = 11; e[1].speed = 14; e[1].turn = 0; e[1].baid = 1; e[1].str = 12; e[1].pose = 1;

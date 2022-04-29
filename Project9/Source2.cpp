@@ -23,7 +23,7 @@
 #include <codecvt>
 #include<queue>
 using namespace std;
-int i, j, ss[20][15];
+int i, j, ss[200][150];
 string s[26][60];
 void transparentimage(IMAGE* dstimg, int x, int y, IMAGE* srcimg, UINT transparentcolor)
 {
@@ -206,6 +206,63 @@ void e_bput(enemy *e, int id, int bsize) {
             }
         }
     }
+void maps(player *p, int P_id,enemy *e,int psize,int bsize) {
+    IMAGE text;
+    loadimage(&text, L"./Game/picture/text.png", 0, 0, false);
+    IMAGE aline;
+    loadimage(&aline, L"./Game/picture/aline.png", 0, 0, false);
+    IMAGE back2;
+    loadimage(&back2, L"./Game/picture/background.png", 0, 0, false);
+    putimage(0, 720, &back2); 
+    IMAGE map01;
+    loadimage(&map01, L"./Game/picture/map01.png",0,0,false);
+    putimage(0, 0, &map01);
+    putimage(960, 0, &text);
+    putimage(1025, 200, &aline);
+
+    for (i = 0; i < 20; i++) {
+        for (j = 0; j < 15; j++) {
+            ss[i][j] = 0;
+        }
+    }
+    for (i = 0; i < psize; i++) {
+        ss[p[i].x][p[i].y] = 1;
+    }
+    for (i = 0; i < bsize; i++) {
+        ss[e[i].x][e[i].y] = 1;
+    }
+    setbkmode(TRANSPARENT);
+    settextcolor(BLACK);
+    wchar_t s[] = L"HP[";
+    outtextxy(30, 875, s);
+    TCHAR t[5];
+    _stprintf(t, _T("%d"),p[P_id].hp);		// 高版本 VC 推荐使用 _stprintf_s 函数
+    outtextxy(55, 875, t);
+    wchar_t s1[] = L"/";
+    outtextxy(90, 875, s1);
+    _stprintf(t, _T("%d"), p[P_id].mhp);		// 高版本 VC 推荐使用 _stprintf_s 函数
+    outtextxy(95, 875, t);
+    wchar_t s2[] = L"]";
+    outtextxy(130, 875, s2);
+    IMAGE atk;
+    loadimage(&atk, L"./Game/picture/attack.png", 0, 0, false);
+    putimage(200, 750, &atk);
+    IMAGE movep;
+    loadimage(&movep, L"./Game/picture/move.png", 0, 0, false);
+    putimage(300, 750, &movep);
+    IMAGE item;
+    loadimage(&item, L"./Game/picture/item.png", 0, 0, false);
+    putimage(400, 750, &item);
+    IMAGE end;
+    loadimage(&end, L"./Game/picture/end.png", 0, 0, false);
+    putimage(500, 750, &end);
+    IMAGE save;
+    loadimage(&save, L"./Game/picture/save.png", 0, 0, false);
+    putimage(600, 750, &save);
+    IMAGE load;
+    loadimage(&load, L"./Game/picture/load.png", 0, 0, false);
+    putimage(700, 750, &load);
+}
 void clearQpair(std::queue<pair<int, int>>& q)
 {
     queue<pair<int, int>> empty;
@@ -334,7 +391,9 @@ void bfs(int sx, int sy, int x, int y, int* box, int &move, int P_id) {
         w++;
     }
 }
-void p_attack(player *p,enemy *e,arms *ar,int P_id,int id,string &chose,int bsize) {
+void p_attack(player *p,enemy *e,arms *ar,int P_id,int id,string &chose,int bsize,int psize) {
+    int ax, ay;
+   
         int sss = 1;
         ExMessage m, m1; string attack;
         if (chose == "a" && p[P_id].act > 0) {
@@ -384,9 +443,7 @@ void p_attack(player *p,enemy *e,arms *ar,int P_id,int id,string &chose,int bsiz
                         }
                     }
                 }
-                IMAGE player;
-                loadimage(&player, L"./Game/picture/p1.png", 0, 0, false);
-                transparentimage(NULL, (p[P_id].x) * 48, ((p[P_id].y - 1) * 48), &player, 0xFF55FF);
+                p_put(p, psize);
                 EndBatchDraw();
                 for (j = 0; j < 15; j++) {
                     for (i = 0; i < 20; i++) {
@@ -431,11 +488,27 @@ void p_attack(player *p,enemy *e,arms *ar,int P_id,int id,string &chose,int bsiz
                 if (rx + ry <= ar[0].range) {
                     AC = rand() % 20 + 1 + (e[id].dex - 10) / 2;
                     ATK = rand() % 20 + 1 + (p[P_id].dex - 10) / 2;
+                    ay = p[P_id].y - e[id].y; ax = p[P_id].x - e[id].x;
+                    if (ay > 0 && ay > abs(ax)) {
+                        p[P_id].pose = 4;
+                    }
+                    else if (ax > 0 && ax >=abs(ay)) {
+                        p[P_id].pose = 2;
+                    }
+                    else if (ax<0 && abs(ax)>=abs(ay)) {
+                        p[P_id].pose = 3;
+                    }
+                    else if (ay < 0 && abs(ay) > abs(ax)) {
+                        p[P_id].pose = 1;
+                    }
                     if (ATK > AC) {
+                         BeginBatchDraw();
+                        maps(p, P_id, e, psize, bsize);/*地圖繪製*/
+                        e_put(e, bsize);
+                        p_put(p, psize);                       
                         mciSendString(L"play ./Game/Sound/sgm/魔王魂_戦闘18.mp3 from 0", NULL, 0, NULL);
                         dmg = roll(ar[0].dmg, 1);
-                        e[id].hp -= dmg;
-                        BeginBatchDraw();
+                        e[id].hp -= dmg;                      
                         TCHAR d[5];
                         _stprintf(d, _T("%d"), -dmg);		// 高版本 VC 推荐使用 _stprintf_s 函数
                         outtextxy(e[id].x * 48 + 24, e[id].y * 48, d);
@@ -456,6 +529,8 @@ void p_attack(player *p,enemy *e,arms *ar,int P_id,int id,string &chose,int bsiz
                         _stprintf(d, _T("%d"), dmg);
                         outtextxy(1030, 30, d);
                         EndBatchDraw();
+                        ar[0].bullet--;
+                        p[P_id].act--;
                         Sleep(1000);
                         if (e[id].hp <= 0) {
                             ss[e[id].y][e[id].x] = 0;
@@ -465,10 +540,13 @@ void p_attack(player *p,enemy *e,arms *ar,int P_id,int id,string &chose,int bsiz
 
                     }
                     else {
+                        BeginBatchDraw();
+                        maps(p, P_id, e, psize, bsize);/*地圖繪製*/
+                        e_put(e, bsize);
+                        p_put(p, psize);                       
                         mciSendString(L"play ./Game/Sound/sgm/魔王魂_戦闘18.mp3 from 0", NULL, 0, NULL);
                         wchar_t w[] = L"未命中";
-                        outtextxy(48 * e[id].x, 48 * e[id].y, w);
-                        BeginBatchDraw();
+                        outtextxy(48 * e[id].x, 48 * e[id].y, w);                      
                         TCHAR d[5];
                         wchar_t atk[] = L"命中";
                         outtextxy(960, 0, atk);
@@ -681,62 +759,6 @@ void A_star(int sx, int sy, int x, int y,int* box) {
         w++;
 }
 }
-void maps(player *p, int P_id,enemy *e,int psize,int bsize) {
-
-    IMAGE aline;
-    loadimage(&aline, L"./Game/picture/aline.png", 0, 0, false);
-    IMAGE back2;
-    loadimage(&back2, L"./Game/picture/background.png", 0, 0, false);
-    putimage(0, 720, &back2); 
-    IMAGE map01;
-    loadimage(&map01, L"./Game/picture/map01.png",0,0,false);
-    putimage(0, 0, &map01);
-
-    putimage(1025, 200, &aline);
-
-    for (i = 0; i < 20; i++) {
-        for (j = 0; j < 15; j++) {
-            ss[i][j] = 0;
-        }
-    }
-    for (i = 0; i < psize; i++) {
-        ss[p[i].x][p[i].y] = 1;
-    }
-    for (i = 0; i < bsize; i++) {
-        ss[e[i].x][e[i].y] = 1;
-    }
-    setbkmode(TRANSPARENT);
-    settextcolor(BLACK);
-    wchar_t s[] = L"HP[";
-    outtextxy(30, 875, s);
-    TCHAR t[5];
-    _stprintf(t, _T("%d"),p[P_id].hp);		// 高版本 VC 推荐使用 _stprintf_s 函数
-    outtextxy(55, 875, t);
-    wchar_t s1[] = L"/";
-    outtextxy(90, 875, s1);
-    _stprintf(t, _T("%d"), p[P_id].mhp);		// 高版本 VC 推荐使用 _stprintf_s 函数
-    outtextxy(95, 875, t);
-    wchar_t s2[] = L"]";
-    outtextxy(130, 875, s2);
-    IMAGE atk;
-    loadimage(&atk, L"./Game/picture/attack.png", 0, 0, false);
-    putimage(200, 750, &atk);
-    IMAGE movep;
-    loadimage(&movep, L"./Game/picture/move.png", 0, 0, false);
-    putimage(300, 750, &movep);
-    IMAGE item;
-    loadimage(&item, L"./Game/picture/item.png", 0, 0, false);
-    putimage(400, 750, &item);
-    IMAGE end;
-    loadimage(&end, L"./Game/picture/end.png", 0, 0, false);
-    putimage(500, 750, &end);
-    IMAGE save;
-    loadimage(&save, L"./Game/picture/save.png", 0, 0, false);
-    putimage(600, 750, &save);
-    IMAGE load;
-    loadimage(&load, L"./Game/picture/load.png", 0, 0, false);
-    putimage(700, 750, &load);
-}
 void p_walk(player *p,enemy *e,string chose, int P_id, int id, int psize, int bsize) {
         if (chose == "w" && p[P_id].move > 0) {
             int rx, ry, m, X, Y, range[15][20];
@@ -900,16 +922,30 @@ void p_walk(player *p,enemy *e,string chose, int P_id, int id, int psize, int bs
             mciSendString(L"play ./Game/Sound/sgm/魔王魂_効果音_ワンポイント33.mp3 from 0", NULL, 0, NULL);
         }
     }
-void e_attack(arms *ar,player *p,enemy *e,int id,int P_id) {
+void e_attack(arms *ar,player *p,enemy *e,int id,int P_id,int bsize,int psize) {
     int rx, ry, ATK, AC, ax, ay;
         ry = (e[id].y - p[P_id].y) * (e[id].y > p[P_id].y) + (e[id].y - p[P_id].y) * (e[id].y < p[P_id].y) * -1; rx = (e[id].x - p[P_id].x) * (e[id].x > p[P_id].x) + (e[id].x - p[P_id].x) * (e[id].x < p[P_id].x) * -1;
         if (ar[e[id].baid].range >= rx + ry) {
             ay = e[id].y - p[P_id].y; ax = e[id].x - p[P_id].x;
             if (ay > 0 && ay > abs(ax)) {
+                e[id].pose = 4;
+            }
+            else if (ax > 0 && ax >=abs(ay)) {
+                e[id].pose = 2;
+            }
+            else if (ax<0 && abs(ax)>=abs(ay)) {
+                e[id].pose = 3;
+            }
+            else if (ay < 0 && abs(ay) > abs(ax)) {
+                e[id].pose = 1;
             }
             ATK = roll("", 2) + roll(ar[e[id].baid].hit, 1);
             AC = roll("", 2) + (p[P_id].dex - 10) / 2;
             if (ATK > AC) {
+                BeginBatchDraw();
+                maps(p, P_id, e, psize, bsize);/*地圖繪製*/
+                e_put(e, bsize);
+                p_put(p, psize);
                 int  DMG = roll(ar[e[id].baid].dmg, 1);
                 p[P_id].hp -= DMG;
                 TCHAR k[5];
@@ -932,12 +968,17 @@ void e_attack(arms *ar,player *p,enemy *e,int id,int P_id) {
                 outtextxy(1020, 30, dnu);
                 _stprintf(d, _T("%d"), DMG);
                 outtextxy(1030, 30, d);
+                EndBatchDraw();
                 IMAGE tri;
                 loadimage(&tri, L"./Game/picture/tri.png", 0, 0, false);
                 transparentimage(NULL, (e[id].x) * 48, ((e[id].y - 1) * 48), &tri, 0xFF55FF);
                 Sleep(1000);
             }
             else {         
+                BeginBatchDraw();
+                maps(p, P_id, e, psize, bsize);/*地圖繪製*/
+                e_put(e, bsize);
+                p_put(p, psize);
                 wchar_t w1[] = L"未命中";
                 outtextxy(48 * p[P_id].x, 48 * (p[P_id].y - 1) - 20, w1);
                 TCHAR d[5];
@@ -951,6 +992,7 @@ void e_attack(arms *ar,player *p,enemy *e,int id,int P_id) {
                 outtextxy(1020, 0, aC);
                 _stprintf(d, _T("%d"), AC);
                 outtextxy(1090, 0, d);
+                EndBatchDraw();
                 IMAGE tri;
                 loadimage(&tri, L"./Game/picture/tri.png", 0, 0, false);
                 transparentimage(NULL, (e[id].x) * 48, ((e[id].y - 1) * 48), &tri, 0xFF55FF);
@@ -1154,14 +1196,16 @@ BeginBatchDraw();
         putimage(960, 0, &back1);
         putimage(1025, 200, &aline);
         for (i = 0; i < psize; i++) {
-
+            
             transparentimage(NULL, 1040, 500 - (p[i].turn * 3), &p1, 0xFF55FF);
-            Sleep(30);
+           
         }
         for (i = 0; i < bsize; i++) {
-            transparentimage(NULL, 970, 500 - (e[i].turn * 3), &wolf, 0xFF55FF);
-            Sleep(30);
+            if (e[i].hp > 0) {
+                transparentimage(NULL, 970, 500 - (e[i].turn * 3), &wolf, 0xFF55FF);
+            }
         }
+        Sleep(60);
         EndBatchDraw();
             for (i = 0; i < psize; i++) {
                 if (p[i].turn >= 100) {
@@ -1344,6 +1388,7 @@ void Save(player* p, enemy* e, arms* ar, item* it,int P_id,int second,int psize,
                     fout << p[i].speed << endl;
                     fout << p[i].abox << endl;
                     fout << p[i].act << endl;
+                    fout << p[i].pose << endl;
                 }
                 for (i = 0; i < bsize; i++) {
                     fout << e[i].lv << endl;
@@ -1357,6 +1402,7 @@ void Save(player* p, enemy* e, arms* ar, item* it,int P_id,int second,int psize,
                     fout << e[i].turn << endl;
                     fout << e[i].move << endl;
                     fout << e[i].baid << endl;
+                    fout << e[i].pose << endl;
                 }
                 for (i = 0; i < 2; i++) {
                     fout << ar[i].mbullet << endl;
@@ -1374,10 +1420,23 @@ void Save(player* p, enemy* e, arms* ar, item* it,int P_id,int second,int psize,
 
             }
         }
+        IMAGE back1;
+        loadimage(&back1, L"./Game/picture/background2.png", 0, 0, false);
+        putimage(960, 0, &back1);
+        IMAGE wolf, p1;
+        loadimage(&wolf, L"./Game/picture/A_wolf.png", 0, 0, false);
+        loadimage(&p1, L"./Game/picture/A_p1.png", 0, 0, false);
+        for (i = 0; i < bsize; i++) {
+            transparentimage(NULL, 970, 500 - (e[i].turn * 3), &wolf, 0xFF55FF);
+        }
+        for (i = 0; i < psize; i++) {
+            transparentimage(NULL, 1040, 500 - (p[i].turn * 3), &p1, 0xFF55FF);
+        }
         }
 }
 void Load(player* p, enemy* e, arms* ar, item* it, int &P_id, int &second, int &psize, int &bsize, int &roundp, int &roundb, time_t &first, time_t &two, time_t &three, string &chose) {
     if (chose == "l") {
+
         string a, b = ".txt", read = "";
         int ssss = 1; j = 0;
         while (ssss != 0) {
@@ -1387,6 +1446,8 @@ void Load(player* p, enemy* e, arms* ar, item* it, int &P_id, int &second, int &
             IMAGE larrow; TCHAR d[5];
             cleardevice();
             BeginBatchDraw();
+            settextcolor(BLACK);
+            setbkmode(TRANSPARENT);
             for (i = 0; i < 7; i++) {
                 loadimage(&saveblock, L"./Game/picture/saveblock.png", 0, 0, false);
                 putimage(100, 30 + 128 * i, &saveblock); _stprintf(d, _T("%d"), i + 1 + j * 14); outtextxy(110, 40 + 128 * i, d);
@@ -1543,6 +1604,7 @@ void Load(player* p, enemy* e, arms* ar, item* it, int &P_id, int &second, int &
                 p[i].speed = z[k]; k++;
                 p[i].abox = z[k]; k++;
                  p[i].act = z[k]; k++;
+                 p[i].pose = z[k]; k++;
 }
             for (i = 0; i < bsize; i++) {
                  e[i].lv = z[k]; k++;
@@ -1556,6 +1618,7 @@ void Load(player* p, enemy* e, arms* ar, item* it, int &P_id, int &second, int &
                  e[i].turn = z[k]; k++;
                  e[i].move = z[k]; k++;
                  e[i].baid = z[k]; k++;
+                 e[i].pose = z[k]; k++;
             }
             for (i = 0; i < 2; i++) {
                ar[i].mbullet = z[k]; k++;
@@ -1573,45 +1636,105 @@ void Load(player* p, enemy* e, arms* ar, item* it, int &P_id, int &second, int &
 
             first = time(NULL);
         }
+        BeginBatchDraw();
+        IMAGE back1;
+        loadimage(&back1, L"./Game/picture/background2.png", 0, 0, false);
+        putimage(960,0,&back1);
+        IMAGE wolf, p1;
+        loadimage(&wolf, L"./Game/picture/A_wolf.png", 0, 0, false);
+        loadimage(&p1, L"./Game/picture/A_p1.png", 0, 0, false);
+        for (i = 0; i < bsize; i++) {
+            transparentimage(NULL, 970, 500 - (e[i].turn * 3), &wolf, 0xFF55FF);
+        }
+        for (i = 0; i < psize; i++) {
+            transparentimage(NULL, 1040, 500 - (p[i].turn * 3), &p1, 0xFF55FF);
+        }
+    }
+
+}
+
+int start() {
+    IMAGE start1, start2, startblock,loadblock;
+    loadimage(&start1, L"./Game/picture/start.png", 0, 0, false);
+    loadimage(&startblock, L"./Game/picture/start_block.png", 0, 0, false);
+    loadimage(&start2, L"./Game/picture/start2.png", 0, 0, false);
+    loadimage(&loadblock, L"./Game/picture/load_block.png", 0, 0, false);
+    bool T = true;
+    while (1) {
+        if (T == true) {
+            putimage(0, 0, &start1);
+            putimage(493, 739, &startblock);
+        }
+        else {
+            putimage(0, 0, &start2);
+            putimage(493, 739, &loadblock);
+        }
+        ExMessage m;
+        m = getmessage(EM_MOUSE);
+        switch (m.message)
+        {
+        case WM_LBUTTONDOWN:
+            if (m.x>300&&m.x<370&&m.y>730&&m.y<840) {
+                if (T == true) { T = false; }
+                else { T = true; }
+        }
+            else if (m.x>930&&m.y>740&&m.x<1000&&m.y<840) {
+                if (T == true) { T = false; }
+                else { T = true; }
+            }
+            else if (m.x>493&&m.y>739&& m.y<844&&m.x<802) {
+                if (T == true) {
+                    return 1;
+                }
+                else {
+
+                    return 0;
+                }
+            }
+            }
     }
 }
 int main() {    
-    initgraph(1280, 960);
-    settextstyle(15, 0, _T("台北黑體"));
+    initgraph(1296, 960);
+    settextstyle(18, 0, _T("Taipei Sans TC Beta"));
     HWND hWnd = GetHWnd();
     SetWindowText(hWnd,L"RPG");
     srand(time(NULL));
-    mciSendString(L"open ./Game/Sound/bgm/魔王魂_ファンタジー12.mp3", NULL, 0, NULL);
-    mciSendString(L"open ./Game/Sound/sgm/魔王魂_戦闘18.mp3", NULL, 0, NULL);
-    mciSendString(L"open ./Game/Sound/sgm/魔王魂_効果音_ワンポイント33.mp3", NULL, 0, NULL);
-    mciSendString(L"play ./Game/Sound/bgm/魔王魂_ファンタジー12.mp3 repeat", NULL, 0, NULL);
-    int  id, P_id, second,  load = 0;
+    int s=start();
+    int  id=0, P_id=0, second=0,  load = 0;
     player p[1];
     enemy e[2];
     arms  ar[2];
     item  it[1];
     int ix, iy, n,abox1[1];
     int  t, psize = 1, bsize = 2, roundp = 0, roundb = 0;
-    string  chose = "e" ;
-    string a, b = ".txt", read = "";
-    p[0].name = L"夏洛特"; p[0].story = L"主人公"; p[0].lv = 1; p[0].mhp = 10; p[0].hp = 10; p[0].dex = 10; p[0].move = 6; p[0].isize = 1; p[0].asize = 1; p[0].x = 10; p[0].y = 10; p[0].speed = 10; p[0].turn = 0; p[0].abox = 0; p[0].pose = 1;
-    e[0].name = L"野狼1"; e[0].story = L"團體行動的動物 隨著數量增加危險性也會大幅上升"; e[0].lv = 1; e[0].mhp = 11; e[0].hp = 11; e[0].dex = 15; e[0].move = 8;  e[0].x = 1; e[0].y = 3; e[0].speed = 14; e[0].turn = 0; e[0].baid = 1; e[0].str = 12; e[0].pose = 1;
-    e[1].name = L"野狼2"; e[1].story = L"團體行動的動物 隨著數量增加危險性也會大幅上升"; e[1].lv = 1; e[1].mhp = 11; e[1].hp = 11; e[1].dex = 15; e[1].move = 8;  e[1].x = 11; e[1].y = 11; e[1].speed = 14; e[1].turn = 0; e[1].baid = 1; e[1].str = 12; e[1].pose = 1;
-    ar[0].name = L"栓動步槍"; ar[0].dmg = "2d8"; ar[0].Dmg = L"2d8"; ar[0].bullet = 5; ar[0].mbullet = 5; ar[0].range=5;
-    ar[1].name = L"栓動步槍"; ar[1].dmg = "2d8"; ar[1].Dmg = L"2d8"; ar[1].hit = "1d4+2"; ar[1].range = 1; ar[1].bullet = 1; ar[1].mbullet = 1;
-    it[0].Name = L"通常彈"; it[0].name = "通常彈"; it[0].number = 30;
-    /*敵人*/
-    /*武器*/
-    second = 0; P_id = 0; id = 0;
+    string  chose = "l" ;
+    string a, b = ".txt", read = "";    
     time_t first=0, two=0,three=0;
-    maps(p, P_id, e, psize, bsize);/*地圖繪製*/
-    e_put(e, bsize);
-    p_put(p, psize);
-    END(p,e,chose, second,  P_id,  id, psize,  bsize,  roundp, roundb);
+    p[0].name = L"夏洛特"; p[0].story = L"主人公";
+    e[0].name = L"野狼1"; e[0].story = L"團體行動的動物 隨著數量增加危險性也會大幅上升";
+    e[1].name = L"野狼2"; e[1].story = L"團體行動的動物 隨著數量增加危險性也會大幅上升";
+    ar[0].name = L"栓動步槍"; ar[0].dmg = "2d8"; ar[0].Dmg = L"2d8"; ar[0].range = 5;
+    ar[1].name = L"爪子"; ar[1].dmg = "2d8"; ar[1].Dmg = L"2d8"; ar[1].hit = "1d4+2"; ar[1].range = 1;
+    it[0].Name = L"通常彈"; it[0].name = "通常彈";
+    if (s == 1) {
+        chose = "e";
+        maps(p, P_id, e, psize, bsize);/*地圖繪製*/
+        e_put(e, bsize);
+        p_put(p, psize);
+        END(p, e, chose, second, P_id, id, psize, bsize, roundp, roundb);
+    }
+    else if (s == 0) {
+        Load(p, e, ar, it, P_id, second, psize, bsize, roundp, roundb, first, two, three, chose);
+    }
+    mciSendString(L"open ./Game/Sound/bgm/魔王魂_ファンタジー12.mp3", NULL, 0, NULL);
+    mciSendString(L"open ./Game/Sound/sgm/魔王魂_戦闘18.mp3", NULL, 0, NULL);
+    mciSendString(L"open ./Game/Sound/sgm/魔王魂_効果音_ワンポイント33.mp3", NULL, 0, NULL);
+    mciSendString(L"play ./Game/Sound/bgm/魔王魂_ファンタジー12.mp3 repeat", NULL, 0, NULL);
     first = time(NULL);
     while (1) {
-        BeginBatchDraw();
         if (roundp == 1) {
+          
             BeginBatchDraw();
             maps(p,P_id,e,psize,bsize);/*地圖繪製*/   
             e_put(e, bsize);
@@ -1620,7 +1743,7 @@ int main() {
             acts(p,e,chose,P_id,bsize,id,psize);/*選項*/
             Save(p, e, ar, it, P_id, second, psize, bsize, roundp, roundb, first, two, three, chose);
             Load(p, e, ar, it, P_id, second, psize, bsize, roundp, roundb, first, two, three, chose);
-            p_attack(p,e,ar,P_id,id,chose,bsize);/*攻擊*/
+            p_attack(p,e,ar,P_id,id,chose,bsize,psize);/*攻擊*/
             p_item(p,ar,it,chose,P_id);/*物品*/
             p_walk(p,e,chose, P_id ,id, psize, bsize);/*移動*/
             END(p,e,chose, second, P_id, id, psize,  bsize, roundp, roundb);/*結束行動*/
@@ -1635,7 +1758,7 @@ int main() {
             EndBatchDraw();
             e_target(e, p, P_id, id, psize);         
             e_walk(e, p, id, P_id, bsize, psize);
-            e_attack(ar,p,e,id,P_id);
+            e_attack(ar,p,e,id,P_id,bsize,psize);
             END(p, e, chose, second, P_id, id, psize, bsize, roundp, roundb);/*結束行動*/
         }
     }
