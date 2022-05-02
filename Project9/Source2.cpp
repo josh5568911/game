@@ -33,7 +33,13 @@ void transparentimage(IMAGE* dstimg, int x, int y, IMAGE* srcimg, UINT transpare
     int h = srcimg->getheight();
 
     // 使用 Windows GDI 函数实现透明位图
-    TransparentBlt(dstDC, x, y, w, h, srcDC, 0, 0, w, h, transparentcolor);
+    TransparentBlt(dstDC, x, y, w, h, srcDC, 0,0, w, h, transparentcolor);
+}
+void transparentimage(IMAGE* dstimg, int x, int y, IMAGE* srcimg, UINT transparentcolor,int a,int b,int c,int d)
+{
+    HDC dstDC = GetImageHDC(dstimg);
+    HDC srcDC = GetImageHDC(srcimg);
+    TransparentBlt(dstDC, x, y, c,d, srcDC, a, b, c, d, transparentcolor);
 }
 void transparentimage(IMAGE* dstimg, int x, int y, IMAGE* srcimg)
 {
@@ -154,6 +160,14 @@ class map {
 public:
     int x;
     int y;
+    int psize;
+    int nsize;
+    string block;
+};
+class npc {
+public:
+    wstring name;
+    int avatar,x,y;
 };
 void p_put(player *p,int psize) {
     IMAGE p1, p2, p3, p4;
@@ -1657,7 +1671,33 @@ void Load(player* p, enemy* e, arms* ar, item* it, int &P_id, int &second, int &
     }
 
 }
-void m_map(int m_id) {
+void n_put(npc* n,int id) {
+    IMAGE t;
+    wstring m;
+    m = std::to_wstring(n[id].avatar);
+    m = L"./Game/picture/npc" + m + L".png";
+    LPCTSTR path = m.c_str();
+    loadimage(&t, path, 0, 0, false);
+
+    transparentimage(NULL, n[0].x * 48, n[0].y  * 48-16, &t, 0xFF55FF,80,0,48,64);
+}
+void m_put(player* p) {
+    IMAGE p1;
+    loadimage(&p1, L"./Game/picture/p0.png", 0, 0, false);
+    if (p[0].pose == 1) {
+            transparentimage(NULL, p[0].x * 48,p[0].y*48-16, &p1, 0xFF55FF, 64+16, 0, 48, 64);
+    }
+    else if (p[0].pose == 2) {
+        transparentimage(NULL, p[0].x * 48, p[0].y * 48-16, &p1, 0xFF55FF, 64+16, 64, 48, 64);
+    }
+    else if (p[0].pose == 3) {
+        transparentimage(NULL, p[0].x * 48, p[0].y * 48-16, &p1, 0xFF55FF, 64+16, 128,48, 64);
+    }
+    else if (p[0].pose == 4) {
+        transparentimage(NULL, p[0].x * 48, p[0].y * 48-16, &p1, 0xFF55FF, 64+16, 192, 48, 64);
+    }
+}
+void m_map(int m_id,npc *n,int n_id) {
     IMAGE map;
     wstring m;
     m=std::to_wstring(m_id);   
@@ -1665,8 +1705,9 @@ void m_map(int m_id) {
     LPCTSTR path=m.c_str();
     loadimage(&map, path, 0, 0, false);
     putimage(0, 0, &map);
+    n_put(n, n_id);
 }
-void m_act(player *p,map *m,int m_id) {
+string  m_act(player *p,map *m,npc *n,int m_id) {
     ExMessage ww;
     char w;
     while (1) {
@@ -1674,96 +1715,254 @@ void m_act(player *p,map *m,int m_id) {
         switch (ww.message) {           
         case WM_KEYDOWN:
             if (ww.vkcode == VK_DOWN) {
-                if (p[0].y < m[m_id].y - 2) {
+                if (p[0].y < m[m_id].y - 2&&ss[p[0].y+1][p[0].x]==0) {
                     p[0].y++;
                     p[0].pose = 1;
-                    return;
+                    return "w";
+                }
+                else {
+                    p[0].pose = -1; return"w";
                 }
             }
             else if (ww.vkcode ==VK_LEFT ) {
-                if (p[0].x > 0) {
+                if (p[0].x > 0 && ss[p[0].y][p[0].x-1] == 0) {
                     p[0].x--;
                     p[0].pose = 2;
-                    return;
+                    return"w";
+                }
+                else {
+                    p[0].pose = -2; return"w";
                 }
             }
             else if (ww.vkcode == VK_RIGHT) {
-                if (p[0].x < m[m_id].x - 1) {
+                if (p[0].x < m[m_id].x - 1 && ss[p[0].y][p[0].x+1] == 0) {
                     p[0].x++;
                     p[0].pose = 3;
-                    return;
+                    return"w";
+                }
+                else {
+                    p[0].pose = -3; return"w";
                 }
             }
             else if (ww.vkcode == VK_UP) {
-                if (p[0].y > 0) {
+                if (p[0].y > 0 && ss[p[0].y-1][p[0].x] == 0) {
                     p[0].y--;
                     p[0].pose = 4;
-                    return;
+                    return"w";
+                }
+                else {
+                    p[0].pose = -4; return"w";
+                }
+            }
+            else if (ww.vkcode == VK_ESCAPE) {
+
+            }
+            else if (ww.vkcode == VK_SPACE) {
+                if (p[0].pose == 1) {
+                    for (i = 0; i < m[m_id].nsize; i++) {
+                        if (n[i].x == p[0].x && n[i].y == p[0].y+1) {
+                            return"t";
+                        }
+                    }
+                }
+                else if (p[0].pose == 2) {
+                    for (i = 0; i < m[m_id].nsize; i++) {
+                        if (n[i].x == p[0].x - 1 && n[i].y == p[0].y) {
+                            return"t";
+                        }
+                    }
+                }
+                else if (p[0].pose == 3) {
+                    for (i = 0; i < m[m_id].nsize; i++) {
+                        if (n[i].x == p[0].x + 1 && n[i].y == p[0].y) {
+                            return"t";
+                        }
+                    }
+                }
+                else if (p[0].pose == 4) {
+                    for (i = 0; i < m[m_id].nsize; i++) {
+                        if (n[i].x == p[0].x && n[i].y == p[0].y - 1) {
+                            return"t";
+                        }
+                    }
                 }
             }
 }
     }
 }
-void m_walk(player *p,int m_id) {
-    IMAGE p1, p2, p3, p4;
-    loadimage(&p1, L"./Game/picture/p1.png", 0, 0, false);
-    loadimage(&p2, L"./Game/picture/p2.png", 0, 0, false);
-    loadimage(&p3, L"./Game/picture/p3.png", 0, 0, false);
-    loadimage(&p4, L"./Game/picture/p4.png", 0, 0, false);
+void m_walk(player *p,int m_id,npc *n,int n_id) {
+    if (p[0].pose < 0) {
+        p[0].pose *= -1;
+        BeginBatchDraw();
+        m_map(m_id, n, n_id);
+        return;
+    }
+    IMAGE p1,map;
+    loadimage(&p1, L"./Game/picture/p0.png", 0, 0, false);
+    wstring m;
+    m = std::to_wstring(m_id);
+    m = L"./Game/picture/1_map" + m + L".png";
+    LPCTSTR path = m.c_str();
+    loadimage(&map, path, 0, 0, false);
     if (p[0].pose == 1) {
-        for (i = 0; i < 48; i += 12) {
+        for (i = 0; i <=48; i += 12) {
+            i += 12;
+
             BeginBatchDraw();
-            m_map(m_id);
-            transparentimage(NULL,  p[0].x * 48,(p[0].y-1) * 48+i, &p1, 0xFF55FF);
+            m_map(m_id, n, n_id);
+            transparentimage(NULL,  p[0].x * 48,(p[0].y-1) * 48+i-16, &p1, 0xFF55FF, 64+ 16, 0, 48, 64);
+            transparentimage(NULL, 0, 0, &map, 0xFF55FF);
             EndBatchDraw();
-            Sleep(1);
+            i += 12;
+            Sleep(10);
+            BeginBatchDraw();
+            m_map(m_id, n, n_id);
+            transparentimage(NULL, p[0].x * 48, (p[0].y - 1) * 48 + i - 16, &p1, 0xFF55FF, 16, 0, 48, 64);
+            transparentimage(NULL, 0, 0, &map, 0xFF55FF);
+            EndBatchDraw();
+            Sleep(10);
+            i += 12;
+            BeginBatchDraw();
+            m_map(m_id, n, n_id);
+            transparentimage(NULL, p[0].x * 48, (p[0].y - 1) * 48 + i - 16, &p1, 0xFF55FF, 128 + 16, 0, 48, 64);
+            transparentimage(NULL, 0, 0, &map, 0xFF55FF);
+            EndBatchDraw();
+            Sleep(10);
+            i += 12;
+            BeginBatchDraw();
+            m_map(m_id, n, n_id);
+            transparentimage(NULL, p[0].x * 48, (p[0].y - 1) * 48 + i - 16, &p1, 0xFF55FF, 64 + 16, 0, 48, 64);
+            transparentimage(NULL, 0, 0, &map, 0xFF55FF);
+            EndBatchDraw();
+            Sleep(10);
+            ss[p[0].y-1][p[0].x] = 0;
+            ss[p[0].y][p[0].x] = 1;
         }
     }
     else if (p[0].pose == 2) {
-        for (i = 0; i < 48; i += 12) {
+        for (i = 0; i <=48; i += 12) {
+            i += 12;
             BeginBatchDraw();
-            m_map(m_id);
-            transparentimage(NULL, (p[0].x+1) * 48-i, p[0].y * 48 , &p2, 0xFF55FF);
+            m_map(m_id, n, n_id);
+            transparentimage(NULL, (p[0].x+1) * 48-i, p[0].y * 48- 16, &p1, 0xFF55FF, 64 + 16, 64, 48, 64);
+            transparentimage(NULL, 0, 0, &map, 0xFF55FF);
             EndBatchDraw();
-            Sleep(1);
+            i += 12;
+            Sleep(10);
+            BeginBatchDraw();
+            m_map(m_id, n, n_id);
+            transparentimage(NULL, (p[0].x + 1) * 48-i, p[0].y  * 48  - 16, &p1, 0xFF55FF, 16, 64, 48, 64);
+            transparentimage(NULL, 0, 0, &map, 0xFF55FF);
+            EndBatchDraw();
+            Sleep(10);
+            i += 12;
+            BeginBatchDraw();
+            m_map(m_id, n, n_id);
+            transparentimage(NULL, (p[0].x + 1) * 48-i,p[0].y * 48  - 16, &p1, 0xFF55FF, 128 + 16, 64, 48, 64);
+            transparentimage(NULL, 0, 0, &map, 0xFF55FF);
+            EndBatchDraw();
+            Sleep(10);
+            i += 12;
+            BeginBatchDraw();
+            m_map(m_id, n, n_id);
+            transparentimage(NULL, (p[0].x + 1) * 48-i, p[0].y  * 48 - 16, &p1, 0xFF55FF, 64 + 16, 64, 48, 64);
+            transparentimage(NULL, 0, 0, &map, 0xFF55FF);
+            EndBatchDraw();
+            Sleep(10);
+            ss[p[0].y ][p[0].x+1] = 0;
+            ss[p[0].y][p[0].x] = 1;
         }
     }
     else if (p[0].pose == 3) {
-        for (i = 0; i < 48; i += 12) {
+        for (i = 0; i <=48; i += 12) {
+            i += 12;
             BeginBatchDraw();
-            m_map(m_id);
-            transparentimage(NULL, (p[0].x-1) * 48+i, p[0].y * 48, &p3, 0xFF55FF);
+            m_map(m_id, n, n_id);
+            transparentimage(NULL, (p[0].x-1) * 48+i,p[0].y  * 48  - 16, &p1, 0xFF55FF, 64 + 16, 128, 48, 64);
+            transparentimage(NULL, 0, 0, &map, 0xFF55FF);
             EndBatchDraw();
-            Sleep(1);
+            i += 12;
+            Sleep(10);
+            BeginBatchDraw();
+            m_map(m_id, n, n_id);
+            transparentimage(NULL, (p[0].x - 1) * 48 + i, p[0].y * 48 - 16, &p1, 0xFF55FF, 16,128, 48, 64);
+            transparentimage(NULL, 0, 0, &map, 0xFF55FF);
+            EndBatchDraw();
+            Sleep(10);
+            i += 12;
+            BeginBatchDraw();
+            m_map(m_id, n, n_id);
+            transparentimage(NULL,  (p[0].x - 1) * 48 + i, p[0].y * 48 - 16, &p1, 0xFF55FF, 128 + 16, 128, 48, 64);
+            transparentimage(NULL, 0, 0, &map, 0xFF55FF);
+            EndBatchDraw();
+            Sleep(10);
+            i += 12;
+            BeginBatchDraw();
+            m_map(m_id, n, n_id);
+            transparentimage(NULL, (p[0].x - 1) * 48 + i, p[0].y * 48 - 16, &p1, 0xFF55FF, 64 + 16, 128, 48, 64);
+            transparentimage(NULL, 0, 0, &map, 0xFF55FF);
+            EndBatchDraw();
+            Sleep(10);
+            ss[p[0].y ][p[0].x-1] = 0;
+            ss[p[0].y][p[0].x] = 1;
         }
     }
     else if (p[0].pose == 4) {
-        for (i = 0; i < 48; i += 12) {
+        for (i = 0; i <=48; i += 12) {
+            i += 12;
             BeginBatchDraw();
-            m_map(m_id);
-            transparentimage(NULL, p[0].x * 48, (p[0].y + 1) * 48 - i, &p4, 0xFF55FF);
+            m_map(m_id, n, n_id);
+            transparentimage(NULL, p[0].x * 48, (p[0].y + 1) * 48 - i - 16, &p1, 0xFF55FF, 64 + 16, 192, 48, 64);
+            transparentimage(NULL, 0, 0, &map, 0xFF55FF);
             EndBatchDraw();
-            Sleep(1);
+            i += 12;
+            Sleep(10);
+            BeginBatchDraw();
+            m_map(m_id, n, n_id);
+            transparentimage(NULL, p[0].x * 48, (p[0].y +1) * 48 - i - 16, &p1, 0xFF55FF, 16, 192, 48, 64);
+            transparentimage(NULL, 0, 0, &map, 0xFF55FF);
+            EndBatchDraw();
+            Sleep(10);
+            i += 12;
+            BeginBatchDraw();
+            m_map(m_id, n, n_id);
+            transparentimage(NULL, p[0].x * 48, (p[0].y + 1) * 48 - i - 16, &p1, 0xFF55FF, 128 + 16,192, 48, 64);
+            transparentimage(NULL, 0, 0, &map, 0xFF55FF);
+            EndBatchDraw();
+            Sleep(10);
+            i += 12;
+            BeginBatchDraw();
+            m_map(m_id, n, n_id);
+            transparentimage(NULL, p[0].x * 48, (p[0].y + 1) * 48 - i - 16, &p1, 0xFF55FF, 64 + 16,192, 48, 64);
+            transparentimage(NULL, 0, 0, &map, 0xFF55FF);
+            EndBatchDraw();
+            Sleep(10);
+            
+            ss[p[0].y + 1][p[0].x] = 0;
+            ss[p[0].y][p[0].x] = 1;
         }
     }
 }
-void m_put(player* p) {
-    IMAGE p1, p2, p3, p4;
-    loadimage(&p1, L"./Game/picture/p1.png", 0, 0, false);
-    loadimage(&p2, L"./Game/picture/p2.png", 0, 0, false);
-    loadimage(&p3, L"./Game/picture/p3.png", 0, 0, false);
-    loadimage(&p4, L"./Game/picture/p4.png", 0, 0, false);
-    if (p[0].pose == 1) {
-            transparentimage(NULL, p[0].x * 48,p[0].y*48, &p1, 0xFF55FF);
-    }
-    else if (p[0].pose == 2) {
-        transparentimage(NULL, p[0].x * 48, p[0].y*48, &p2, 0xFF55FF);
-    }
-    else if (p[0].pose == 3) {
-        transparentimage(NULL, p[0].x * 48, p[0].y*48, &p3, 0xFF55FF);
-    }
-    else if (p[0].pose == 4) {
-        transparentimage(NULL, p[0].x * 48, p[0].y*48, &p4, 0xFF55FF);
+void m_set(map* m, npc* n, player* p, int m_id) {
+    int k;
+    for (i = 0; i < m[m_id].y; i++) { 
+        for (j = 0; j < m[m_id].x; j++) {
+            ss[i][j] = 0;
+            if (m[m_id].block[i * 27 + j] == '1') {
+                ss[i][j] = 1;
+            }
+           
+            for (k = 0; k < m[m_id].psize; k++) {
+                if (j == p[k].x && i == p[k].y) {
+                    ss[i][j] = 1;
+                }
+            }
+            for (k = 0; k < m[m_id].nsize; k++) {
+                if (j == n[k].x && i == n[k].y) {
+                    ss[i][j] = 1;
+                }
+            }
+        }
     }
 }
 int start() {
@@ -1807,6 +2006,14 @@ int start() {
             }
     }
 }
+void talk(npc *n,player *p) {
+    IMAGE t_block;
+    loadimage(&t_block, L"./Game/picture/saveblock.png", 0, 0, false);
+    putimage(0, 796, &t_block);
+}
+void check() {
+
+}
 int main() {    
     initgraph(1296, 960);
     settextstyle(18, 0, _T("Taipei Sans TC Beta"));
@@ -1814,31 +2021,52 @@ int main() {
     SetWindowText(hWnd,L"RPG");
     srand(time(NULL));
     int s=start();
-    int  id=0, P_id=0,m_id=0, second=0,  load = 0;
+    int  id=0, P_id=0,m_id=0, second=0,  load = 0,n_id=0;
     player p[1];
     enemy e[2];
     arms  ar[2];
     item  it[1];
     map   m[1];
-    int ix, iy, n,abox1[1];
+    npc  n[1];
+    int ix, iy, abox1[1];
     int  t, psize = 1, bsize = 2, roundp = 0, roundb = 0;
     string  chose = "l" ;
     string a, b = ".txt", read = "";    
     time_t first=0, two=0,three=0;
-    m[0].x = 27; m[0].y = 20;
+    m[0].x = 27; m[0].y = 20; m[0].psize = 1; m[0].nsize = 1; m[0].block ="000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
     p[0].name = L"夏洛特"; p[0].story = L"主人公"; p[0].lv = 1; p[0].mhp = 10; p[0].hp = 10; p[0].dex = 10; p[0].move = 6; p[0].isize = 1; p[0].asize = 1; p[0].x = 10; p[0].y = 10; p[0].speed = 10; p[0].turn = 0; p[0].abox = 0; p[0].pose = 1;
     e[0].name = L"野狼1"; e[0].story = L"團體行動的動物 隨著數量增加危險性也會大幅上升";
     e[1].name = L"野狼2"; e[1].story = L"團體行動的動物 隨著數量增加危險性也會大幅上升";
     ar[0].name = L"栓動步槍"; ar[0].dmg = "2d8"; ar[0].Dmg = L"2d8"; ar[0].range = 5;
     ar[1].name = L"爪子"; ar[1].dmg = "2d8"; ar[1].Dmg = L"2d8"; ar[1].hit = "1d4+2"; ar[1].range = 1;
     it[0].Name = L"通常彈"; it[0].name = "通常彈";
+    n[0].name = L"朱利安"; n[0].x = 8; n[0].y=9; n[0].avatar=1;
     if (s == 1) {
-       m_map(m_id); m_put(p);
-        while (1) {
-            m_act(p,m,m_id);
+        m_map(m_id, n, n_id); m_put(p); m_set(m,n,p,m_id);
+            IMAGE  map;
+            wstring m1;
+            m1= std::to_wstring(m_id);
+            m1= L"./Game/picture/1_map" + m1 + L".png";
+            LPCTSTR path = m1.c_str();
+            loadimage(&map, path, 0, 0, false);
+            string g;
+        while (1) { 
+            g=m_act(p,m,n,m_id);
             flushmessage(EM_KEY);
-            m_walk(p,m_id);
-            
+            if (g == "w") {
+                m_walk(p, m_id, n, n_id);
+                m_put(p);
+                transparentimage(NULL, 0, 0, &map, 0xFF55FF);
+                n_put(n, n_id);
+                EndBatchDraw();
+            }
+            if (g == "t") {
+                talk(n,p);
+            }
+            if (g == "esc") {
+
+            }
+            check();
         }
     }
     else if (s == 0) {
