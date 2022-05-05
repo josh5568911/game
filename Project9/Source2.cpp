@@ -2,6 +2,7 @@
 #pragma comment(lib,"winmm.lib") 
 #pragma comment(lib, "user32")
 #pragma comment( lib, "MSIMG32.LIB")
+#pragma comment(lib,"comsuppw.lib")
 #include<iostream>
 #include<cstdlib>
 #include<ctime>
@@ -22,6 +23,7 @@
 #include <tchar.h>
 #include <codecvt>
 #include<queue>
+#include<comutil.h>
 using namespace std;
 int i, j, ss[200][150];
 string s[26][60];
@@ -80,6 +82,20 @@ void transparentimage(IMAGE* dstimg, int x, int y, IMAGE* srcimg)
         dst += dst_width;
         src += src_width;
     }
+}
+wstring string2wstring(const string &s) {
+    _bstr_t t= s.c_str();
+    wchar_t* pwchar = (wchar_t*)t;
+    wstring result = pwchar;
+    return result;
+}
+std::wstring readFile(const char* filename)
+{
+    std::wifstream wif(filename);
+    wif.imbue(std::locale(std::locale::empty(), new std::codecvt_utf8<wchar_t>));
+    std::wstringstream wss;
+    wss << wif.rdbuf();
+    return wss.str();
 }
 int roll(string d, int a) {
     int t = 0, s = 0, g = 0, n = 1, k, j, l, sum = 0;
@@ -177,7 +193,7 @@ void p_put(player *p,int psize) {
     loadimage(&p4, L"./Game/picture/p4.png", 0, 0, false);
         for (int I = 0; I < psize; I++) {
             IMAGE c;
-            loadimage(&c, L"./Game/picture/c.png", 0, 0, false);
+            loadimage(&c, L"./Game/picture/player0.png", 0, 0, false);
             transparentimage(NULL, 0, 730, &c, 0xFF55FF);
             wchar_t* ptr = _wcsdup(p[I].name.c_str());
             outtextxy(60, 721, ptr);
@@ -1697,15 +1713,17 @@ void m_put(player* p) {
         transparentimage(NULL, p[0].x * 48, p[0].y * 48-16, &p1, 0xFF55FF, 64+16, 192, 48, 64);
     }
 }
-void m_map(int m_id,npc *n,int n_id) {
+void m_map(map *m,int m_id,npc *n) {
     IMAGE map;
-    wstring m;
-    m=std::to_wstring(m_id);   
-    m = L"./Game/picture/map"+m+L".png";
-    LPCTSTR path=m.c_str();
+    wstring mm;
+    mm=std::to_wstring(m_id);
+    mm= L"./Game/picture/map"+mm+L".png";
+    LPCTSTR path=mm.c_str();
     loadimage(&map, path, 0, 0, false);
     putimage(0, 0, &map);
-    n_put(n, n_id);
+    for (int I = 0; I < m[m_id].nsize; I++) {
+        n_put(n, I);
+    }
 }
 string  m_act(player *p,map *m,npc *n,int m_id) {
     ExMessage ww;
@@ -1790,51 +1808,50 @@ string  m_act(player *p,map *m,npc *n,int m_id) {
 }
     }
 }
-void m_walk(player *p,int m_id,npc *n,int n_id) {
+void m_walk(map *m,player *p,int m_id,npc *n) {
     if (p[0].pose < 0) {
         p[0].pose *= -1;
         BeginBatchDraw();
-        m_map(m_id, n, n_id);
+        m_map(m,m_id, n);
         return;
     }
     IMAGE p1,map;
     loadimage(&p1, L"./Game/picture/p0.png", 0, 0, false);
-    wstring m;
-    m = std::to_wstring(m_id);
-    m = L"./Game/picture/1_map" + m + L".png";
-    LPCTSTR path = m.c_str();
+    wstring mm;
+    mm = std::to_wstring(m_id);
+    mm = L"./Game/picture/1_map" + mm + L".png";
+    LPCTSTR path = mm.c_str();
     loadimage(&map, path, 0, 0, false);
     if (p[0].pose == 1) {
         for (i = 0; i <=48; i += 12) {
             i += 12;
 
             BeginBatchDraw();
-            m_map(m_id, n, n_id);
+            m_map(m,m_id, n);
             transparentimage(NULL,  p[0].x * 48,(p[0].y-1) * 48+i-16, &p1, 0xFF55FF, 64+ 16, 0, 48, 64);
             transparentimage(NULL, 0, 0, &map, 0xFF55FF);
             EndBatchDraw();
             i += 12;
             Sleep(10);
             BeginBatchDraw();
-            m_map(m_id, n, n_id);
+            m_map(m, m_id, n);
             transparentimage(NULL, p[0].x * 48, (p[0].y - 1) * 48 + i - 16, &p1, 0xFF55FF, 16, 0, 48, 64);
             transparentimage(NULL, 0, 0, &map, 0xFF55FF);
             EndBatchDraw();
             Sleep(10);
             i += 12;
             BeginBatchDraw();
-            m_map(m_id, n, n_id);
+            m_map(m, m_id, n);
             transparentimage(NULL, p[0].x * 48, (p[0].y - 1) * 48 + i - 16, &p1, 0xFF55FF, 128 + 16, 0, 48, 64);
             transparentimage(NULL, 0, 0, &map, 0xFF55FF);
             EndBatchDraw();
             Sleep(10);
             i += 12;
             BeginBatchDraw();
-            m_map(m_id, n, n_id);
+            m_map(m, m_id, n);
             transparentimage(NULL, p[0].x * 48, (p[0].y - 1) * 48 + i - 16, &p1, 0xFF55FF, 64 + 16, 0, 48, 64);
             transparentimage(NULL, 0, 0, &map, 0xFF55FF);
             EndBatchDraw();
-            Sleep(10);
             ss[p[0].y-1][p[0].x] = 0;
             ss[p[0].y][p[0].x] = 1;
         }
@@ -1843,32 +1860,31 @@ void m_walk(player *p,int m_id,npc *n,int n_id) {
         for (i = 0; i <=48; i += 12) {
             i += 12;
             BeginBatchDraw();
-            m_map(m_id, n, n_id);
+            m_map(m, m_id, n);
             transparentimage(NULL, (p[0].x+1) * 48-i, p[0].y * 48- 16, &p1, 0xFF55FF, 64 + 16, 64, 48, 64);
             transparentimage(NULL, 0, 0, &map, 0xFF55FF);
             EndBatchDraw();
             i += 12;
             Sleep(10);
             BeginBatchDraw();
-            m_map(m_id, n, n_id);
+            m_map(m, m_id, n);
             transparentimage(NULL, (p[0].x + 1) * 48-i, p[0].y  * 48  - 16, &p1, 0xFF55FF, 16, 64, 48, 64);
             transparentimage(NULL, 0, 0, &map, 0xFF55FF);
             EndBatchDraw();
             Sleep(10);
             i += 12;
             BeginBatchDraw();
-            m_map(m_id, n, n_id);
+            m_map(m, m_id, n);
             transparentimage(NULL, (p[0].x + 1) * 48-i,p[0].y * 48  - 16, &p1, 0xFF55FF, 128 + 16, 64, 48, 64);
             transparentimage(NULL, 0, 0, &map, 0xFF55FF);
             EndBatchDraw();
             Sleep(10);
             i += 12;
             BeginBatchDraw();
-            m_map(m_id, n, n_id);
+            m_map(m, m_id, n);
             transparentimage(NULL, (p[0].x + 1) * 48-i, p[0].y  * 48 - 16, &p1, 0xFF55FF, 64 + 16, 64, 48, 64);
             transparentimage(NULL, 0, 0, &map, 0xFF55FF);
             EndBatchDraw();
-            Sleep(10);
             ss[p[0].y ][p[0].x+1] = 0;
             ss[p[0].y][p[0].x] = 1;
         }
@@ -1877,32 +1893,31 @@ void m_walk(player *p,int m_id,npc *n,int n_id) {
         for (i = 0; i <=48; i += 12) {
             i += 12;
             BeginBatchDraw();
-            m_map(m_id, n, n_id);
+            m_map(m, m_id, n);
             transparentimage(NULL, (p[0].x-1) * 48+i,p[0].y  * 48  - 16, &p1, 0xFF55FF, 64 + 16, 128, 48, 64);
             transparentimage(NULL, 0, 0, &map, 0xFF55FF);
             EndBatchDraw();
             i += 12;
             Sleep(10);
             BeginBatchDraw();
-            m_map(m_id, n, n_id);
+            m_map(m, m_id, n);
             transparentimage(NULL, (p[0].x - 1) * 48 + i, p[0].y * 48 - 16, &p1, 0xFF55FF, 16,128, 48, 64);
             transparentimage(NULL, 0, 0, &map, 0xFF55FF);
             EndBatchDraw();
             Sleep(10);
             i += 12;
             BeginBatchDraw();
-            m_map(m_id, n, n_id);
+            m_map(m, m_id, n);
             transparentimage(NULL,  (p[0].x - 1) * 48 + i, p[0].y * 48 - 16, &p1, 0xFF55FF, 128 + 16, 128, 48, 64);
             transparentimage(NULL, 0, 0, &map, 0xFF55FF);
             EndBatchDraw();
             Sleep(10);
             i += 12;
             BeginBatchDraw();
-            m_map(m_id, n, n_id);
+            m_map(m, m_id, n);
             transparentimage(NULL, (p[0].x - 1) * 48 + i, p[0].y * 48 - 16, &p1, 0xFF55FF, 64 + 16, 128, 48, 64);
             transparentimage(NULL, 0, 0, &map, 0xFF55FF);
             EndBatchDraw();
-            Sleep(10);
             ss[p[0].y ][p[0].x-1] = 0;
             ss[p[0].y][p[0].x] = 1;
         }
@@ -1911,33 +1926,31 @@ void m_walk(player *p,int m_id,npc *n,int n_id) {
         for (i = 0; i <=48; i += 12) {
             i += 12;
             BeginBatchDraw();
-            m_map(m_id, n, n_id);
+            m_map(m, m_id, n);
             transparentimage(NULL, p[0].x * 48, (p[0].y + 1) * 48 - i - 16, &p1, 0xFF55FF, 64 + 16, 192, 48, 64);
             transparentimage(NULL, 0, 0, &map, 0xFF55FF);
             EndBatchDraw();
             i += 12;
             Sleep(10);
             BeginBatchDraw();
-            m_map(m_id, n, n_id);
+            m_map(m, m_id, n);
             transparentimage(NULL, p[0].x * 48, (p[0].y +1) * 48 - i - 16, &p1, 0xFF55FF, 16, 192, 48, 64);
             transparentimage(NULL, 0, 0, &map, 0xFF55FF);
             EndBatchDraw();
             Sleep(10);
             i += 12;
             BeginBatchDraw();
-            m_map(m_id, n, n_id);
+            m_map(m, m_id, n);
             transparentimage(NULL, p[0].x * 48, (p[0].y + 1) * 48 - i - 16, &p1, 0xFF55FF, 128 + 16,192, 48, 64);
             transparentimage(NULL, 0, 0, &map, 0xFF55FF);
             EndBatchDraw();
             Sleep(10);
             i += 12;
             BeginBatchDraw();
-            m_map(m_id, n, n_id);
+            m_map(m, m_id, n);
             transparentimage(NULL, p[0].x * 48, (p[0].y + 1) * 48 - i - 16, &p1, 0xFF55FF, 64 + 16,192, 48, 64);
             transparentimage(NULL, 0, 0, &map, 0xFF55FF);
-            EndBatchDraw();
-            Sleep(10);
-            
+            EndBatchDraw();           
             ss[p[0].y + 1][p[0].x] = 0;
             ss[p[0].y][p[0].x] = 1;
         }
@@ -2006,10 +2019,109 @@ int start() {
             }
     }
 }
-void talk(npc *n,player *p) {
-    IMAGE t_block;
-    loadimage(&t_block, L"./Game/picture/saveblock.png", 0, 0, false);
-    putimage(0, 796, &t_block);
+void talk(map *m,npc* n, player* p,int m_id) {
+    int k=0, w=0,q=0,P=0,N=0;
+    settextcolor(WHITE);
+    setbkmode(TRANSPARENT);
+    settextstyle(30, 0, _T("Taipei Sans TC Beta"));
+    string a, b = ".txt";
+    string number;
+    IMAGE t_block,a1,tri;
+    ExMessage ww;
+    loadimage(&t_block, L"./Game/picture/talkblock.png", 0, 0, false);
+    loadimage(&tri,L"./Game/picture/talktri.png",0,0,false);
+    putimage(0, 696, &t_block);
+    a = std::to_string(i);    
+    string file = "./Game/story/talk" + a + b;
+    const char* c = file.c_str();
+    std::wstring src = readFile(c);
+    for (i = 0; i < src.size(); i++) {
+        if (src[i] == 'n') {
+            N = 1; P = 0;
+            if (q == 1) {
+                transparentimage(NULL, 630, 900, &tri, 0xFF55FF);
+                flushmessage(EM_KEY);
+                while (1) {
+                    ww = getmessage(EM_KEY);
+                        if (ww.vkcode == VK_SPACE) {
+                            k = 0; w = 0;
+                            flushmessage(EM_KEY);
+                            Sleep(500);
+                            putimage(0, 696, &t_block);
+                            break;
+                        }
+                    
+                }
+            }
+            putimage(0, 696, &t_block);
+            number = "";
+        }
+        else if (src[i] == 'p') {
+            P = 1; N = 0;
+            if (q == 1) {
+                transparentimage(NULL, 630, 900, &tri, 0xFF55FF);
+                flushmessage(EM_KEY);
+                while (1) {
+                    ww = getmessage(EM_KEY);
+                        if (ww.vkcode == VK_SPACE) { 
+                            k = 0; w = 0;
+                            flushmessage(EM_KEY);
+                            Sleep(500);                  
+                            putimage(0, 696, &t_block);
+                            break;
+                        }
+                }
+            }
+            putimage(0, 696, &t_block);
+            number = "";
+        }
+        else if (src[i] >= '0' && src[i]<='9') {
+            number += src[i];
+        }
+        else if (src[i] == '\n') {
+            k++;
+        }
+        else {
+            q = 1;
+            if (N == 1) {
+                int J = stoi(number);
+
+                file = "./Game/picture/t_npc" + number + ".png";
+                wstring wfile = string2wstring(file);
+                LPCTSTR path1 = wfile.c_str();
+                loadimage(&a1, path1, 0, 0, false);
+                transparentimage(NULL, 0, 746, &a1, 0xFF55FF);
+                N = 0;
+            }
+            else if (P == 1) {
+                int J = stoi(number);
+                file = "./Game/picture/player" + number + ".png";
+                wstring wfile = string2wstring(file);
+                LPCTSTR path1 = wfile.c_str();
+                loadimage(&a1, path1, 0, 0, false);
+                transparentimage(NULL, 0, 746, &a1, 0xFF55FF);
+                P = 0;
+            }
+            wstring tt = L"";
+            tt+=src[i];
+            LPCTSTR path = tt.c_str();
+            outtextxy(30*w+150, 696+k*30, path);
+            w++;
+            Sleep(50);
+        }
+        
+    }
+    transparentimage(NULL, 630, 900, &tri, 0xFF55FF);
+    flushmessage(EM_KEY);
+    while (1) {   
+        ww = getmessage(EM_KEY);
+            if (ww.vkcode == VK_SPACE) {
+                flushmessage(EM_KEY);
+                Sleep(500);
+                m_map(m, m_id, n); m_put(p);
+                break;
+            }
+    }
 }
 void check() {
 
@@ -2042,7 +2154,7 @@ int main() {
     it[0].Name = L"通常彈"; it[0].name = "通常彈";
     n[0].name = L"朱利安"; n[0].x = 8; n[0].y=9; n[0].avatar=1;
     if (s == 1) {
-        m_map(m_id, n, n_id); m_put(p); m_set(m,n,p,m_id);
+        m_map(m,m_id, n); m_put(p); m_set(m,n,p,m_id);
             IMAGE  map;
             wstring m1;
             m1= std::to_wstring(m_id);
@@ -2050,18 +2162,18 @@ int main() {
             LPCTSTR path = m1.c_str();
             loadimage(&map, path, 0, 0, false);
             string g;
-        while (1) { 
+        while (1) {             
             g=m_act(p,m,n,m_id);
             flushmessage(EM_KEY);
             if (g == "w") {
-                m_walk(p, m_id, n, n_id);
+                m_walk(m,p, m_id, n);
                 m_put(p);
                 transparentimage(NULL, 0, 0, &map, 0xFF55FF);
                 n_put(n, n_id);
                 EndBatchDraw();
             }
             if (g == "t") {
-                talk(n,p);
+                talk(m,n,p,m_id);
             }
             if (g == "esc") {
 
