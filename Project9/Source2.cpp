@@ -541,7 +541,7 @@ void p_attack(player *p,enemy *e,arms *ar,int P_id,int id,string &chose,int bsiz
                         maps(p, P_id, e, psize, bsize);/*地圖繪製*/
                         e_put(e, bsize);
                         p_put(p, psize);                       
-                        mciSendString(L"play ./Game/Sound/sgm/魔王魂_戦闘18.mp3 from 0", NULL, 0, NULL);
+                        mciSendString(L"play ./Game/Sound/SE/魔王魂_戦闘18.mp3 from 0", NULL, 0, NULL);
                         dmg = roll(ar[0].dmg, 1);
                         e[id].hp -= dmg;                      
                         TCHAR d[5];
@@ -579,7 +579,7 @@ void p_attack(player *p,enemy *e,arms *ar,int P_id,int id,string &chose,int bsiz
                         maps(p, P_id, e, psize, bsize);/*地圖繪製*/
                         e_put(e, bsize);
                         p_put(p, psize);                       
-                        mciSendString(L"play ./Game/Sound/sgm/魔王魂_戦闘18.mp3 from 0", NULL, 0, NULL);
+                        mciSendString(L"play ./Game/Sound/SE/魔王魂_戦闘18.mp3 from 0", NULL, 0, NULL);
                         wchar_t w[] = L"未命中";
                         outtextxy(48 * e[id].x, 48 * e[id].y, w);                      
                         TCHAR d[5];
@@ -604,11 +604,11 @@ void p_attack(player *p,enemy *e,arms *ar,int P_id,int id,string &chose,int bsiz
             }
             else if (chose == "a" && ar[0].bullet < 1) {
 
-            mciSendString(L"play ./Game/Sound/sgm/魔王魂_効果音_ワンポイント33.mp3 from 0", NULL, 0, NULL);
+            mciSendString(L"play ./Game/Sound/SE/魔王魂_効果音_ワンポイント33.mp3 from 0", NULL, 0, NULL);
  }
         }
         else if (chose == "a" && p[P_id].act < 1) {
-            mciSendString(L"play ./Game/Sound/sgm/魔王魂_効果音_ワンポイント33.mp3 from 0", NULL, 0, NULL);
+            mciSendString(L"play ./Game/Sound/SE/魔王魂_効果音_ワンポイント33.mp3 from 0", NULL, 0, NULL);
         }
     }
 void p_item(player *p, arms *ar, item *it, string chose, int P_id) {
@@ -692,12 +692,12 @@ void p_item(player *p, arms *ar, item *it, string chose, int P_id) {
                     p[P_id].act--;
                 }
                 else if (cho == 1 && ar[0].bullet == 5) {
-                    mciSendString(L"play ./Game/Sound/sgm/魔王魂_効果音_ワンポイント33.mp3 from 0", NULL, 0, NULL);
+                    mciSendString(L"play ./Game/Sound/SE/魔王魂_効果音_ワンポイント33.mp3 from 0", NULL, 0, NULL);
                 }
             }
         }
         else if (chose == "i" && p[P_id].act < 1) {
-            mciSendString(L"play ./Game/Sound/sgm/魔王魂_効果音_ワンポイント33.mp3 from 0", NULL, 0, NULL);
+            mciSendString(L"play ./Game/Sound/SE/魔王魂_効果音_ワンポイント33.mp3 from 0", NULL, 0, NULL);
         }
     }
 void A_star(int sx, int sy, int x, int y,int* box) {
@@ -942,7 +942,7 @@ void p_walk(player *p,enemy *e,string chose, int P_id, int id, int psize, int bs
                                     sss = 0;
                                 }
                                 else {
-                                    mciSendString(L"play ./Game/Sound/sgm/魔王魂_効果音_ワンポイント33.mp3 from 0", NULL, 0, NULL);
+                                    mciSendString(L"play ./Game/Sound/SE/魔王魂_効果音_ワンポイント33.mp3 from 0", NULL, 0, NULL);
                                 }
                             }
                         }
@@ -954,7 +954,7 @@ void p_walk(player *p,enemy *e,string chose, int P_id, int id, int psize, int bs
             }
         }
         else if (chose == "w" && p[P_id].move == 0) {
-            mciSendString(L"play ./Game/Sound/sgm/魔王魂_効果音_ワンポイント33.mp3 from 0", NULL, 0, NULL);
+            mciSendString(L"play ./Game/Sound/SE/魔王魂_効果音_ワンポイント33.mp3 from 0", NULL, 0, NULL);
         }
     }
 void e_attack(arms *ar,player *p,enemy *e,int id,int P_id,int bsize,int psize) {
@@ -1390,7 +1390,7 @@ void Save(player* p, enemy* e, arms* ar, item* it,int P_id,int second,int psize,
                             j--; sss = 0;
                         }
                         else {
-                            sss = 0; mciSendString(L"play ./Game/Sound/sgm/魔王魂_効果音_ワンポイント33.mp3 from 0", NULL, 0, NULL);
+                            sss = 0; mciSendString(L"play ./Game/Sound/SE/魔王魂_効果音_ワンポイント33.mp3 from 0", NULL, 0, NULL);
                         }
                     }
                     if (m.x >= 1230 && m.x <= 1278 && m.y >= 430 && m.y <= 478) {
@@ -1582,7 +1582,7 @@ void Load(player* p, enemy* e, arms* ar, item* it, int &P_id, int &second, int &
                             j--; sss = 0;
                         }
                         else {
-                            sss = 0; mciSendString(L"play ./Game/Sound/sgm/魔王魂_効果音_ワンポイント33.mp3 from 0", NULL, 0, NULL);
+                            sss = 0; mciSendString(L"play ./Game/Sound/SE/魔王魂_効果音_ワンポイント33.mp3 from 0", NULL, 0, NULL);
                         }
                     }
                     if (m.x >= 1230 && m.x <= 1278 && m.y >= 430 && m.y <= 478) {
@@ -1773,7 +1773,7 @@ string  m_act(player *p,map *m,npc *n,int m_id) {
                 }
             }
             else if (ww.vkcode == VK_ESCAPE) {
-
+                return"esc";
             }
             else if (ww.vkcode == VK_SPACE) {
                 if (p[0].pose == 1) {
@@ -2084,23 +2084,34 @@ void talk(map *m,npc* n, player* p,int m_id) {
         else {
             q = 1;
             if (N == 1) {
+                settextcolor(BLACK);
+                settextstyle(23, 0, _T("Taipei Sans TC Beta"));
                 int J = stoi(number);
-
+                LPCTSTR path = n[J].name.c_str();
+                outtextxy(33, 710, path);
                 file = "./Game/picture/t_npc" + number + ".png";
                 wstring wfile = string2wstring(file);
                 LPCTSTR path1 = wfile.c_str();
                 loadimage(&a1, path1, 0, 0, false);
                 transparentimage(NULL, 0, 746, &a1, 0xFF55FF);
                 N = 0;
+                settextstyle(30, 0, _T("Taipei Sans TC Beta"));
+                settextcolor(WHITE);
             }
             else if (P == 1) {
+                settextcolor(BLACK);
+                settextstyle(23, 0, _T("Taipei Sans TC Beta"));
                 int J = stoi(number);
+                LPCTSTR path = p[J].name.c_str();
+                outtextxy(33, 710, path);
                 file = "./Game/picture/player" + number + ".png";
                 wstring wfile = string2wstring(file);
                 LPCTSTR path1 = wfile.c_str();
                 loadimage(&a1, path1, 0, 0, false);
                 transparentimage(NULL, 0, 746, &a1, 0xFF55FF);
                 P = 0;
+                settextstyle(30, 0, _T("Taipei Sans TC Beta"));
+                settextcolor(WHITE);
             }
             wstring tt = L"";
             tt+=src[i];
@@ -2123,6 +2134,47 @@ void talk(map *m,npc* n, player* p,int m_id) {
             }
     }
 }
+void menu(player* p) {
+    mciSendString(L"open ./Game/Sound/SE/m-art_OK5.wav", NULL, 0, NULL);
+    
+    IMAGE p1, option;
+    loadimage(&p1, L"./Game/picture/menu.png", 0, 0, false);
+    loadimage(&option, L"./Game/picture/option.png", 0, 0, false);
+    ExMessage m;
+    int u=0,c=0;
+    while (1) {
+        u = 0;
+        BeginBatchDraw();
+        putimage(0, 0, &p1);
+        for (i = 0; i < 9; i++) {
+            transparentimage(NULL, 0, 100 * i, &option, 0xFF55FF);
+        }
+        m = getmessage(EM_MOUSE|EM_KEY);
+            putimage(0, 0, &p1);
+            for (i = 0; i < 9; i++) {
+                if (m.x >= 0 && m.x < 350 && m.y>10 + i * 100&& m.y < (i + 1) * 100-10) {
+                    transparentimage(NULL, 50, 100 * i, &option, 0xFF55FF); u=1;
+                    }
+                else {
+                    transparentimage(NULL, 0, 100 * i, &option, 0xFF55FF);
+                }
+              }
+        if (u == 1) {
+            if (c == 0) {
+                mciSendString(L"play SE1", NULL, 0, NULL);
+            }
+            c = 1;
+        }
+        else{ 
+            if (c == 1) {
+                mciSendString(L"close SE1", NULL, 0, NULL);
+                mciSendString(L"open ./Game/Sound/SE/m-art_OK5.wav alias SE1", NULL, 0, NULL);
+                c = 0;
+            }
+        }
+        EndBatchDraw();
+    }
+}
 void check() {
 
 }
@@ -2134,7 +2186,7 @@ int main() {
     srand(time(NULL));
     int s=start();
     int  id=0, P_id=0,m_id=0, second=0,  load = 0,n_id=0;
-    player p[1];
+    player p[2];
     enemy e[2];
     arms  ar[2];
     item  it[1];
@@ -2146,7 +2198,8 @@ int main() {
     string a, b = ".txt", read = "";    
     time_t first=0, two=0,three=0;
     m[0].x = 27; m[0].y = 20; m[0].psize = 1; m[0].nsize = 1; m[0].block ="000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-    p[0].name = L"夏洛特"; p[0].story = L"主人公"; p[0].lv = 1; p[0].mhp = 10; p[0].hp = 10; p[0].dex = 10; p[0].move = 6; p[0].isize = 1; p[0].asize = 1; p[0].x = 10; p[0].y = 10; p[0].speed = 10; p[0].turn = 0; p[0].abox = 0; p[0].pose = 1;
+    p[0].name = L"夏洛特"; p[0].story = L"獵人"; p[0].lv = 1; p[0].mhp = 10; p[0].hp = 10; p[0].dex = 10; p[0].move = 6; p[0].isize = 1; p[0].asize = 1; p[0].x = 10; p[0].y = 10; p[0].speed = 10; p[0].turn = 0; p[0].abox = 0; p[0].pose = 1;
+    p[1].name = L"愛麗絲"; p[1].story = L"騎士"; p[1].lv = 1; p[1].mhp = 10; p[1].hp = 10; p[1].dex = 10; p[1].move = 6; p[1].isize = 1; p[1].asize = 1; p[1].x = 10; p[1].y = 10; p[1].speed = 10; p[1].turn = 0; p[1].abox = 0; p[1].pose = 1;
     e[0].name = L"野狼1"; e[0].story = L"團體行動的動物 隨著數量增加危險性也會大幅上升";
     e[1].name = L"野狼2"; e[1].story = L"團體行動的動物 隨著數量增加危險性也會大幅上升";
     ar[0].name = L"栓動步槍"; ar[0].dmg = "2d8"; ar[0].Dmg = L"2d8"; ar[0].range = 5;
@@ -2176,7 +2229,8 @@ int main() {
                 talk(m,n,p,m_id);
             }
             if (g == "esc") {
-
+                menu(p);
+                while(1){}
             }
             check();
         }
@@ -2185,8 +2239,8 @@ int main() {
         Load(p, e, ar, it, P_id, second, psize, bsize, roundp, roundb, first, two, three, chose);
     }
     mciSendString(L"open ./Game/Sound/bgm/魔王魂_ファンタジー12.mp3", NULL, 0, NULL);
-    mciSendString(L"open ./Game/Sound/sgm/魔王魂_戦闘18.mp3", NULL, 0, NULL);
-    mciSendString(L"open ./Game/Sound/sgm/魔王魂_効果音_ワンポイント33.mp3", NULL, 0, NULL);
+    mciSendString(L"open ./Game/Sound/SE/魔王魂_戦闘18.mp3", NULL, 0, NULL);
+    mciSendString(L"open ./Game/Sound/SE/魔王魂_効果音_ワンポイント33.mp3", NULL, 0, NULL);
     mciSendString(L"play ./Game/Sound/bgm/魔王魂_ファンタジー12.mp3 repeat", NULL, 0, NULL);
     first = time(NULL);
     while (1) {
