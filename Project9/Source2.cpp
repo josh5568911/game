@@ -2134,14 +2134,48 @@ void talk(map *m,npc* n, player* p,int m_id) {
             }
     }
 }
-void menu(player* p) {
+void menu_item(player *p,item *it,int i_id) {
+    settextcolor(WHITE);
+    setbkmode(TRANSPARENT);
+    settextstyle(30, 0, _T("Taipei Sans TC Beta"));
+    ExMessage m;
+    IMAGE p1,p2,p3;
+    loadimage(&p1, L"./Game/picture/menu_back.png", 0, 0, false);
+    putimage(400, 0, &p1);
+    for (i = 0; i < i_id; i++) {
+        if (it[i].number != 0) {
+            wstring mm;
+            mm = std::to_wstring(i);
+            mm = L"./Game/picture/item" + mm + L".png";
+            LPCTSTR path = mm.c_str();
+            loadimage(&p2, path, 0, 0, false);
+            putimage(420, 10, &p2);
+            LPCTSTR path1 = it[i].Name.c_str();
+            outtextxy(445,10, path1);
+            outtextxy(780, 10,_T(":"));
+            mm = std::to_wstring(it[i].number);
+            path1 = mm.c_str();
+            outtextxy(790, 13, path1);
+            loadimage(&p3, L"./Game/picture/item_block.png", 0, 0, false);
+            transparentimage(NULL, 410, 7, &p3);
+        }
+    }
+    EndBatchDraw();
+    ExMessage m;
+    while (1) {
+        m = getmessage(EM_MOUSE | EM_KEY);
+        
+    }
+}
+void menu(player* p,item *it,int i_id) {
     mciSendString(L"open ./Game/Sound/SE/m-art_OK5.wav", NULL, 0, NULL);
     
-    IMAGE p1, option;
+    IMAGE p1, option,p2;
     loadimage(&p1, L"./Game/picture/menu.png", 0, 0, false);
     loadimage(&option, L"./Game/picture/option.png", 0, 0, false);
+    loadimage(&p2, L"./Game/picture/e_item.png", 0, 0, false);
     ExMessage m;
-    int u=0,c=0;
+    int u=0,c=0,g=-1;
     while (1) {
         u = 0;
         BeginBatchDraw();
@@ -2149,14 +2183,24 @@ void menu(player* p) {
         for (i = 0; i < 9; i++) {
             transparentimage(NULL, 0, 100 * i, &option, 0xFF55FF);
         }
+        putimage(25, 20, &p2);
         m = getmessage(EM_MOUSE|EM_KEY);
             putimage(0, 0, &p1);
             for (i = 0; i < 9; i++) {
                 if (m.x >= 0 && m.x < 350 && m.y>10 + i * 100&& m.y < (i + 1) * 100-10) {
                     transparentimage(NULL, 50, 100 * i, &option, 0xFF55FF); u=1;
+                    if (i == 0) {
+                        putimage(75, 20 + 100 * i, &p2);
+                    }
+                    if (m.lbutton) {
+                        g = i;
+                    }
                     }
                 else {
                     transparentimage(NULL, 0, 100 * i, &option, 0xFF55FF);
+                    if (i == 0) {
+                        putimage(25, 20 + 100 * i, &p2);
+                    }
                 }
               }
         if (u == 1) {
@@ -2172,7 +2216,13 @@ void menu(player* p) {
                 c = 0;
             }
         }
+        if (g != -1) {
+            break;
+        }
         EndBatchDraw();
+    }
+    if (g == 0) {
+        menu_item(p,it,i_id);
     }
 }
 void check() {
@@ -2185,7 +2235,7 @@ int main() {
     SetWindowText(hWnd,L"RPG");
     srand(time(NULL));
     int s=start();
-    int  id=0, P_id=0,m_id=0, second=0,  load = 0,n_id=0;
+    int  id=0, P_id=0,m_id=0, second=0,  load = 0,n_id=0,i_id=1;
     player p[2];
     enemy e[2];
     arms  ar[2];
@@ -2204,7 +2254,7 @@ int main() {
     e[1].name = L"野狼2"; e[1].story = L"團體行動的動物 隨著數量增加危險性也會大幅上升";
     ar[0].name = L"栓動步槍"; ar[0].dmg = "2d8"; ar[0].Dmg = L"2d8"; ar[0].range = 5;
     ar[1].name = L"爪子"; ar[1].dmg = "2d8"; ar[1].Dmg = L"2d8"; ar[1].hit = "1d4+2"; ar[1].range = 1;
-    it[0].Name = L"通常彈"; it[0].name = "通常彈";
+    it[0].Name = L"通常彈"; it[0].name = "通常彈"; it[0].number = 30;
     n[0].name = L"朱利安"; n[0].x = 8; n[0].y=9; n[0].avatar=1;
     if (s == 1) {
         m_map(m,m_id, n); m_put(p); m_set(m,n,p,m_id);
@@ -2229,7 +2279,7 @@ int main() {
                 talk(m,n,p,m_id);
             }
             if (g == "esc") {
-                menu(p);
+                menu(p,it,i_id);
                 while(1){}
             }
             check();

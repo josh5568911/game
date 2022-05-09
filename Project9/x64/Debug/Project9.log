@@ -11,10 +11,11 @@ C:\Users\laijd\Documents\GitHub\game\Project9\Source2.cpp(2079,28): warning C424
           [
               _Elem=char
           ]
-C:\Users\laijd\Documents\GitHub\game\Project9\Source2.cpp(2186,15): warning C4244: '引數': 將 'time_t' 轉換為 'unsigned int'，由於類型不同，可能導致資料遺失
-C:\Users\laijd\Documents\GitHub\game\Project9\Source2.cpp(2195,9): warning C4101: 'ix': 未參考的區域變數
-C:\Users\laijd\Documents\GitHub\game\Project9\Source2.cpp(2195,13): warning C4101: 'iy': 未參考的區域變數
-C:\Users\laijd\Documents\GitHub\game\Project9\Source2.cpp(2196,10): warning C4101: 't': 未參考的區域變數
-C:\Users\laijd\Documents\GitHub\game\Project9\Source2.cpp(2195,17): warning C4101: 'abox1': 未參考的區域變數
+C:\Users\laijd\Documents\GitHub\game\Project9\Source2.cpp(2141,15): warning C4101: 'm': 未參考的區域變數
+C:\Users\laijd\Documents\GitHub\game\Project9\Source2.cpp(2234,15): warning C4244: '引數': 將 'time_t' 轉換為 'unsigned int'，由於類型不同，可能導致資料遺失
+C:\Users\laijd\Documents\GitHub\game\Project9\Source2.cpp(2243,9): warning C4101: 'ix': 未參考的區域變數
+C:\Users\laijd\Documents\GitHub\game\Project9\Source2.cpp(2243,13): warning C4101: 'iy': 未參考的區域變數
+C:\Users\laijd\Documents\GitHub\game\Project9\Source2.cpp(2244,10): warning C4101: 't': 未參考的區域變數
+C:\Users\laijd\Documents\GitHub\game\Project9\Source2.cpp(2243,17): warning C4101: 'abox1': 未參考的區域變數
 C:\Users\laijd\Documents\GitHub\game\Project9\Source2.cpp(146): warning C4715: 'roll': 不是所有控制路徑都傳回值
   Project9.vcxproj -> C:\Users\laijd\Documents\GitHub\game\Project9\x64\Debug\Project9.exe
