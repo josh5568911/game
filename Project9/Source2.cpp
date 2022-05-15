@@ -147,7 +147,7 @@ int roll(string d, int a) {
 class player{
 public: 
     wstring name, story;
-    int lv ,mhp,hp,dex,move,isize,asize,x,y,turn,speed,abox,act,pose;
+    int lv ,mhp,hp,dex,move,isize,asize,x,y,turn,speed,abox,act,pose,str,INT,con,wis,cha,arms_id,stone_id;
     player() {};   
 
 };
@@ -160,15 +160,15 @@ public:
 };
 class arms {
 public:
-    wstring name,Dmg;
+    wstring name,Dmg,story;
     string  dmg, hit;
-    int range,mbullet, bullet;
+    int range,mbullet, bullet,number;
     arms() {};
 };
 class item {
 public:
     wstring Name;
-    string name;
+    string name,type;
     int number;
     item() {};
 };
@@ -184,6 +184,11 @@ class npc {
 public:
     wstring name;
     int avatar,x,y;
+};
+class stone {
+public:
+    wstring name, story;
+    int number;
 };
 void p_put(player *p,int psize) {
     IMAGE p1, p2, p3, p4;
@@ -2134,50 +2139,364 @@ void talk(map *m,npc* n, player* p,int m_id) {
             }
     }
 }
-void menu_item(player *p,item *it,int i_id) {
+string menu_item(player *p,item *it,int i_id) {
     settextcolor(WHITE);
     setbkmode(TRANSPARENT);
     settextstyle(30, 0, _T("Taipei Sans TC Beta"));
     ExMessage m;
     IMAGE p1,p2,p3;
+    int k = 0,J,chose=-1;
     loadimage(&p1, L"./Game/picture/menu_back.png", 0, 0, false);
-    putimage(400, 0, &p1);
-    for (i = 0; i < i_id; i++) {
-        if (it[i].number != 0) {
-            wstring mm;
-            mm = std::to_wstring(i);
-            mm = L"./Game/picture/item" + mm + L".png";
-            LPCTSTR path = mm.c_str();
-            loadimage(&p2, path, 0, 0, false);
-            putimage(420, 10, &p2);
-            LPCTSTR path1 = it[i].Name.c_str();
-            outtextxy(445,10, path1);
-            outtextxy(780, 10,_T(":"));
-            mm = std::to_wstring(it[i].number);
-            path1 = mm.c_str();
-            outtextxy(790, 13, path1);
-            loadimage(&p3, L"./Game/picture/item_block.png", 0, 0, false);
-            transparentimage(NULL, 410, 7, &p3);
-        }
-    }
-    EndBatchDraw();
-    ExMessage m;
+    loadimage(&p3, L"./Game/picture/item_block.png", 0, 0, false);
     while (1) {
-        m = getmessage(EM_MOUSE | EM_KEY);
-        
+        BeginBatchDraw();
+        putimage(400, 0, &p1);
+        m = getmessage(EM_MOUSE );
+        j = 0;
+        if (m.rbutton) {
+            return"";
+        }
+        for (i = 0; i < i_id; i++) {
+            if (it[i].number != 0) {
+                if (chose == j) {
+                    return(it[i].type);
+                }
+                J = j / 2;
+                wstring mm;
+                mm = std::to_wstring(i);
+                mm = L"./Game/picture/item" + mm + L".png";
+                LPCTSTR path = mm.c_str();
+                loadimage(&p2, path, 0, 0, false);
+                if (j % 2 == 0){
+                    transparentimage(NULL, 420, 10+J*40, &p2,0xFF55FF);
+                    LPCTSTR path1 = it[i].Name.c_str();
+                    outtextxy(445, 10 + J * 40, path1);
+                    outtextxy(780, 10 + J * 40, _T(":"));
+                    mm = std::to_wstring(it[i].number);
+                    path1 = mm.c_str();
+                    outtextxy(790, 10 + J * 40, path1);
+                    j++;
+                }
+                else if (j % 2 == 1) {
+                    transparentimage(NULL, 834, 10 + J * 40, &p2,0xFF55FF);
+                    LPCTSTR path1 = it[i].Name.c_str();
+                    outtextxy(859, 10 + J * 40, path1);
+                    outtextxy(1194, 10 + J * 40, _T(":"));
+                    mm = std::to_wstring(it[i].number);
+                    path1 = mm.c_str();
+                    outtextxy(1204, 10 + J * 40, path1);
+                    j++;
+                }
+            }
+        }
+        for (i = 0; i < j; i++) {
+            if (m.x<824 + (i % 2) * 414 && m.x>410 + (i % 2) * 414 && m.y>7 + (i / 2) * 40 && m.y<42 + (i / 2) * 40)  {
+                transparentimage(NULL, 410 + (i % 2) * 414, 7+ (i / 2) * 40 , &p3);
+                if (m.lbutton) {
+                    chose = i;
+                }
+            }
+
+       }
+        EndBatchDraw();
     }
 }
-void menu(player* p,item *it,int i_id) {
+void menu_player(player *p) {
+    settextcolor(WHITE);
+    setbkmode(TRANSPARENT);
+    settextstyle(30, 0, _T("Taipei Sans TC Beta"));
+    IMAGE p1,p2,p3,p4;
+    loadimage(&p1, L"./Game/picture/menu_back.png", 0, 0, false);
+    loadimage(&p3, L"./Game/picture/larrow.png", 0, 0, false);
+    loadimage(&p4, L"./Game/picture/rarrow.png", 0, 0, false);
+    int I = 0;
+    while (1) {
+        settextstyle(30, 0, _T("Taipei Sans TC Beta"));
+        BeginBatchDraw();
+        putimage(400, 0, &p1);
+        wstring mm;
+        LPCTSTR path1;
+        outtextxy(700, 15, _T("Lv"));
+        mm = std::to_wstring(p[I].lv);
+        path1 = mm.c_str();
+        outtextxy(800, 15, path1);
+        path1 = p[I].name.c_str();
+        outtextxy(490,15, path1);
+        mm = std::to_wstring(p[I].hp);
+        path1 = mm.c_str();
+        outtextxy(700, 65, _T("HP"));
+        outtextxy(800, 65, path1);
+        outtextxy(850, 65, _T("/"));
+        mm = std::to_wstring(p[I].mhp);
+        path1 = mm.c_str();
+        outtextxy(860, 65, path1);
+        settextstyle(40, 0, _T("Taipei Sans TC Beta"));
+        outtextxy(500, 250, _T("力量"));
+        mm = std::to_wstring(p[I].str);
+        path1 = mm.c_str();
+        outtextxy(650, 250, path1);
+        outtextxy(500, 350, _T("敏捷"));
+        mm = std::to_wstring(p[I].dex);
+        path1 = mm.c_str();
+        outtextxy(650, 350, path1);
+        outtextxy(500, 450, _T("體質"));
+        mm = std::to_wstring(p[I].con);
+        path1 = mm.c_str();
+        outtextxy(650, 450, path1);
+        outtextxy(500, 550, _T("智力"));
+        mm = std::to_wstring(p[I].INT);
+        path1 = mm.c_str();
+        outtextxy(650, 550, path1);
+        outtextxy(500, 650, _T("感知"));
+        mm = std::to_wstring(p[I].wis);
+        path1 = mm.c_str();
+        outtextxy(650, 650, path1);
+        outtextxy(500, 750, _T("魅力"));
+        mm = std::to_wstring(p[I].cha);
+        path1 = mm.c_str();
+        outtextxy(650, 750, path1);
+        mm = std::to_wstring(I);
+        mm = L"./Game/picture/player" + mm + L".png";
+        LPCTSTR path = mm.c_str();
+        loadimage(&p2, path, 0, 0, false);
+        transparentimage(NULL,450,45, &p2, 0xFF55FF);
+        transparentimage(NULL, 415, 450, &p4, 0xFF55FF);
+        transparentimage(NULL, 1230, 450, &p3, 0xFF55FF);
+        EndBatchDraw();
+        ExMessage m;
+        m = getmessage(EM_MOUSE);
+        if(m.x>415&&m.x<463&&m.y>450&&m.y<498) {
+            if (m.lbutton&&I>0) {
+                I--;
+            }
+        }
+        else if (m.x>1230&&m.x<1278&&m.y>450&&m.y<498) {
+            if (m.lbutton&&I<1) {
+                I++;
+            }
+        }
+        if (m.rbutton) {
+            return;
+        }
+    }
+}
+void menu_equip(player* p, arms* ar,stone *st,int ar_id,int st_id) {
+    settextcolor(WHITE);
+    setbkmode(TRANSPARENT);
+    settextstyle(30, 0, _T("Taipei Sans TC Beta"));
+    IMAGE p1, p2, p3, p4,p5,p6,p7,p8,p9;
+    int I = 0,d=-1;
+    wstring mm;
+    LPCTSTR path1, path;
+    RECT r = { 645, 35, 1200, 400 };
+    loadimage(&p1, L"./Game/picture/equip_back.png", 0, 0, false);
+    loadimage(&p3, L"./Game/picture/larrow.png", 0, 0, false);
+    loadimage(&p4, L"./Game/picture/rarrow.png", 0, 0, false);
+    loadimage(&p5, L"./Game/picture/equip_block.png", 0, 0, false);
+    loadimage(&p8, L"./Game/picture/item_block.png", 0, 0, false);
+    while (1) {
+        BeginBatchDraw();
+        putimage(400, 0, &p1);
+        transparentimage(NULL, 415, 450, &p4, 0xFF55FF);
+        transparentimage(NULL, 1230, 450, &p3, 0xFF55FF);
+        mm = std::to_wstring(I);
+        mm = L"./Game/picture/player" + mm + L".png";
+        path = mm.c_str();
+        loadimage(&p2, path, 0, 0, false);
+        path1 = p[I].name.c_str();
+        outtextxy(490, 15, path1);
+        transparentimage(NULL, 450, 45, &p2, 0xFF55FF);
+        outtextxy(480, 200, _T("HP"));
+        mm = std::to_wstring(p[I].mhp);
+        path1 = mm.c_str();
+        outtextxy(560, 200, path1);
+        outtextxy(480, 230, _T("力量"));
+        mm = std::to_wstring(p[I].str);
+        path1 = mm.c_str();
+        outtextxy(560, 230, path1);
+        outtextxy(480, 260, _T("敏捷"));
+        mm = std::to_wstring(p[I].dex);
+        path1 = mm.c_str();
+        outtextxy(560, 260, path1);
+        outtextxy(480, 290, _T("體質"));
+        mm = std::to_wstring(p[I].con);
+        path1 = mm.c_str();
+        outtextxy(560, 290, path1);
+        outtextxy(480, 320, _T("智力"));
+        mm = std::to_wstring(p[I].INT);
+        path1 = mm.c_str();
+        outtextxy(560, 320, path1);
+        outtextxy(480, 350, _T("感知"));
+        mm = std::to_wstring(p[I].wis);
+        path1 = mm.c_str();
+        outtextxy(560, 350, path1);
+        outtextxy(480, 380, _T("魅力"));
+        mm = std::to_wstring(p[I].cha);
+        path1 = mm.c_str();
+        outtextxy(560, 380, path1);
+        outtextxy(865, 210, _T("武器"));
+        mm = std::to_wstring(p[I].arms_id);
+        mm = L"./Game/picture/arms" + mm + L".png";
+        path1 = mm.c_str();
+        loadimage(&p6, path1, 0, 0, false);
+        transparentimage(NULL, 950, 215, &p6,0xFF55FF);
+        path1 = ar[p[I].arms_id].name.c_str();
+        outtextxy(1000, 213,path1);
+        outtextxy(865, 250, _T("核心"));
+        mm = std::to_wstring(p[I].stone_id);
+        mm = L"./Game/picture/stone" + mm + L".png";
+        path1 = mm.c_str();
+        loadimage(&p9, path1, 0, 0, false);
+        transparentimage(NULL, 950, 255, &p9, 0xFF55FF);
+        path1 = st[p[I].stone_id].name.c_str();
+        outtextxy(1000, 253, path1);
+        ExMessage m;
+        m = getmessage(EM_MOUSE);
+        for (i = 0; i < 2; i++) {
+            if (m.x >860 && m.x< 1210&& m.y>208+i*40 && m.y <243+i*40 ) {                    
+                transparentimage(NULL, 860, 208 + i * 40, &p5);
+                if (i==0) {
+
+                    path1 = ar[p[I].arms_id].story.c_str();
+                }
+                else if (i == 1) {
+                    path1 = st[p[I].stone_id].story.c_str();
+
+                }
+                drawtext(path1,&r, DT_WORDBREAK);
+                if (m.lbutton) {
+                    d = i+1;
+                }
+            }
+        }
+        int arm[100],sto[100];
+        if (d == 1) {
+            int J = 0, j = 0;
+            for (i = 0; i < ar_id; i++) {
+                if (ar[i].number != 0) {
+                    arm[j] = i;
+                    J = j / 2;
+                    wstring mm;
+                    mm = std::to_wstring(i);
+                    mm = L"./Game/picture/arms" + mm + L".png";
+                     path = mm.c_str();
+                    loadimage(&p7, path, 0, 0, false);
+                    if (j % 2 == 0) {
+                        transparentimage(NULL, 420, 570 + J * 40, &p7, 0xFF55FF);
+                         path1 = ar[i].name.c_str();
+                        outtextxy(445, 570 + J * 40, path1);
+                        outtextxy(780, 570 + J * 40, _T(":"));
+                        mm = std::to_wstring(ar[i].number);
+                        path1 = mm.c_str();
+                        outtextxy(790, 570 + J * 40, path1);
+                        j++;
+                    }
+                    else if (j % 2 == 1) {
+                        transparentimage(NULL, 834, 570 + J * 40, &p7, 0xFF55FF);
+                        path1 = ar[i].name.c_str();
+                        outtextxy(859, 570 + J * 40, path1);
+                        outtextxy(1194, 570 + J * 40, _T(":"));
+                        mm = std::to_wstring(ar[i].number);
+                        path1 = mm.c_str();
+                        outtextxy(1204, 570 + J * 40, path1);
+                        j++;
+                    }
+                }
+            }
+                        for (i = 0; i < j; i++) {
+
+                            if (m.x > 420+(i%2)*414 && m.x < 830+(i%2)*414 && m.y>570+(i/2)*40 && m.y < 605+(i/2)*40) {
+                                transparentimage(NULL, 415 + (i % 2) * 414,563 + (i / 2) * 40, &p8);     
+                                path1 = ar[arm[i]].story.c_str();
+                                drawtext(path1, &r, DT_WORDBREAK);
+                                if (m.lbutton) {
+                                    ar[p[I].arms_id].number++;
+                                    p[I].arms_id = arm[i];
+                                    ar[arm[i]].number--;
+                                }
+                            }
+                       }
+        }
+        else if (d == 2) {
+            int J = 0, j = 0;
+            for (i = 0; i < st_id; i++) {
+                if (st[i].number != 0) {
+                    sto[j] = i;
+                    J = j / 2;
+                    wstring mm;
+                    mm = std::to_wstring(i);
+                    mm = L"./Game/picture/stone" + mm + L".png";
+                     path = mm.c_str();
+                    loadimage(&p7, path, 0, 0, false);
+                    if (j % 2 == 0) {
+                        transparentimage(NULL, 420, 570 + J * 40, &p7, 0xFF55FF);
+                         path1 = st[i].name.c_str();
+                        outtextxy(445, 570 + J * 40, path1);
+                        outtextxy(780, 570 + J * 40, _T(":"));
+                        mm = std::to_wstring(st[i].number);
+                        path1 = mm.c_str();
+                        outtextxy(790, 570 + J * 40, path1);
+                        j++;
+                    }
+                    else if (j % 2 == 1) {
+                        transparentimage(NULL, 834, 570 + J * 40, &p7, 0xFF55FF);
+                        path1 = st[i].name.c_str();
+                        outtextxy(859, 570 + J * 40, path1);
+                        outtextxy(1194, 570 + J * 40, _T(":"));
+                        mm = std::to_wstring(st[i].number);
+                        path1 = mm.c_str();
+                        outtextxy(1204, 570 + J * 40, path1);
+                        j++;
+                    }
+                }
+            }
+            for (i = 0; i < j; i++) {
+
+                if (m.x > 420 + (i % 2) * 414 && m.x < 830 + (i % 2) * 414 && m.y>570 + (i / 2) * 40 && m.y < 605 + (i / 2) * 40) {
+                    transparentimage(NULL, 415 + (i % 2) * 414, 563 + (i / 2) * 40, &p8);
+                    path1 = st[sto[i]].story.c_str();
+                    drawtext(path1, &r, DT_WORDBREAK);
+                    if (m.lbutton) {
+                        st[p[I].stone_id].number++;
+                        p[I].stone_id = sto[i];
+                        st[sto[i]].number--;
+                    }
+                }
+            }
+        }
+
+
+        if (m.x > 415 && m.x < 463 && m.y>450 && m.y < 498) {
+            if (m.lbutton && I > 0) {
+                I--;
+            }
+        }
+        else if (m.x > 1230 && m.x < 1278 && m.y>450 && m.y < 498) {
+            if (m.lbutton && I < 1) {
+                I++;
+            }
+        }
+        if (m.rbutton) {
+            return;
+        }
+        EndBatchDraw();
+    }
+}
+void menu(player* p,item *it,arms *ar,stone *st,int i_id,int ar_id,int st_id) {
     mciSendString(L"open ./Game/Sound/SE/m-art_OK5.wav", NULL, 0, NULL);
     
-    IMAGE p1, option,p2;
+    IMAGE p1, option,p2,p3,p4;
     loadimage(&p1, L"./Game/picture/menu.png", 0, 0, false);
     loadimage(&option, L"./Game/picture/option.png", 0, 0, false);
     loadimage(&p2, L"./Game/picture/e_item.png", 0, 0, false);
+    loadimage(&p3, L"./Game/picture/e_player.png", 0, 0, false);
+    loadimage(&p4, L"./Game/picture/e_equip.png", 0, 0, false);
     ExMessage m;
     int u=0,c=0,g=-1;
+    string chose = "";
     while (1) {
         u = 0;
+        chose = "";
         BeginBatchDraw();
         putimage(0, 0, &p1);
         for (i = 0; i < 9; i++) {
@@ -2192,6 +2511,12 @@ void menu(player* p,item *it,int i_id) {
                     if (i == 0) {
                         putimage(75, 20 + 100 * i, &p2);
                     }
+                    else if (i == 1) {
+                        putimage(75, 20 + 100 * i, &p3);
+                    }
+                    else if (i == 2) {
+                        putimage(75, 20 + 100 * i, &p4);
+                    }
                     if (m.lbutton) {
                         g = i;
                     }
@@ -2200,6 +2525,12 @@ void menu(player* p,item *it,int i_id) {
                     transparentimage(NULL, 0, 100 * i, &option, 0xFF55FF);
                     if (i == 0) {
                         putimage(25, 20 + 100 * i, &p2);
+                    }
+                    else if (i == 1) {
+                        putimage(25, 20 + 100 * i, &p3);
+                    }
+                    else if (i == 2) {
+                        putimage(25, 20 + 100 * i, &p4);
                     }
                 }
               }
@@ -2216,13 +2547,19 @@ void menu(player* p,item *it,int i_id) {
                 c = 0;
             }
         }
-        if (g != -1) {
-            break;
-        }
         EndBatchDraw();
-    }
-    if (g == 0) {
-        menu_item(p,it,i_id);
+        if (g == 0) {
+            chose = menu_item(p, it, i_id);
+            g = -1;
+        }
+        else if (g == 1) {
+            menu_player(p);
+            g = -1;
+        }
+        else if (g == 2) {
+            menu_equip(p, ar,st,ar_id,st_id);
+            g = -1;
+        }
     }
 }
 void check() {
@@ -2235,26 +2572,35 @@ int main() {
     SetWindowText(hWnd,L"RPG");
     srand(time(NULL));
     int s=start();
-    int  id=0, P_id=0,m_id=0, second=0,  load = 0,n_id=0,i_id=1;
+    int  id=0, P_id=0,m_id=0, second=0,  load = 0,n_id=0,i_id=4,ar_id=5,st_id=2;
     player p[2];
     enemy e[2];
-    arms  ar[2];
-    item  it[1];
+    arms  ar[5];
+    item  it[4];
     map   m[1];
     npc  n[1];
+    stone st[2];
     int ix, iy, abox1[1];
     int  t, psize = 1, bsize = 2, roundp = 0, roundb = 0;
     string  chose = "l" ;
     string a, b = ".txt", read = "";    
     time_t first=0, two=0,three=0;
     m[0].x = 27; m[0].y = 20; m[0].psize = 1; m[0].nsize = 1; m[0].block ="000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-    p[0].name = L"夏洛特"; p[0].story = L"獵人"; p[0].lv = 1; p[0].mhp = 10; p[0].hp = 10; p[0].dex = 10; p[0].move = 6; p[0].isize = 1; p[0].asize = 1; p[0].x = 10; p[0].y = 10; p[0].speed = 10; p[0].turn = 0; p[0].abox = 0; p[0].pose = 1;
-    p[1].name = L"愛麗絲"; p[1].story = L"騎士"; p[1].lv = 1; p[1].mhp = 10; p[1].hp = 10; p[1].dex = 10; p[1].move = 6; p[1].isize = 1; p[1].asize = 1; p[1].x = 10; p[1].y = 10; p[1].speed = 10; p[1].turn = 0; p[1].abox = 0; p[1].pose = 1;
+    p[0].name = L"夏洛特"; p[0].story = L"獵人"; p[0].lv = 1; p[0].mhp = 10; p[0].hp = 10; p[0].dex = 10; p[0].move = 6; p[0].isize = 1; p[0].asize = 1; p[0].x = 10; p[0].y = 10; p[0].speed = 10; p[0].turn = 0; p[0].abox = 0; p[0].pose = 1; p[0].str = 10; p[0].INT = 10; p[0].con = 10; p[0].cha = 10; p[0].wis = 10; p[0].arms_id = 0; p[0].stone_id = 0;
+    p[1].name = L"愛麗絲"; p[1].story = L"騎士"; p[1].lv = 1; p[1].mhp = 10; p[1].hp = 10; p[1].dex = 10; p[1].move = 6; p[1].isize = 1; p[1].asize = 1; p[1].x = 10; p[1].y = 10; p[1].speed = 10; p[1].turn = 0; p[1].abox = 0; p[1].pose = 1; p[1].str = 11; p[1].INT = 10; p[1].con = 11; p[1].cha = 10; p[1].wis = 10; p[1].arms_id = 2; p[1].stone_id = 1;
     e[0].name = L"野狼1"; e[0].story = L"團體行動的動物 隨著數量增加危險性也會大幅上升";
     e[1].name = L"野狼2"; e[1].story = L"團體行動的動物 隨著數量增加危險性也會大幅上升";
-    ar[0].name = L"栓動步槍"; ar[0].dmg = "2d8"; ar[0].Dmg = L"2d8"; ar[0].range = 5;
-    ar[1].name = L"爪子"; ar[1].dmg = "2d8"; ar[1].Dmg = L"2d8"; ar[1].hit = "1d4+2"; ar[1].range = 1;
-    it[0].Name = L"通常彈"; it[0].name = "通常彈"; it[0].number = 30;
+    ar[0].name = L"栓動步槍"; ar[0].dmg = "2d8"; ar[0].Dmg = L"2d8"; ar[0].range = 5; ar[0].story = L"精準可靠的動能武器\n傷害:2d8"; ar[0].number = 1;
+    ar[1].name = L"爪子"; ar[1].dmg = "2d4+2"; ar[1].Dmg = L"2d4+2"; ar[1].hit = "1d4+2"; ar[1].range = 1; ar[1].number = 0;
+    ar[2].name = L"長劍"; ar[2].dmg = "1d8"; ar[2].Dmg = L"1d8"; ar[2].hit = "1d2"; ar[2].range = 1; ar[2].story = L"在大陸上廣泛使用的制式長劍\n傷害:1d8\n命中加值:1d2"; ar[2].number = 1;
+    ar[3].name = L"長劍1"; ar[3].dmg = "1d8"; ar[3].Dmg = L"1d8"; ar[3].hit = "1d2"; ar[3].range = 1; ar[3].story = L"在大陸上廣泛使用的制式長劍1\n傷害:1d8\n命中加值:1d2"; ar[3].number = 77;
+    ar[4].name = L"長劍2"; ar[4].dmg = "1d8"; ar[4].Dmg = L"1d8"; ar[4].hit = "1d2"; ar[3].range = 1; ar[4].story = L"在大陸上廣泛使用的制式長劍2\n傷害:1d8\n命中加值:1d2"; ar[4].number = 88;
+    it[0].Name = L"通常彈"; it[0].name = "通常彈"; it[0].number = 30; it[0].type = "B";
+    it[1].Name = L"通常彈1"; it[1].name = "通常彈"; it[1].number = 10; it[1].type = "B";
+    it[2].Name = L"通常彈2"; it[2].name = "通常彈"; it[2].number = 10; it[2].type = "B";
+    it[3].Name = L"通常彈3"; it[3].name = "通常彈"; it[3].number =99; it[3].type = "B";
+    st[0].name = L"長青石"; st[0].number = 1; st[0].story = L"從星隕礦採掘出的伴生礦 沾染了生命的氣息\nHP+2";
+    st[1].name = L"烈風石"; st[1].number = 1; st[1].story = L"從星隕礦採掘出的伴生礦 沾染了狂風的氣息\n速度+2";
     n[0].name = L"朱利安"; n[0].x = 8; n[0].y=9; n[0].avatar=1;
     if (s == 1) {
         m_map(m,m_id, n); m_put(p); m_set(m,n,p,m_id);
@@ -2279,7 +2625,7 @@ int main() {
                 talk(m,n,p,m_id);
             }
             if (g == "esc") {
-                menu(p,it,i_id);
+                menu(p,it,ar,st,i_id,ar_id,st_id);
                 while(1){}
             }
             check();
