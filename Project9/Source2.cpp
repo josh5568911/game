@@ -144,6 +144,10 @@ int roll(string d, int a) {
         return x;
     }
 }
+class flag {
+public:
+    int check;
+};
 class player{
 public: 
     wstring name, story;
@@ -1823,6 +1827,151 @@ void Load(player* p, enemy* e, arms* ar, item* it, int &P_id, int &second, int &
     }
 
 }
+void event_talk(player *p,npc *n) {
+    int k = 0, w = 0, q = 0, P = 0, N = 0,C=0;
+    settextcolor(WHITE);
+    setbkmode(TRANSPARENT);
+    settextstyle(30, 0, _T("Taipei Sans TC Beta"));
+    string a, b = ".txt";
+    string number;
+    IMAGE t_block, a1, tri,c1;
+    ExMessage ww;
+    loadimage(&t_block, L"./Game/picture/talkblock.png", 0, 0, false);
+    loadimage(&tri, L"./Game/picture/talktri.png", 0, 0, false);
+    putimage(0, 696, &t_block);
+    a = std::to_string(i);
+    string file = "./Game/story/event" + a + b;
+    const char* c = file.c_str();
+    std::wstring src = readFile(c);
+    for (i = 0; i < src.size(); i++) {
+        if (src[i] == 'n') {
+            N = 1;
+ if (C == 1) {
+            file = "./Game/picture/cg" + number + ".png";
+            wstring wfile = string2wstring(file);
+            LPCTSTR path1 = wfile.c_str();
+            loadimage(&c1, path1, 0, 0, false);
+            putimage(0, 0, &c1);
+            C = 0;
+        }
+            if (q == 1) {
+                transparentimage(NULL, 630, 900, &tri, 0xFF55FF);
+                flushmessage(EM_KEY);
+                while (1) {
+                    if (peekmessage(&ww, EM_KEY)) {
+                        if (ww.vkcode == VK_SPACE) {
+                            k = 0; w = 0;
+                            flushmessage(EM_KEY);
+                            Sleep(500);
+                            putimage(0, 696, &t_block);
+                            break;
+                        }
+                    }
+                }
+            }
+            putimage(0, 696, &t_block);
+            number = "";
+        }
+        else if (src[i] == 'p') {
+            if (C == 1) {
+            file = "./Game/picture/cg" + number + ".png";
+            wstring wfile = string2wstring(file);
+            LPCTSTR path1 = wfile.c_str();
+            loadimage(&c1, path1, 0, 0, false);
+            putimage(0, 0, &c1);
+            C = 0;
+        }
+            P = 1;
+            if (q == 1) {
+                transparentimage(NULL, 630, 900, &tri, 0xFF55FF);
+                flushmessage(EM_KEY);
+                while (1) {
+                    if (peekmessage(&ww, EM_KEY)) {
+                        if (ww.vkcode == VK_SPACE) {
+                            k = 0; w = 0;
+                            flushmessage(EM_KEY);
+                            Sleep(500);
+                            putimage(0, 696, &t_block);
+                            break;
+                        }
+                    }
+                }
+            }
+            putimage(0, 696, &t_block);
+            number = "";
+        }
+        else if (src[i] >= '0' && src[i] <= '9') {
+            number += src[i];
+        }
+        else if (src[i] == '\n') {
+            k++;
+        }
+        else if(src[i]=='c') {
+            C = 1;
+            number = "";
+        }
+        else {
+            q = 1;
+            if (N == 1) {
+                settextcolor(BLACK);
+                settextstyle(23, 0, _T("Taipei Sans TC Beta"));
+                int J = stoi(number);
+                LPCTSTR path = n[J].name.c_str();
+                outtextxy(45, 710, path);
+                if (J != 0) {
+                    file = "./Game/picture/t_npc" + number + ".png";
+                    wstring wfile = string2wstring(file);
+                    LPCTSTR path1 = wfile.c_str();
+                    loadimage(&a1, path1, 0, 0, false);
+                    transparentimage(NULL, 0, 746, &a1, 0xFF55FF);
+                }
+                N = 0;
+                settextstyle(30, 0, _T("Taipei Sans TC Beta"));
+                settextcolor(WHITE);
+            }
+            else if (P == 1) {
+                settextcolor(BLACK);
+                settextstyle(23, 0, _T("Taipei Sans TC Beta"));
+                int J = stoi(number);
+                LPCTSTR path = p[J].name.c_str();
+                outtextxy(45, 710, path);
+                file = "./Game/picture/player" + number + ".png";
+                wstring wfile = string2wstring(file);
+                LPCTSTR path1 = wfile.c_str();
+                loadimage(&a1, path1, 0, 0, false);
+                transparentimage(NULL, 0, 746, &a1, 0xFF55FF);
+                P = 0;
+                settextstyle(30, 0, _T("Taipei Sans TC Beta"));
+                settextcolor(WHITE);
+            }
+           
+            wstring tt = L"";
+            tt += src[i];
+            LPCTSTR path = tt.c_str();
+            outtextxy(30 * w + 150, 696 + k * 30+5, path);
+            w++;
+            Sleep(50);
+        }
+
+    }
+    transparentimage(NULL, 630, 900, &tri, 0xFF55FF);
+    flushmessage(EM_KEY);
+    while (1) {
+        if (peekmessage(&ww, EM_KEY)) {
+            if (ww.vkcode == VK_SPACE) {
+                Sleep(1000);
+                break;
+            }
+        }
+    }
+}
+void event(flag *f,player *p,npc *n) {        
+    IMAGE p1,p2,p3;
+    if (f[0].check == 0) {
+        event_talk(p,n);
+        f[0].check = 1;
+    }
+}
 void n_put(npc* n,map *M,int m_id) {
     IMAGE t;
     wstring m;
@@ -1834,7 +1983,7 @@ void n_put(npc* n,map *M,int m_id) {
             LPCTSTR path = m.c_str();
             loadimage(&t, path, 0, 0, false);
 
-            transparentimage(NULL, n[0].x * 48, n[0].y * 48 - 16, &t, 0xFF55FF, 80, 0, 48, 64);
+            transparentimage(NULL, n[stoi(sum)].x * 48, n[stoi(sum)].y * 48 - 16, &t, 0xFF55FF, 80, 0, 48, 64);
             k++;
             sum = "";
         }
@@ -2164,7 +2313,7 @@ int start() {
             }
     }
 }
-void talk(map *m,npc* n, player* p) {
+void talk(npc* n, player* p) {
     int k=0, w=0,q=0,P=0,N=0;
     settextcolor(WHITE);
     setbkmode(TRANSPARENT);
@@ -2262,7 +2411,7 @@ void talk(map *m,npc* n, player* p) {
             wstring tt = L"";
             tt+=src[i];
             LPCTSTR path = tt.c_str();
-            outtextxy(30*w+150, 696+k*30, path);
+            outtextxy(30*w+150, 696+k*30+5, path);
             w++;
             Sleep(50);
         }
@@ -2764,14 +2913,16 @@ int main() {
     arms  ar[5];
     item  it[4];
     map   m[1];
-    npc  n[1];
+    npc  n[3];
     stone st[2];
+    flag f[1];
     int ix, iy, abox1[1];
     int  t, psize = 1, bsize = 2, roundp = 0, roundb = 0;
     string  chose = "l" ;
     string a, b = ".txt", read = "";    
     time_t first=0, two=0,three=0;
-    m[0].x = 27; m[0].y = 20; m[0].psize = 1; m[0].nsize = 1; m[0].npcid = "0-"; m[0].block = "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+    f[0].check = 0;
+    m[0].x = 27; m[0].y = 20; m[0].psize = 1; m[0].nsize = 3; m[0].npcid = "1-"; m[0].block = "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
     p[0].name = L"夏洛特"; p[0].story = L"獵人"; p[0].lv = 1; p[0].mhp = 12; p[0].hp = 10; p[0].dex = 10; p[0].move = 6; p[0].isize = 1; p[0].asize = 1; p[0].x = 10; p[0].y = 10; p[0].speed = 10; p[0].turn = 0; p[0].abox = 0; p[0].pose = 1; p[0].str = 10; p[0].INT = 10; p[0].con = 10; p[0].cha = 10; p[0].wis = 10; p[0].arms_id = 0; p[0].stone_id = 0;
     p[1].name = L"愛麗絲"; p[1].story = L"騎士"; p[1].lv = 1; p[1].mhp = 10; p[1].hp = 10; p[1].dex = 10; p[1].move = 6; p[1].isize = 1; p[1].asize = 1; p[1].x = 10; p[1].y = 10; p[1].speed = 12; p[1].turn = 0; p[1].abox = 0; p[1].pose = 1; p[1].str = 11; p[1].INT = 10; p[1].con = 11; p[1].cha = 10; p[1].wis = 10; p[1].arms_id = 2; p[1].stone_id = 1;
     e[0].name = L"野狼1"; e[0].story = L"團體行動的動物 隨著數量增加危險性也會大幅上升";
@@ -2779,7 +2930,7 @@ int main() {
     ar[0].name = L"栓動步槍"; ar[0].dmg = "2d8"; ar[0].Dmg = L"2d8"; ar[0].range = 5; ar[0].story = L"精準可靠的動能武器\n傷害:2d8"; ar[0].number = 1;
     ar[1].name = L"爪子"; ar[1].dmg = "2d4+2"; ar[1].Dmg = L"2d4+2"; ar[1].hit = "1d4+2"; ar[1].range = 1; ar[1].number = 0;
     ar[2].name = L"長劍"; ar[2].dmg = "1d8"; ar[2].Dmg = L"1d8"; ar[2].hit = "1d2"; ar[2].range = 1; ar[2].story = L"在大陸上廣泛使用的制式長劍\n傷害:1d8\n命中加值:1d2"; ar[2].number = 1;
-    ar[3].name = L"長劍1"; ar[3].dmg = "1d8"; ar[3].Dmg = L"1d8"; ar[3].hit = "1d2"; ar[3].range = 1; ar[3].story = L"在大陸上廣泛使用的制式長劍1\n傷害:1d8\n命中加值:1d2"; ar[3].number = 77;
+    ar[3].name = L"石中劍"; ar[3].dmg = "1d8"; ar[3].Dmg = L"1d8"; ar[3].hit = "1d2"; ar[3].range = 1; ar[3].story = L"傳說只有神選之人才能使用的聖劍\n傷害:1d8\n命中加值:1d2"; ar[3].number = 77;
     ar[4].name = L"長劍2"; ar[4].dmg = "1d8"; ar[4].Dmg = L"1d8"; ar[4].hit = "1d2"; ar[3].range = 1; ar[4].story = L"在大陸上廣泛使用的制式長劍2\n傷害:1d8\n命中加值:1d2"; ar[4].number = 88;
     it[0].Name = L"步槍鉛彈"; it[0].name = "步槍鉛彈"; it[0].number = 30; it[0].type = "B"; it[0].story = L"鉛製外殼可以裝填步槍的子彈\n傷害加值:2\n命中加值:2";
     it[1].Name = L"繃帶"; it[1].name = "繃帶"; it[1].number = 10; it[1].type = "B"; it[1].story = L"";
@@ -2787,10 +2938,12 @@ int main() {
     it[3].Name = L"手槍鉛彈"; it[3].name = "步槍鉛彈"; it[3].number = 99; it[3].type = "B"; it[3].story = L"鉛製外殼可以裝填手槍和衝鋒槍的子彈\n傷害加值:1";
     st[0].name = L"長青石"; st[0].number = 1; st[0].story = L"從星隕礦採掘出的伴生礦 沾染了生命的氣息\nHP+2"; st[0].type = "H+2";
     st[1].name = L"烈風石"; st[1].number = 1; st[1].story = L"從星隕礦採掘出的伴生礦 沾染了狂風的氣息\n速度+2"; st[1].type = "S+2";
-    n[0].name = L"朱利安"; n[0].x = 8; n[0].y=9; n[0].avatar=1;
+    n[0].name = L"旁白";
+    n[1].name = L"朱利安"; n[1].x = 8; n[1].y=9; n[1].avatar=1;
+    n[2].name = L"???"; 
     if (s == 1) {
+        event(f,p,n);
         m_map(m,m_id, n); m_put(p); m_set(m,n,p,m_id);
-  
             IMAGE  map;
             wstring m1;
             m1= std::to_wstring(m_id);
@@ -2810,7 +2963,7 @@ int main() {
                 EndBatchDraw();
             }
             if (g == "t") {
-                talk(m,n,p);
+                talk(n,p);
                 flushmessage(EM_KEY);
                 m_map(m, m_id, n); m_put(p); n_put(n,m,m_id);
             }
