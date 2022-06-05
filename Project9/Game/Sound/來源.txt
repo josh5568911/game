@@ -1,4 +1,4 @@
-魔王魂_ファンタジー12
+bgm0=魔王魂_ファンタジー12
 https://maou.audio/bgm_fantasy12/
 魔王魂_戦闘18
 https://maou.audio/se_battle18/
