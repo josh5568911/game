@@ -2745,7 +2745,6 @@ void m_set(map* m, npc* n, player* p,e_npc *e_n ,int m_id) {
             }
         }
     for (i = 0; i < m[m_id].block.size(); i++) {
-        i++;
         if (m[m_id].block[i] == 'x') {
             i++;
             while (1) {
@@ -2757,6 +2756,7 @@ void m_set(map* m, npc* n, player* p,e_npc *e_n ,int m_id) {
                     x = stoi(box);
                     box = "";
                     i--;
+                    break;
                 }
             }
         }
@@ -2772,6 +2772,7 @@ void m_set(map* m, npc* n, player* p,e_npc *e_n ,int m_id) {
                     ss[x][y] = 1;
                     box = "";
                     i--;
+                    break;
                 }
             }
         }
@@ -3103,7 +3104,7 @@ void menu_player(player *p) {
             }
         }
         else if (m.x>1230&&m.x<1278&&m.y>450&&m.y<498) {
-            if (m.lbutton&&I<1) {
+            if (m.lbutton&&I<2) {
                 I++;
             }
         }
@@ -3440,7 +3441,7 @@ void menu(player* p,item *it,arms *ar,stone *st,flag* f,enemy *e,int &P_id,int &
 void m_e_ai(enemy* e, player* p, map* m, e_npc* e_n, int m_id) {
     int k,w,box[100];
     for (k = 0; k < m[m_id].esize; k++) {
-        if (e_n[k].see == 0) {
+        if (e_n[k].see == 0&&e_n[k].live==1) {
             if (abs(e_n[k].x - p[0].x) + abs(e_n[k].y - p[0].y) <= 4) {
                 mciSendString(L"close SE1", NULL, 0, NULL);
                 mciSendString(L"open ./Game/Sound/SE/m-art_Select1.wav alias SE1", NULL, 0, NULL);
@@ -3474,7 +3475,7 @@ void m_e_ai(enemy* e, player* p, map* m, e_npc* e_n, int m_id) {
         }
     }
     for ( k = 0; k < m[m_id].esize; k++) {
-        if (e_n[k].move == -1) {
+        if (e_n[k].move == -1 && e_n[k].live == 1) {
             IMAGE p1;
             wstring mm;
             mm = std::to_wstring(k);
@@ -3596,7 +3597,7 @@ void m_e_ai(enemy* e, player* p, map* m, e_npc* e_n, int m_id) {
             }
 
         }
-        else if (e_n[k].move == 0|| e_n[k].move == 1) {
+        else if ((e_n[k].move == 0|| e_n[k].move == 1) && e_n[k].live == 1) {
             IMAGE p2;
             wstring mm;
             mm = std::to_wstring(k);
@@ -3622,7 +3623,7 @@ void m_e_ai(enemy* e, player* p, map* m, e_npc* e_n, int m_id) {
     }
     if (F % 10 == 0) {
         for ( k = 0; k < m[m_id].esize; k++) {
-            if (e_n[k].move == 1) {
+            if (e_n[k].move == 1 && e_n[k].live == 1) {
                     int s = rand() % 10 + 1;
                     if (s > 3) {
                         s = rand() % 4 + 1;
@@ -3643,7 +3644,7 @@ void m_e_ai(enemy* e, player* p, map* m, e_npc* e_n, int m_id) {
                         e_n[k].move = 0;
                     }
                 }
-                else if (e_n[k].move == 0) {
+                else if (e_n[k].move == 0 && e_n[k].live == 1) {
                     int q;
                     q = rand() % 10 + 1;
                     if (q > 5) {
@@ -3656,7 +3657,8 @@ void m_e_ai(enemy* e, player* p, map* m, e_npc* e_n, int m_id) {
 }
 int check(player *p,e_npc *e_n,map *m,int m_id) {
     for (i = 0; i < m[m_id].esize; i++) {
-        if (abs(e_n[i].x - p[0].x) + abs(e_n[i].y - p[0].y)==1) {
+        if (abs(e_n[i].x - p[0].x) + abs(e_n[i].y - p[0].y)==1 && e_n[i].live == 1) {
+            e_n[i].live = 0;
             return e_n[i].battle;
         }
     }
@@ -3857,7 +3859,6 @@ void battle2map(player *p,npc *n,e_npc *e_n,map *m,int m_id) {
         }
     }
     for (i = 0; i < m[m_id].block.size(); i++) {
-        i++;
         if (m[m_id].block[i] == 'x') {
             i++;
             while (1) {
@@ -3869,6 +3870,7 @@ void battle2map(player *p,npc *n,e_npc *e_n,map *m,int m_id) {
                     x = stoi(box);
                     box = "";
                     i--;
+                    break;
                 }
             }
         }
@@ -3884,6 +3886,7 @@ void battle2map(player *p,npc *n,e_npc *e_n,map *m,int m_id) {
                     ss[x][y] = 1;
                     box = "";
                     i--;
+                    break;
                 }
             }
         }
@@ -3901,6 +3904,7 @@ void battle2map(player *p,npc *n,e_npc *e_n,map *m,int m_id) {
                  i++;
              }
          }
+
 }
 int main() {    
     initgraph(1296, 960);
@@ -3909,7 +3913,7 @@ int main() {
     SetWindowText(hWnd,L"RPG");
     srand(time(NULL));
     int  id=0, P_id=0,m_id=0, second=0,  load = 0,n_id=1,i_id=4,ar_id=5,st_id=2,f_id=1,b_mid;
-    player p[2];
+    player p[3];
     enemy_type e_t[2];
     enemy e[2];
     arms  ar[5];
@@ -3926,10 +3930,11 @@ int main() {
     string a, b = ".txt", read = "";    
     time_t first=0, two=0,three=0;
     f[0].check = 0;
-    m[0].x = 27; m[0].y = 20; m[0].psize = 1; m[0].nsize = 1; m[0].esize = 4; m[0].npcid = "1-";  m[0].b_set = "b0b0b0b0z"; m[0].e_set = "x10y13zx5y5zx8y8zx17y17z"; m[0].block = "x2y4";
+    m[0].x = 27; m[0].y = 20; m[0].psize = 1; m[0].nsize = 1; m[0].esize = 3; m[0].npcid = "1-";  m[0].b_set = "b0b0b0z"; m[0].e_set = "x10y13zx5y5zx17y17z"; m[0].block = "x2y4";
     b_m[0].x = 20; b_m[0].y = 15; b_m[0].esize = 1; b_m[0].set = "b0x3y2x1y2x7y2x18y1x13y2x10y3x14y4x16y4x18y4x19y4x3y5x1y6x9y6x12y6"; b_m[0].e_set = "e0x5y4"; b_m[0].p_set = "x12y14";
-    p[0].name = L"夏洛特"; p[0].story = L"獵人"; p[0].lv = 1; p[0].mhp = 12; p[0].hp = 10; p[0].dex = 10; p[0].move = 6; p[0].isize = 1; p[0].asize = 1; p[0].x = 10; p[0].y = 10; p[0].speed = 10; p[0].turn = 0; p[0].abox = 0; p[0].pose = 1; p[0].str = 10; p[0].INT = 10; p[0].con = 10; p[0].cha = 10; p[0].wis = 10; p[0].arms_id = 0; p[0].stone_id = 0;
-    p[1].name = L"愛麗絲"; p[1].story = L"騎士"; p[1].lv = 1; p[1].mhp = 10; p[1].hp = 10; p[1].dex = 10; p[1].move = 6; p[1].isize = 1; p[1].asize = 1; p[1].x = 10; p[1].y = 10; p[1].speed = 12; p[1].turn = 0; p[1].abox = 0; p[1].pose = 1; p[1].str = 11; p[1].INT = 10; p[1].con = 11; p[1].cha = 10; p[1].wis = 10; p[1].arms_id = 2; p[1].stone_id = 1;
+    p[0].name = L"艾倫"; p[0].story = L"白之子"; p[0].lv = 1; p[0].mhp = 12; p[0].hp = 12; p[0].dex = 10; p[0].move = 6; p[0].isize = 1; p[0].asize = 1; p[0].x = 10; p[0].y = 10; p[0].speed = 10; p[0].turn = 0; p[0].abox = 0; p[0].pose = 1; p[0].str = 10; p[0].INT = 10; p[0].con = 10; p[0].cha = 10; p[0].wis = 10; p[0].arms_id = 0; p[0].stone_id = 0;
+    p[1].name = L"夏洛特"; p[1].story = L"獵人"; p[1].lv = 1; p[1].mhp = 12; p[1].hp = 12; p[1].dex = 10; p[1].move = 6; p[1].isize = 1; p[1].asize = 1; p[1].x = 10; p[1].y = 10; p[1].speed = 10; p[1].turn = 0; p[1].abox = 0; p[1].pose = 1; p[1].str = 10; p[1].INT = 10; p[1].con = 10; p[1].cha = 10; p[1].wis = 10; p[1].arms_id = 0; p[1].stone_id = 0;
+    p[2].name = L"愛麗絲"; p[2].story = L"騎士"; p[2].lv = 1; p[2].mhp = 10; p[2].hp = 10; p[2].dex = 10; p[2].move = 6; p[2].isize = 1; p[2].asize = 1; p[2].x = 10; p[2].y = 10; p[2].speed = 12; p[2].turn = 0; p[2].abox = 0; p[2].pose = 1; p[2].str = 11; p[2].INT = 10; p[2].con = 11; p[2].cha = 10; p[2].wis = 10; p[2].arms_id = 2; p[2].stone_id = 1;
     e_t[0].name = L"野狼"; e_t[0].story = L"團體行動的動物 隨著數量增加危險性也會大幅上升"; e_t[0].baid = 1; e_t[0].str = 12; e_t[0].dex = 15; e_t[0].con = 12; e_t[0].INT = 3; e_t[0].wis = 14; e_t[0].cha = 7; e_t[0].lv = 1; e_t[0].mhp = 11; e_t[0].hp = 11; e_t[0].move = 7; e_t[0].speed = 12;
     ar[0].name = L"栓動步槍"; ar[0].dmg = "2d8"; ar[0].Dmg = L"2d8"; ar[0].range = 5; ar[0].story = L"精準可靠的動能武器\n傷害:2d8"; ar[0].number = 1; ar[0].bullet = 5; ar[0].mbullet = 5;
     ar[1].name = L"爪子"; ar[1].dmg = "2d4+2"; ar[1].Dmg = L"2d4+2"; ar[1].hit = "1d4+2"; ar[1].range = 1; ar[1].number = 0; ar[1].bullet = 1; ar[1].mbullet = 1;
@@ -3949,6 +3954,7 @@ int main() {
         int s = start();
         if (s == 1) {
             first = time(NULL);
+            event(f, p, n);
             break;
         }
         else if (s == 0) {
