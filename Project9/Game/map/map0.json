@@ -167,5 +167,7 @@
  "tilewidth":48,
  "type":"map",
  "version":"1.8",
- "width":27
+  "width": 27,
+  "playerx": 1,
+  "playery": 4
 }

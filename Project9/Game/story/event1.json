@@ -1,0 +1,29 @@
+{
+  "map": 0,
+  "talk": {
+    {
+      "cg": -1,
+      "npc": -1,
+      "player": 0,
+      "sentence": "已經早上了嗎?總感覺做了一個很特別的夢 "
+    },
+    {
+      "cg": -1,
+      "npc": -1,
+      "player": 0,
+      "sentence": "但是 怎麼想都想不起來 我究竟做了什麼夢呢?"
+    }
+    {
+      "cg": -1,
+      "npc": -1,
+      "player": 0,
+      "sentence": "但是 怎麼想都想不起來 我究竟做了什麼夢呢?"
+    }
+    {
+      "cg": -1,
+      "npc": -1,
+      "player": 0,
+      "sentence": "天已經這麼亮了啊 記得今天是要去"
+    }
+  }
+}

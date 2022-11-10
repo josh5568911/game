@@ -2173,22 +2173,64 @@ int battle_check(player *p,enemy *e,b_map *b_m,int b_mid) {
     }
     return 1;
 }
-void menu_json_save(player* p, arms* ar, item* it, stone* st, flag* f, int P_id, int i_id, int ar_id, int st_id, int f_id, int second, int psize, time_t first, time_t two, time_t three) {
-    two = time(NULL);
+void menu_json_save(player* p, arms* ar, item* it, stone* st, flag* f, int P_id, int i_id, int ar_id, int st_id, int f_id, int second, int psize, time_t first, time_t two, time_t three,string a) {
     Json::Value root;
-    root["time"] = Json::Value(two - first + three);
+    two = time(NULL);
+    int T = two - first + three;
+    root["time"] = Json::Value(T);
     Json::Value player;
-    for (int k = 0; k < P_id; k++) {
-        Json::Value arrary;
-        arrary["lv"] = Json::Value(p[k].lv);
-        arrary["mhp"] = Json::Value(p[k].mhp);
-        arrary["hp"] = Json::Value(p[k].hp);
-        arrary["dex"] = Json::Value(p[k].dex);
-        arrary["move"] = Json::Value(p[k].move);
-        arrary["isize"] = Json::Value(p[k].isize);
-        arrary["asize"] = Json::Value(p[k].asize);
-        arrary["lv"] = Json::Value(p[k].lv);
+    for (i = 0; i < psize; i++) {
+        player["lv"].append(p[i].lv);
+        player["mhp"].append(p[i].mhp);
+        player["hp"].append(p[i].hp);
+        player["dex"].append(p[i].dex);
+        player["move"].append(p[i].move);
+        player["isize"].append(p[i].isize);
+        player["asize"].append(p[i].asize);
+        player["x"].append(p[i].x);
+        player["y"].append(p[i].y);
+        player["turn"].append(p[i].turn);
+        player["speed"].append(p[i].speed);
+        player["abox"].append(p[i].abox);
+        player["pose"].append(p[i].pose);
+        player["str"] .append(p[i].str);
+        player["INT"] .append(p[i].INT);
+        player["con"] .append(p[i].con);
+        player["wis"].append(p[i].wis);
+        player["cha"] .append(p[i].cha);
+        player["stone_id"].append(p[i].stone_id);
+        player["arms_id"].append(p[i].arms_id);
     }
+    root["player"] = player;
+    Json::Value arms;
+    for (i = 0; i < ar_id; i++) {
+        arms["mbullet"].append(ar[i].mbullet);
+        arms["bullet"].append(ar[i].bullet);
+        arms["number"].append(ar[i].number);
+    }
+    root["arms"] = arms;
+    Json::Value item;
+    for (i = 0; i < i_id; i++) {
+        item["number"].append(it[i].number);
+    }
+    root["item"] = item;
+    Json::Value stone;
+    for (i = 0; i < st_id; i++) {
+        stone["number"].append(st[i].number);
+    }
+    root["stone"] = stone;
+    Json::Value flag;
+    for (i = 0; i < f_id; i++) {
+        flag["check"].append(f[i].check);
+    }
+    root["flag"] = flag;
+    root["P_id"] =Json::Value( P_id);
+    Json::StyledWriter sw;
+    string file="./Game/save/"+a+".json";
+    ofstream os;
+    os.open(file, std::ios::out | std::ios::app);
+    os << sw.write(root);
+    os.close();
 }
 void menu_save(player* p, arms* ar, item* it, stone* st, flag* f, int P_id, int i_id, int ar_id, int st_id, int f_id, int second, int psize, time_t first, time_t two, time_t three) {
     while (1) {
@@ -2214,19 +2256,15 @@ void menu_save(player* p, arms* ar, item* it, stone* st, flag* f, int P_id, int 
             transparentimage(NULL, 1230, 430, &larrow, 0xFF55FF);
             for (i = 0; i < 7; i++) {
                 a = std::to_string(i + 1 + j * 14);
-                string file = "./Game/save/" + a + b;
-                std::ifstream ifs(file, std::ios::in);
-                if (ifs.is_open()) {
-                    std::string str((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
-                    string INT = "";
-                    for (int J = 0; J < str.size(); J++) {
-                        if (str[J] == '\n') {
-                            break;
-                        }
-                        INT += str[J];
-                    }
+                string file = "./Game/save/" + a + ".json";
+                Json::Reader reader;
+                Json::Value root;
+                ifstream in(file, ios::binary);
+                if (in.is_open()) {
+                    reader.parse(in, root);
                     int sto;
-                    sto = stoi(INT);
+                    sto = root["time"].asInt();
+                    in.close();
                     int hr = 0, min = 0, sec = 0;
                     for (int T = 0; T < sto; T++) {
                         sec++;
@@ -2246,23 +2284,18 @@ void menu_save(player* p, arms* ar, item* it, stone* st, flag* f, int P_id, int 
                     outtextxy(160, 60 + 128 * i, s1);
                     _stprintf(d, _T("%d"), sec); outtextxy(170, 60 + 128 * i, d);
                 }
-
             }
             for (i = 0; i < 7; i++) {
                 a = std::to_string(i + 8 + j * 14);
-                string file = "./Game/save/" + a + b;
-                std::ifstream ifs(file, std::ios::in);
-                if (ifs.is_open()) {
-                    std::string str((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
-                    string INT = "";
-                    for (int J = 0; J < str.size(); J++) {
-                        if (str[J] == '\n') {
-                            break;
-                        }
-                        INT += str[J];
-                    }
+                string file = "./Game/save/" + a + ".json";
+                Json::Reader reader;
+                Json::Value root;
+                ifstream in(file, ios::binary);
+                if (in.is_open()) {
+                    reader.parse(in, root);
                     int sto;
-                    sto = stoi(INT);
+                    sto = root["time"].asInt();
+                    in.close();
                     int hr = 0, min = 0, sec = 0;
                     for (int T = 0; T < sto; T++) {
                         sec++;
@@ -2316,53 +2349,7 @@ void menu_save(player* p, arms* ar, item* it, stone* st, flag* f, int P_id, int 
             }
         }
         if (u == 0) {
-            two = time(NULL);
-            string file = "./Game/save/" + a + b;
-            ofstream fout(file);
-            if (fout) {
-                fout << two - first + three << endl;
-                fout << 0 << endl;
-                for (i = 0; i < psize; i++) {
-                    fout << p[i].lv << endl;
-                    fout << p[i].mhp << endl;
-                    fout << p[i].hp << endl;
-                    fout << p[i].dex << endl;
-                    fout << p[i].move << endl;
-                    fout << p[i].isize << endl;
-                    fout << p[i].asize << endl;
-                    fout << p[i].x << endl;
-                    fout << p[i].y << endl;
-                    fout << p[i].turn << endl;
-                    fout << p[i].speed << endl;
-                    fout << p[i].abox << endl;
-                    fout << p[i].pose << endl;
-                    fout << p[i].str << endl;
-                    fout << p[i].INT << endl;
-                    fout << p[i].con << endl;
-                    fout << p[i].wis << endl;
-                    fout << p[i].cha << endl;
-                    fout << p[i].stone_id << endl;
-                    fout << p[i].arms_id << endl;
-                }
-                for (i = 0; i < ar_id; i++) {
-                    fout << ar[i].mbullet << endl;
-                    fout << ar[i].bullet << endl;
-                    fout << ar[i].number << endl;
-                }
-                for (i = 0; i < i_id; i++) {
-                    fout << it[i].number << endl;
-                }
-                for (i = 0; i < st_id; i++) {
-                    fout << st[i].number << endl;
-                }
-                for (i = 0; i < f_id; i++) {
-                    fout << f[i].check << endl;
-                }
-                fout << P_id << endl;
-                fout << second << endl;
-
-            }
-
+            menu_json_save(p, ar, it, st, f, P_id, i_id, ar_id, st_id, f_id, second, psize, first, two, three, a);
         }
     }
 }
@@ -2389,19 +2376,15 @@ void menu_load(player* p, arms* ar, item* it, stone* st, flag* f, int P_id, int 
         transparentimage(NULL, 1230, 430, &larrow, 0xFF55FF);
         for (i = 0; i < 7; i++) {
             a = std::to_string(i + 1 + j * 14);
-            string file = "./Game/save/" + a + b;
-            std::ifstream ifs(file, std::ios::in);
-            if (ifs.is_open()) {
-                std::string str((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
-                string INT = "";
-                for (int J = 0; J < str.size(); J++) {
-                    if (str[J] == '\n') {
-                        break;
-                    }
-                    INT += str[J];
-                }
+            string file = "./Game/save/" + a + ".json";
+            Json::Reader reader;
+            Json::Value root;
+            ifstream in(file, ios::binary);
+            if (in.is_open()) {
+                reader.parse(in, root);
                 int sto;
-                sto = stoi(INT);
+                sto = root["time"].asInt();
+                in.close();
                 int hr = 0, min = 0, sec = 0;
                 for (int T = 0; T < sto; T++) {
                     sec++;
@@ -2425,19 +2408,15 @@ void menu_load(player* p, arms* ar, item* it, stone* st, flag* f, int P_id, int 
         }
         for (i = 0; i < 7; i++) {
             a = std::to_string(i + 8 + j * 14);
-            string file = "./Game/save/" + a + b;
-            std::ifstream ifs(file, std::ios::in);
-            if (ifs.is_open()) {
-                std::string str((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
-                string INT = "";
-                for (int J = 0; J < str.size(); J++) {
-                    if (str[J] == '\n') {
-                        break;
-                    }
-                    INT += str[J];
-                }
+            string file = "./Game/save/" + a + ".json";
+            Json::Reader reader;
+            Json::Value root;
+            ifstream in(file, ios::binary);
+            if (in.is_open()) {
+                reader.parse(in, root);
                 int sto;
-                sto = stoi(INT);
+                sto = root["time"].asInt();
+                in.close();
                 int hr = 0, min = 0, sec = 0;
                 for (int T = 0; T < sto; T++) {
                     sec++;
@@ -2494,9 +2473,11 @@ void menu_load(player* p, arms* ar, item* it, stone* st, flag* f, int P_id, int 
     IMAGE saveblock;
     loadimage(&saveblock, L"./Game/picture/saveblock.png", 0, 0, false);
     int LOAD = 0;
-    string file = "./Game/save/" + a + b;
-    std::ifstream ifs(file, std::ios::in);
-    if (!ifs.is_open() && a != "") {
+    string file = "./Game/save/" + a + ".json";
+    Json::Reader reader;
+    Json::Value root;
+    ifstream in(file, ios::binary);
+    if (!in.is_open() && a != "") {
         putimage(400, 400, &saveblock);
         wchar_t s2[] = L"無此存檔";
         outtextxy(610, 440, s2);
@@ -2506,60 +2487,45 @@ void menu_load(player* p, arms* ar, item* it, stone* st, flag* f, int P_id, int 
 
     }
     else {
-        std::string str((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
-        int k = 0, z[1000];
-        string w[1000];
-        for (i = 0; i < str.size(); i++) {
-            if (str[i] != 10) {
-                w[k] += str[i];
-            }
-            else {
-                z[k] = stoi(w[k]);
-                k++;
-            }
-        }
-        ifs.close();
-        three = z[0];
-        k = 1;
+        reader.parse(in, root);
+        three = root["time"].asInt();
         for (i = 0; i < psize; i++) {
-            p[i].lv = z[k]; k++;
-            p[i].mhp = z[k]; k++;
-            p[i].hp = z[k]; k++;
-            p[i].dex = z[k]; k++;
-            p[i].move = z[k]; k++;
-            p[i].isize = z[k]; k++;
-            p[i].asize = z[k]; k++;
-            p[i].x = z[k]; k++;
-            p[i].y = z[k]; k++;
-            p[i].turn = z[k]; k++;
-            p[i].speed = z[k]; k++;
-            p[i].abox = z[k]; k++;
-            p[i].pose = z[k]; k++;
-            p[i].str = z[k]; k++;
-            p[i].INT = z[k]; k++;
-            p[i].con = z[k]; k++;
-            p[i].wis = z[k]; k++;
-            p[i].cha = z[k]; k++;
-            p[i].stone_id = z[k]; k++;
-            p[i].arms_id = z[k]; k++;
+            p[i].lv = root["player"]["lv"][i].asInt();
+            p[i].mhp = root["player"]["mhp"][i].asInt();
+            p[i].hp = root["player"]["hp"][i].asInt();
+            p[i].dex = root["player"]["dex"][i].asInt();
+            p[i].move = root["player"]["move"][i].asInt();
+            p[i].isize = root["player"]["isize"][i].asInt();
+            p[i].asize = root["player"]["asize"][i].asInt();
+            p[i].x = root["player"]["x"][i].asInt();
+            p[i].y = root["player"]["y"][i].asInt();
+            p[i].turn = root["player"]["turn"][i].asInt();
+            p[i].speed = root["player"]["speed"][i].asInt();
+            p[i].abox = root["player"]["abox"][i].asInt();
+            p[i].pose = root["player"]["pose"][i].asInt();
+            p[i].str = root["player"]["str"][i].asInt();
+            p[i].INT = root["player"]["INT"][i].asInt();
+            p[i].con = root["player"]["con"][i].asInt();
+            p[i].wis = root["player"]["wis"][i].asInt();
+            p[i].cha = root["player"]["cha"][i].asInt();
+            p[i].stone_id = root["player"]["stone_id"][i].asInt();
+            p[i].arms_id = root["player"]["arms_id"][i].asInt();
         }
         for (i = 0; i < ar_id; i++) {
-            ar[i].mbullet = z[k]; k++;
-            ar[i].bullet = z[k]; k++;
-            ar[i].number = z[k]; k++;
+            ar[i].mbullet = root["arms"]["mbullet"][i].asInt();
+            ar[i].bullet = root["arms"]["bullet"][i].asInt();
+            ar[i].number = root["arms"]["number"][i].asInt();
         }
         for (i = 0; i < i_id; i++) {
-            it[i].number = z[k]; k++;
+            it[i].number = root["item"]["number"][i].asInt();
         }
         for (i = 0; i < st_id; i++) {
-            st[i].number = z[k]; k++;
+            st[i].number = root["stone"]["number"][i].asInt();
         }
         for (i = 0; i < f_id; i++) {
-            f[i].check = z[k]; k++;
+            f[i].check = root["flag"]["check"][i].asInt();
         }
-        P_id = z[k]; k++;
-        second = z[k]; k++;
-
+        P_id = root["P_id"].asInt();
         first = time(NULL);
     }
 }
@@ -2710,6 +2676,13 @@ void event(flag *f,player *p,npc *n) {
         const char* path = filename.c_str();
         readeventjson(p, n,path);
         f[0].check = 1;
+    }
+    else if (f[1].check ==0) {
+        string filename;
+        filename = "./Game/story/event" + to_string(1) + string(".json");
+        const char* path = filename.c_str();
+        readeventjson(p, n, path);
+        f[1].check = 1;
     }
 }
 void n_put(npc* n,Map *M,int m_id) {
@@ -4080,7 +4053,7 @@ int main() {
     HWND hWnd = GetHWnd();
     SetWindowText(hWnd,L"RPG");
     srand(time(NULL));
-    int  id=0, P_id=0,m_id=0, second=0,  load = 0,n_id=1,i_id=4,ar_id=5,st_id=2,f_id=1,b_mid;
+    int  id=0, P_id=0,m_id=0, second=0,  load = 0,n_id=1,i_id=4,ar_id=5,st_id=2,f_id=2,b_mid;
     player p[3];
     enemy_type e_t[2];
     enemy e[2];
@@ -4089,7 +4062,7 @@ int main() {
     Map   m[1];
     npc  n[3];
     stone st[2];
-    flag f[1];
+    flag f[2];
     e_npc e_n[100];
     b_map b_m[1];
     int ix, iy, abox1[1];
@@ -4097,7 +4070,7 @@ int main() {
     string  chose = "l" ;
     string a, b = ".txt", read = "";    
     time_t first=0, two=0,three=0;
-    f[0].check = 0;
+    f[0].check = 0; f[1].check = 0;
     m[0].x = 27; m[0].y = 20; m[0].psize = 1; m[0].nsize = 1; m[0].esize = 3; m[0].npcid = "1-";  m[0].b_set = "b0b0b0z"; m[0].e_set = "x10y13zx5y5zx17y17z"; m[0].block = "x2y4"; m[0].msize = 1;
     b_m[0].x = 20; b_m[0].y = 15; b_m[0].esize = 1; b_m[0].set = "b0x3y2x1y2x7y2x18y1x13y2x10y3x14y4x16y4x18y4x19y4x3y5x1y6x9y6x12y6"; b_m[0].e_set = "e0x5y4"; b_m[0].p_set = "x12y14";
     p[0].name = L"艾倫"; p[0].story = L"白之子"; p[0].lv = 1; p[0].mhp = 12; p[0].hp = 12; p[0].dex = 10; p[0].move = 6; p[0].isize = 1; p[0].asize = 1; p[0].x = 7; p[0].y = 7; p[0].speed = 10; p[0].turn = 0; p[0].abox = 0; p[0].pose = 1; p[0].str = 10; p[0].INT = 10; p[0].con = 10; p[0].cha = 10; p[0].wis = 10; p[0].arms_id = 0; p[0].stone_id = 0;
@@ -4122,7 +4095,8 @@ int main() {
         int s = start();
         if (s == 1) {
             first = time(NULL);
-            event(f,p,n);
+            event(f, p, n);
+            /*事件在這裡event(f,p,n);*/
             break;
         }
         else if (s == 0) {
@@ -4139,6 +4113,7 @@ int main() {
             Z = 2;
    while (1) {
             while (1) {
+                event(f, p, n);
                 b_mid = check(p, e_n, m, m_id);
                 if (b_mid != -1) {
                     m[m_id].px = p[0].x;
