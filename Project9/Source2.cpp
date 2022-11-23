@@ -245,6 +245,7 @@ public:
     int gx;
     int gy;
     int Mid;
+    int gMid;
     bool state;
 };
 void readmapjson(Map* m,int m_id, const char* filename) {
@@ -4079,10 +4080,21 @@ void battle2map(player *p,npc *n,e_npc *e_n,Map *m,int m_id) {
 
 }
 void m_check(player *p,Map *m,Exit *ex,int &m_id) {
-    string
+    string s="";
+    int uuu;
     for (i = 0; i < m[m_id].exitsize; i++) {
         for (j = 0; j < m[m_id].exit_set.size(); j++) {
-            if
+            if (m[m_id].exit_set[j] == '_') {
+                uuu = stoi(s);
+                if (ex[uuu].state == true) {
+                    if (p[0].x == ex[uuu].x) {
+
+                    }
+                }
+            }
+            else {
+                s += m[m_id].exit_set[j];
+            }
         }
     }
 }
