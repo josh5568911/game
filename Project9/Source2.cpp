@@ -206,7 +206,8 @@ public:
     int esize;
     int px, py;
     int msize;
-    string block,npcid,e_set,b_set;
+    int exitsize;
+    string block,npcid,e_set,b_set,exit_set;
 };
 class b_map {
 public:
@@ -237,11 +238,20 @@ public:
     wstring name, story;
     string type;
 };
+class Exit {
+public:
+    int x;
+    int y;
+    int gx;
+    int gy;
+    int Mid;
+    bool state;
+};
 void readmapjson(Map* m,int m_id, const char* filename) {
     Json::Reader reader;
     Json::Value root;
     ifstream in(filename, ios::binary);
-
+    int u;
     if (!in.is_open()) {
         return;
     }
@@ -263,9 +273,10 @@ void readmapjson(Map* m,int m_id, const char* filename) {
             }
         }
     }
+    u = root["layers"][0]["data"].size();
     in.close();
 }
-void readeventjson(player *p,npc *n,const char* filename) {
+void readeventjson(player *p,npc *n,const char* filename,int &m_id) {
     settextcolor(WHITE);
     setbkmode(TRANSPARENT);
     settextstyle(30, 0, _T("Taipei Sans TC Beta"));
@@ -273,7 +284,7 @@ void readeventjson(player *p,npc *n,const char* filename) {
     ExMessage ww;
     loadimage(&t_block, L"./Game/picture/talkblock.png", 0, 0, false);
     loadimage(&tri, L"./Game/picture/talktri.png", 0, 0, false);
-    wstring mm,tt,ss;
+    wstring mm,tt,ss,MM;
     Json::Reader reader;
     Json::Value root;
     ifstream in(filename, ios::binary);
@@ -281,6 +292,13 @@ void readeventjson(player *p,npc *n,const char* filename) {
         return;
     }
     if (reader.parse(in, root)) {
+        if (root.isMember("map")) {
+            m_id = root["map"].asInt();
+        }
+        if (root.isMember("x")) {
+            p[0].x = root["x"][0].asInt();
+            p[0].y = root["y"][0].asInt();
+        }
         for (int k = 0; k < root["talk"].size(); k++) {
             BeginBatchDraw();
             putimage(0, 696, &t_block);
@@ -300,17 +318,21 @@ void readeventjson(player *p,npc *n,const char* filename) {
                 IMAGE p1;
                 if (root["talk"][k]["npc"].asInt() != 0) {
                     mm = std::to_wstring(root["talk"][k]["npc"].asInt());
-                    mm = L"./Game/picture/t_npc" + mm + L".png";
+                    mm = L"./Game/picture/t_npc" + mm +L"_" + std::to_wstring(root["talk"][k]["face"].asInt()) + L".png";
                     LPCTSTR path = mm.c_str();
                     loadimage(&p1, path, 0, 0, false);
                     transparentimage(NULL, 0, 746, &p1, 0xFF55FF);
                 }
             }
             else {
+                settextcolor(BLACK);
+                settextstyle(40, 0, _T("Taipei Sans TC Beta"));
+                LPCTSTR path = p[root["talk"][k]["player"].asInt()].name.c_str();
+                outtextxy(45, 710, path);
                 IMAGE p1;
                 mm = std::to_wstring(root["talk"][k]["player"].asInt());
-                mm = L"./Game/picture/player" + mm + L".png";
-                LPCTSTR path = mm.c_str();
+                mm = L"./Game/picture/player" + mm +L"_" + std::to_wstring(root["talk"][k]["face"].asInt()) + L".png";
+                 path = mm.c_str();
                 loadimage(&p1, path, 0, 0, false);
                 transparentimage(NULL, 0, 746, &p1, 0xFF55FF);
             }
@@ -318,14 +340,22 @@ void readeventjson(player *p,npc *n,const char* filename) {
             wstring s = UTF8ToUnicode(root["talk"][k]["sentence"].asString());
             settextstyle(30, 0, _T("Taipei Sans TC Beta"));
             settextcolor(WHITE);
-            int K = 0;
+            int K = 0,W=0;
             for (int w = 0; w <s.size(); w++) {
                 tt = L"";
-                 tt+= s[w];
-                LPCTSTR path = tt.c_str();
-                outtextxy(30 * w + 150, 696 + K * 30 + 5, path);
-                Sleep(50);
+                if (s[w] == '^') {
+                    K++;
+                    W = 0;
+                }
+                else {
+                    tt += s[w];
+                    LPCTSTR path = tt.c_str();
+                    outtextxy(30 * W + 150, 696 + K * 50 + 5, path);
+                    W++;
+                    Sleep(50);
+                }
             }
+            transparentimage(NULL, 600, 910, &tri, 0xFF55FF);
             flushmessage(EM_KEY);
             while (1) {
                 if (peekmessage(&ww, EM_KEY)) {
@@ -366,7 +396,7 @@ void readtalkjson(player* p, npc* n, const char* filename) {
                 IMAGE p1;
                 if (root["talk"][k]["npc"].asInt() != 0) {
                     mm = std::to_wstring(root["talk"][k]["npc"].asInt());
-                    mm = L"./Game/picture/t_npc" + mm + L".png";
+                    mm = L"./Game/picture/t_npc" + mm+L"_" + std::to_wstring(root["talk"][k]["npc"].asInt()) + L".png";
                     LPCTSTR path = mm.c_str();
                     loadimage(&p1, path, 0, 0, false);
                     transparentimage(NULL, 0, 746, &p1, 0xFF55FF);
@@ -536,7 +566,7 @@ void p_put(player *p,int psize) {
     LPCTSTR path;
         for (int I = 0; I < psize; I++) {
             mm = std::to_wstring(I);
-            mm = L"./Game/picture/player" + mm + L".png";
+            mm = L"./Game/picture/player" + mm + L"_1.png";
             path = mm.c_str();
             loadimage(&c, path, 0, 0, false);
             transparentimage(NULL, 0, 730, &c, 0xFF55FF);
@@ -2353,7 +2383,7 @@ void menu_save(player* p, arms* ar, item* it, stone* st, flag* f, int P_id, int 
         }
     }
 }
-void menu_load(player* p, arms* ar, item* it, stone* st, flag* f, int P_id, int i_id, int ar_id, int st_id, int f_id, int second, int psize, time_t first, time_t two, time_t three) {
+void menu_load(player* p, arms* ar, item* it, stone* st, flag* f, int P_id, int i_id, int ar_id, int st_id, int f_id, int second, int psize, time_t first, time_t two, time_t &three) {
     string a, b = ".txt", read = "";
     int ssss = 1; j = 0;
     while (ssss != 0) {
@@ -2526,6 +2556,7 @@ void menu_load(player* p, arms* ar, item* it, stone* st, flag* f, int P_id, int 
             f[i].check = root["flag"]["check"][i].asInt();
         }
         P_id = root["P_id"].asInt();
+        three = root["time"].asInt();
         first = time(NULL);
     }
 }
@@ -2637,7 +2668,7 @@ void event_talk(player *p,npc *n) {
                 int J = stoi(number);
                 LPCTSTR path = p[J].name.c_str();
                 outtextxy(45, 710, path);
-                file = "./Game/picture/player" + number + ".png";
+                file = "./Game/picture/player" + number + "_1.png";
                 wstring wfile = string2wstring(file);
                 LPCTSTR path1 = wfile.c_str();
                 loadimage(&a1, path1, 0, 0, false);
@@ -2667,21 +2698,22 @@ void event_talk(player *p,npc *n) {
         }
     }
 }
-void event(flag *f,player *p,npc *n) {
+/*txt版*/
+void event(flag *f,player *p,npc *n,int &m_id) {
     i = 0;
     IMAGE p1,p2,p3;
     if (f[0].check == 0) {
         string filename;
         filename = "./Game/story/event" + to_string(0) + string(".json");
         const char* path = filename.c_str();
-        readeventjson(p, n,path);
+        readeventjson(p, n,path,m_id);
         f[0].check = 1;
     }
     else if (f[1].check ==0) {
         string filename;
         filename = "./Game/story/event" + to_string(1) + string(".json");
         const char* path = filename.c_str();
-        readeventjson(p, n, path);
+        readeventjson(p, n, path,m_id);
         f[1].check = 1;
     }
 }
@@ -3235,7 +3267,7 @@ void menu_player(player *p) {
         path1 = mm.c_str();
         outtextxy(650, 750, path1);
         mm = std::to_wstring(I);
-        mm = L"./Game/picture/player" + mm + L".png";
+        mm = L"./Game/picture/player" + mm + L"_1.png";
         LPCTSTR path = mm.c_str();
         loadimage(&p2, path, 0, 0, false);
         transparentimage(NULL,450,45, &p2, 0xFF55FF);
@@ -3279,7 +3311,7 @@ void menu_equip(player* p, arms* ar,stone *st,int ar_id,int st_id) {
         transparentimage(NULL, 415, 450, &p4, 0xFF55FF);
         transparentimage(NULL, 1230, 450, &p3, 0xFF55FF);
         mm = std::to_wstring(I);
-        mm = L"./Game/picture/player" + mm + L".png";
+        mm = L"./Game/picture/player" + mm + L"_1.png";
         path = mm.c_str();
         loadimage(&p2, path, 0, 0, false);
         path1 = p[I].name.c_str();
@@ -3578,8 +3610,7 @@ void menu(player* p,item *it,arms *ar,stone *st,flag* f,enemy *e,int &P_id,int &
             return;
         }
         else if (g == 5) {
-            string uuu = "l";
-            Load(p, e, ar, it, st, f, i_id, ar_id, st_id, f_id, P_id, second, psize, bsize, roundp, roundb, first, two, three, uuu);
+            menu_load(p, ar, it, st, f, P_id, i_id, ar_id, st_id, f_id, second, psize, first, two, three);
             return;
         }
     }
@@ -3801,7 +3832,7 @@ void m_e_ai(enemy* e, player* p, Map* m, e_npc* e_n, int m_id) {
         }
     }
 }
-int check(player *p,e_npc *e_n,Map *m,int m_id) {
+int b_check(player *p,e_npc *e_n,Map *m,int m_id) {
     for (i = 0; i < m[m_id].esize; i++) {
         if (abs(e_n[i].x - p[0].x) + abs(e_n[i].y - p[0].y)==1 && e_n[i].live == 1) {
             e_n[i].live = 0;
@@ -4047,33 +4078,45 @@ void battle2map(player *p,npc *n,e_npc *e_n,Map *m,int m_id) {
          }
 
 }
+void m_check(player *p,Map *m,Exit *ex,int &m_id) {
+    string
+    for (i = 0; i < m[m_id].exitsize; i++) {
+        for (j = 0; j < m[m_id].exit_set.size(); j++) {
+            if
+        }
+    }
+}
 int main() {    
+    HWND hwnd=initgraph(1296, 960);
+    SetWindowPos(hwnd, HWND_TOP, 250, 10, 1296, 960,0);
     initgraph(1296, 960);
     settextstyle(18, 0, _T("Taipei Sans TC Beta"));
     HWND hWnd = GetHWnd();
     SetWindowText(hWnd,L"RPG");
     srand(time(NULL));
-    int  id=0, P_id=0,m_id=0, second=0,  load = 0,n_id=1,i_id=4,ar_id=5,st_id=2,f_id=2,b_mid;
+    int  id=0, P_id=0,m_id=1, second=0,  load = 0,n_id=1,i_id=4,ar_id=5,st_id=2,f_id=2,b_mid;
     player p[3];
     enemy_type e_t[2];
     enemy e[2];
     arms  ar[5];
     item  it[4];
-    Map   m[1];
+    Map   m[2];
     npc  n[3];
     stone st[2];
     flag f[2];
     e_npc e_n[100];
     b_map b_m[1];
+    Exit EX[3];
     int ix, iy, abox1[1];
     int  t, psize = 1, bsize = 2, roundp = 0, roundb = 0;
     string  chose = "l" ;
     string a, b = ".txt", read = "";    
     time_t first=0, two=0,three=0;
     f[0].check = 0; f[1].check = 0;
+    m[1].psize = 1; m[1].nsize = 0; m[1].esize = 0; m[1].exitsize = 1; m[1].exit_set = "0_";
     m[0].x = 27; m[0].y = 20; m[0].psize = 1; m[0].nsize = 1; m[0].esize = 3; m[0].npcid = "1-";  m[0].b_set = "b0b0b0z"; m[0].e_set = "x10y13zx5y5zx17y17z"; m[0].block = "x2y4"; m[0].msize = 1;
     b_m[0].x = 20; b_m[0].y = 15; b_m[0].esize = 1; b_m[0].set = "b0x3y2x1y2x7y2x18y1x13y2x10y3x14y4x16y4x18y4x19y4x3y5x1y6x9y6x12y6"; b_m[0].e_set = "e0x5y4"; b_m[0].p_set = "x12y14";
-    p[0].name = L"艾倫"; p[0].story = L"白之子"; p[0].lv = 1; p[0].mhp = 12; p[0].hp = 12; p[0].dex = 10; p[0].move = 6; p[0].isize = 1; p[0].asize = 1; p[0].x = 7; p[0].y = 7; p[0].speed = 10; p[0].turn = 0; p[0].abox = 0; p[0].pose = 1; p[0].str = 10; p[0].INT = 10; p[0].con = 10; p[0].cha = 10; p[0].wis = 10; p[0].arms_id = 0; p[0].stone_id = 0;
+    p[0].name = L"艾倫"; p[0].story = L"白之子"; p[0].lv = 1; p[0].mhp = 12; p[0].hp = 12; p[0].dex = 10; p[0].move = 6; p[0].isize = 1; p[0].asize = 1; p[0].x = 10; p[0].y = 10; p[0].speed = 10; p[0].turn = 0; p[0].abox = 0; p[0].pose = 1; p[0].str = 10; p[0].INT = 10; p[0].con = 10; p[0].cha = 10; p[0].wis = 10; p[0].arms_id = 0; p[0].stone_id = 0;
     p[1].name = L"夏洛特"; p[1].story = L"獵人"; p[1].lv = 1; p[1].mhp = 12; p[1].hp = 12; p[1].dex = 10; p[1].move = 6; p[1].isize = 1; p[1].asize = 1; p[1].x = 10; p[1].y = 10; p[1].speed = 10; p[1].turn = 0; p[1].abox = 0; p[1].pose = 1; p[1].str = 10; p[1].INT = 10; p[1].con = 10; p[1].cha = 10; p[1].wis = 10; p[1].arms_id = 0; p[1].stone_id = 0;
     p[2].name = L"愛麗絲"; p[2].story = L"騎士"; p[2].lv = 1; p[2].mhp = 10; p[2].hp = 10; p[2].dex = 10; p[2].move = 6; p[2].isize = 1; p[2].asize = 1; p[2].x = 10; p[2].y = 10; p[2].speed = 12; p[2].turn = 0; p[2].abox = 0; p[2].pose = 1; p[2].str = 11; p[2].INT = 10; p[2].con = 11; p[2].cha = 10; p[2].wis = 10; p[2].arms_id = 2; p[2].stone_id = 1;
     e_t[0].name = L"野狼"; e_t[0].story = L"團體行動的動物 隨著數量增加危險性也會大幅上升"; e_t[0].baid = 1; e_t[0].str = 12; e_t[0].dex = 15; e_t[0].con = 12; e_t[0].INT = 3; e_t[0].wis = 14; e_t[0].cha = 7; e_t[0].lv = 1; e_t[0].mhp = 11; e_t[0].hp = 11; e_t[0].move = 7; e_t[0].speed = 12;
@@ -4091,31 +4134,35 @@ int main() {
     n[0].name = L"旁白";
     n[1].name = L"朱利安"; n[1].x = 3; n[1].y=6; n[1].avatar=1;
     n[2].name = L"???";     
+    EX[0].x = 14; EX[0].y = 13; EX[0].gx = 6; EX[0].gy = 12; EX[0].Mid = 2; EX[0].state = true;
     while (1) {
         int s = start();
         if (s == 1) {
             first = time(NULL);
-            event(f, p, n);
+            event(f, p, n,m_id);
             /*事件在這裡event(f,p,n);*/
             break;
         }
         else if (s == 0) {
-            Load(p, e, ar, it, st, f, i_id, ar_id, st_id, f_id, P_id, second, psize, bsize, roundp, roundb, first, two, three, chose);
+            menu_load(p, ar, it, st, f, P_id, i_id, ar_id, st_id, f_id, second, psize, first, two,three);
             if (three>0 ) {
+                first = time(NULL);
                 break;
             }
         }
     }
     F = 0;
         b_mid = -1;
-            m_map(m, m_id, n); m_put(p); m_set(m, n, p, e_n, m_id);
+        
+            m_map(m, m_id, n); m_put(p); m_set(m, n, p, e_n, m_id); m_put(p);
             string g;
             Z = 2;
    while (1) {
             while (1) {
-                event(f, p, n);
-                b_mid = check(p, e_n, m, m_id);
-                if (b_mid != -1) {
+                event(f, p, n,m_id);
+                b_mid = b_check(p, e_n, m, m_id);
+                /*!=-1*/
+                if (b_mid == -2) {
                     m[m_id].px = p[0].x;
                     m[m_id].py = p[0].y;
                     battle_set(e, e_t, p, b_m, b_mid); 
