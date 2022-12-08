@@ -27,6 +27,12 @@
          "id":1,
          "name":"\u5716\u584a\u5c64 1",
          "opacity":1,
+         "properties":[
+                {
+                 "name":"block",
+                 "type":"bool",
+                 "value":false
+                }],
          "type":"tilelayer",
          "visible":true,
          "width":27,
@@ -58,6 +64,12 @@
          "id":2,
          "name":"\u5716\u584a\u5c64 2",
          "opacity":1,
+         "properties":[
+                {
+                 "name":"block",
+                 "type":"bool",
+                 "value":true
+                }],
          "type":"tilelayer",
          "visible":true,
          "width":27,
@@ -89,6 +101,12 @@
          "id":3,
          "name":"\u5716\u584a\u5c64 3",
          "opacity":1,
+         "properties":[
+                {
+                 "name":"block",
+                 "type":"bool",
+                 "value":true
+                }],
          "type":"tilelayer",
          "visible":true,
          "width":27,
