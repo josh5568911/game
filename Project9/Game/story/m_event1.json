@@ -1,7 +1,11 @@
 {
+  "arms": {
+    "id": [ 5 ],
+    "number": [ 1 ]
+  },
   "item": {
-    "id": [],
-    "number": []
+    "id": [4,3],
+    "number": [1,30]
   },
   "flag": 1,
   "talk": [
@@ -57,7 +61,7 @@
       "npc": 0,
       "player": -1,
       "face": -1,
-      "sentence": "獲得了木製皮帶醫療箱"
+      "sentence": "獲得了簡易醫療箱"
     },
     {
       "npc": -1,
