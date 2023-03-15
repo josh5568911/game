@@ -18,6 +18,9 @@
     <ClCompile Include="Source2.cpp">
       <Filter>來源檔案</Filter>
     </ClCompile>
+    <ClCompile Include="E:\HW0.cpp">
+      <Filter>來源檔案</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Clickable.h">

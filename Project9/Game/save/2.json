@@ -5,9 +5,9 @@
       "mbullet" : [ 5, 1, 1, 1, 1, 6 ],
       "number" : [ 0, 0, 0, 0, 0, 1 ]
    },
-   "exit" : [ false ],
+   "exit" : [ true ,true,true,true,true],
    "flag" : {
-      "check" : [ 1, 1, 1 ]
+    "check": [ 1, 1, 1, 0, 1 ]
    },
    "item" : {
       "number" : [ 0, 0, 0, 30, 1 ]

@@ -1,0 +1,42 @@
+{
+   "P_id" : 0,
+   "arms" : {
+      "bullet" : [ 5, 1, 1, 1, 1, 6 ],
+      "mbullet" : [ 5, 1, 1, 1, 1, 6 ],
+      "number" : [ 0, 0, 0, 0, 0, 1 ]
+   },
+   "exit" : [ false, true, false ],
+   "flag" : {
+      "check" : [ 1, 1, 1, 0, 1 ]
+   },
+   "item" : {
+      "number" : [ 0, 0, 0, 30, 1 ]
+   },
+   "m_id" : 4,
+   "player" : {
+      "INT" : [ 10 ],
+      "abox" : [ 0 ],
+      "arms_id" : [ 4 ],
+      "asize" : [ 1 ],
+      "cha" : [ 10 ],
+      "con" : [ 10 ],
+      "dex" : [ 10 ],
+      "hp" : [ 12 ],
+      "isize" : [ 1 ],
+      "lv" : [ 1 ],
+      "mhp" : [ 12 ],
+      "move" : [ 6 ],
+      "pose" : [ 1 ],
+      "speed" : [ 10 ],
+      "stone_id" : [ 0 ],
+      "str" : [ 10 ],
+      "turn" : [ 0 ],
+      "wis" : [ 10 ],
+      "x" : [ 27 ],
+      "y" : [ 16 ]
+   },
+   "stone" : {
+      "number" : [ 1, 1 ]
+   },
+   "time" : 115
+}
