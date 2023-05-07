@@ -1,3 +1,4 @@
+[BGM]
 bgm0=魔王魂_ファンタジー12
 https://maou.audio/bgm_fantasy12/
 魔王魂_戦闘18
@@ -6,7 +7,14 @@ https://maou.audio/se_battle18/
 https://maou.audio/se_onepoint33/
 堕人-Rokudenasi-
 https://note.com/rengokuteien/n/ndd7c625ee331
-荒野に吹く風
+bgm3=荒野に吹く風
 https://note.com/rengokuteien/n/n34681a17652c
 bgm1=ファンタジー14
 https://maou.audio/bgm_fantasy14/
+bgm2=ファンタジー1
+https://maou.audio/bgm_fantasy01/
+[SE]
+効果音ラボ 
+https://soundeffect-lab.info/
+M-ART
+https://mart.kitunebi.com/index.html

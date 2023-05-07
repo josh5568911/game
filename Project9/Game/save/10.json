@@ -3,43 +3,47 @@
    "arms" : {
       "bullet" : [ 5, 1, 1, 1, 1, 6 ],
       "mbullet" : [ 5, 1, 1, 1, 1, 6 ],
-      "number" : [ 0, 0, 0, 0, 0, 1 ]
+      "number" : [ 0, 0, 0, 0, 0, 2 ]
    },
-   "exit" : [ true, true, true ],
+   "exit" : [ true, true, true, true, true, true, true, true ],
    "flag" : {
-      "check" : [ 1, 1, 1, 1, 1, 0 ]
+      "check" : [ 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1 ]
    },
    "item" : {
-      "number" : [ 0, 0, 0, 30, 1 ]
+      "number" : [ 0, 9, 0, 63, 2 ]
    },
-   "m_id" : 2,
+   "m_flag" : [ 0, 1, 1 ],
+   "m_id" : 5,
    "player" : {
-      "INT" : [ 10 ],
-      "abox" : [ 0 ],
-      "arms_id" : [ 4 ],
-      "asize" : [ 1 ],
-      "cha" : [ 10 ],
-      "con" : [ 10 ],
-      "dex" : [ 10 ],
-      "hp" : [ 12 ],
-      "isize" : [ 1 ],
-      "lv" : [ 1 ],
-      "mhp" : [ 12 ],
-      "move" : [ 6 ],
-      "pose" : [ 3 ],
+      "INT" : [ 10, 10 ],
+      "abox" : [ 0, 0 ],
+      "arms_id" : [ 4, 0 ],
+      "asize" : [ 1, 1 ],
+      "cha" : [ 10, 10 ],
+      "con" : [ 10, 10 ],
+      "dex" : [ 10, 10 ],
+      "hp" : [ 12, 12 ],
+      "isize" : [ 1, 1 ],
+      "lv" : [ 1, 1 ],
+      "mhp" : [ 12, 12 ],
+      "move" : [ 6, 6 ],
+      "pose" : [ 4, 1 ],
       "skill" : {
-         "s_check" : [ 1, 1, 1 ]
+         "s_check_0" : [ 1, 0, 0, 0 ],
+         "s_check_1" : [ 0, 0, 0, 1 ]
       },
-      "speed" : [ 10 ],
-      "stone_id" : [ 0 ],
-      "str" : [ 10 ],
-      "turn" : [ 0 ],
-      "wis" : [ 10 ],
-      "x" : [ 6 ],
-      "y" : [ 14 ]
+      "speed" : [ 10, 10 ],
+      "state" : [ 1, 1 ],
+      "stone_id" : [ 0, 0 ],
+      "str" : [ 10, 10 ],
+      "turn" : [ 0, 0 ],
+      "wis" : [ 10, 10 ],
+      "x" : [ 23, 10 ],
+      "y" : [ 18, 10 ]
    },
+   "psize" : 2,
    "stone" : {
       "number" : [ 1, 1 ]
    },
-   "time" : 133
+   "time" : 271
 }

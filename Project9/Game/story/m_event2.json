@@ -1,0 +1,38 @@
+{
+
+  "flag": 1,
+  "team_state": 1,
+  "talk": [
+    {
+      "npc": -1,
+      "player": 0,
+      "face": 1,
+      "sentence": "早安，夏洛特。"
+    },
+    {
+      "npc": 5,
+      "player": -1,
+      "face": 1,
+      "sentence": "早安，但是你來太慢了，艾倫。"
+    },
+    {
+      "npc": -1,
+      "player": 0,
+      "face": 1,
+      "sentence": "抱歉，可能是我昨晚讀書讀得太晚了，沒想到會睡過頭。"
+    },
+    {
+      "npc": 5,
+      "player": -1,
+      "face": 1,
+      "sentence": "真拿你沒辦法，我爸在家裡準備這次出行的裝備，先到我家在跟我爸一起出發吧。"
+    },
+    {
+      "npc": 0,
+      "player": -1,
+      "face": 1,
+      "sentence": "夏洛特加入了隊伍"
+    }
+  ]
+}
+

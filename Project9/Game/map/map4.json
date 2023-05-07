@@ -419,5 +419,6 @@
  "tilewidth":48,
  "type":"map",
  "version":"1.9",
- "width":50
+  "width": 50,
+  "bgm": 1
 }
