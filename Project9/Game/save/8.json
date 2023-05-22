@@ -3,34 +3,35 @@
    "arms" : {
       "bullet" : [ 5, 1, 1, 1, 1, 6 ],
       "mbullet" : [ 5, 1, 1, 1, 1, 6 ],
-      "number" : [ 0, 0, 0, 0, 0, 2 ]
+      "number" : [ 0, 0, 0, 0, 0, 1 ]
    },
    "exit" : [ true, true, true, true, true, true, true, true ],
    "flag" : {
-      "check" : [ 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1 ]
+      "check" : [ 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0 ]
    },
    "item" : {
-      "number" : [ 0, 9, 0, 63, 2 ]
+      "number" : [ 0, 3, 0, 31, 1, 3 ]
    },
    "m_flag" : [ 0, 1, 1 ],
-   "m_id" : 5,
+   "m_id" : 4,
    "player" : {
       "INT" : [ 10, 10 ],
       "abox" : [ 0, 0 ],
       "arms_id" : [ 4, 0 ],
       "asize" : [ 1, 1 ],
-      "cha" : [ 10, 10 ],
+      "cha" : [ 60, 60 ],
       "chaExp" : [ 50, 50 ],
       "con" : [ 10, 10 ],
       "conExp" : [ 50, 50 ],
       "dex" : [ 10, 10 ],
       "dexExp" : [ 50, 50 ],
+      "exp" : [ 0, 0 ],
       "hp" : [ 12, 12 ],
       "intExp" : [ 50, 50 ],
       "isize" : [ 1, 1 ],
       "lv" : [ 1, 1 ],
       "mhp" : [ 12, 12 ],
-      "move" : [ 6, 6 ],
+      "move" : [ -858993460, -858993460 ],
       "pose" : [ 4, 1 ],
       "skill" : {
          "s_check_0" : [ 1, 0, 0, 0 ],
@@ -44,13 +45,17 @@
       "turn" : [ 0, 0 ],
       "wis" : [ 10, 10 ],
       "wisExp" : [ 50, 50 ],
-      "x" : [ 23, 10 ],
-      "y" : [ 18, 10 ]
+      "x" : [ 27, 10 ],
+      "y" : [ 1, 10 ]
    },
    "psize" : 2,
+   "soundSize" : 500,
    "stone" : {
       "number" : [ 1, 1 ]
    },
-   "time" : 289,
-   "voiceSize" : 250
+   "t_equip" : {
+      "number" : [ 1, 0 ]
+   },
+   "time" : 116,
+   "voiceSize" : 500
 }
