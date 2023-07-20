@@ -27,11 +27,13 @@
 #include<comutil.h>
 #include <json.h>
 #include<chrono>
+#include<thread>
 using namespace std;
-int i, j, ss[200][150], F = 0, Z = 0; int gg = 0; int voiceSize = 500; int soundSize = 500;/*F=時間計數器*/
+int i, j, ss[200][150], Z = 0; int gg = 0; int voiceSize = 500; int soundSize = 500;/*F=時間計數器*/
+long long int FP = 0;
 clock_t ta=0, tb;
 string s[26][60];
-IMAGE mapP,text, back1, aline;
+IMAGE mapP,text, back1, aline,player_image;
 wchar_t vo[50];
 void transparentimage(IMAGE* dstimg, int x, int y, IMAGE* srcimg, UINT transparentcolor)
 {
@@ -236,6 +238,7 @@ class arms {
 public:
     wstring name,Dmg,story;
     string  dmg, hit="0", type;
+    int value=1;
     int range,mbullet, bullet,number,time=0;
 };
 class armor {
@@ -250,6 +253,7 @@ public:
     char type;
     int number;
     int range;
+    int value=1;
 };
 class Map {
 public:
@@ -264,7 +268,7 @@ public:
     int exitsize;
     int box_size;
     int bgm;
-    string block,npcid,e_set,b_set,exit_set,mevent_set,box_set;
+    string block,npcid="", e_set, b_set, exit_set, mevent_set, box_set;
     int team_state[100] = { 0 };
 };
 class b_map {
@@ -324,7 +328,7 @@ public:
 };
 class BOX {
 public :
-    int x, y;
+    int x, y,type;
     bool state;
     bool check;
 };
@@ -346,6 +350,7 @@ class t_equip {
 public:
     wstring name,story;
     int number,size;
+    int value=1;
 };
 class shop {
 public:
@@ -587,8 +592,8 @@ void readmapjson(Map* m,int m_id, const char* filename) {
     u = root["layers"][0]["data"].size();
     in.close();
 }
-void m_map(player* p, Map* m, BOX* Box, int m_id, int b_id, npc* n, int z, string g);
-void show(Map* m, player* p, enemy* e, e_npc* e_n, BOX* Box, int& m_id, int b_id, int z, npc* n, string& g);
+void m_map(player* p, Map* m, BOX* Box, int m_id, int b_id, npc* n, string g);
+void show(Map* m, player* p, enemy* e, e_npc* e_n, BOX* Box, int& m_id, int b_id, npc* n, string g, vector<IMAGE> enemyimage);
 void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,const char* filename,int &m_id,int b_id) {
     settextcolor(WHITE);
     setbkmode(TRANSPARENT);
@@ -620,7 +625,7 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,const char* filename
             Y = root["cammer"]["y"].asInt();
             m[m_id].ox = (X > 13) * (X - 13) * 48 - (14 - (m[m_id].x - X)) * (X + 14 > m[m_id].x) * 48;
             m[m_id].oy = (Y > 10) * (Y - 10) * 48 - (10 - (m[m_id].y - Y)) * (Y+ 10 > m[m_id].y) * 48;
-            m_map(p, m, Box, m_id, b_id, n, 0, "e");
+            m_map(p, m, Box, m_id, b_id, n, "e");
         }
         for (int k = 0; k < root["talk"].size(); k++) {
             wstring s = UTF8ToUnicode(root["talk"][k]["sentence"].asString());
@@ -771,10 +776,14 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,const char* filename
                     Sleep(1);
           }
         }
+        if (root.isMember("flag")) {
+            f[root["flag"].asInt()].check = 1;
+        }
     }
     in.close();
 }
 void readmapeventjson(player* p, npc* n,m_flag *m_f,arms *ar,item *it,Map *m,t_equip *t_E,const char* filename,int &m_id,int s,int &sp_id) {
+    EndBatchDraw();
     settextcolor(WHITE);
     setbkmode(TRANSPARENT);
     settextstyle(30, 0, _T("Taipei Sans TC Beta"));
@@ -852,8 +861,7 @@ void readmapeventjson(player* p, npc* n,m_flag *m_f,arms *ar,item *it,Map *m,t_e
             }
         }
       }
-        else if (root.isMember("see")) {
-         
+        else if (root.isMember("see")) {         
             for (j = 0; j < root["see"].size();j++) {  
                 putimage(0, 696, &t_block);
                 wstring s = UTF8ToUnicode(root["see"][j]["sentence"].asString());
@@ -4614,7 +4622,7 @@ void event_talk(player *p,npc *n) {
     }
 }
 /*txt版*/
-void event(flag *f,player *p,npc *n,m_flag *m_f,Map *m,BOX *Box,Exit *EX,enemy *e,e_npc *e_n,int &m_id,int &b_mid,int b_id) {
+void event(flag *f,b_flag *b_f,player *p,npc *n,m_flag *m_f,Map *m,BOX *Box,Exit *EX,enemy *e,e_npc *e_n,int &m_id,int &b_mid,int b_id) {
     i = 0;
     IMAGE p1,p2,p3;
     if (f[0].check == 0) {
@@ -4706,7 +4714,7 @@ void event(flag *f,player *p,npc *n,m_flag *m_f,Map *m,BOX *Box,Exit *EX,enemy *
              f[11].check = 1;
          }
      }
-     if (f[12].check == 1) {
+     if (f[12].check ==0) {
          if (m_id == 5) {
              string filename;
              filename = "./Game/story/event" + to_string(5) + string(".json");
@@ -4724,6 +4732,13 @@ void event(flag *f,player *p,npc *n,m_flag *m_f,Map *m,BOX *Box,Exit *EX,enemy *
              b_mid = 2;
          }
      }
+     if (f[14].check ==1) {
+         n[6].avatar = 1;
+         string filename;
+         filename = "./Game/story/event" + to_string(9) + string(".json");
+         readeventjson(p, n, f, m, Box, filename.c_str(), m_id, b_id);
+         f[14].check = 0;
+     }
      if (m_f[1].check == 1) {
          EX[2].state = true;
      }
@@ -4731,7 +4746,7 @@ void event(flag *f,player *p,npc *n,m_flag *m_f,Map *m,BOX *Box,Exit *EX,enemy *
          EX[6].state = true;
      }
 }
-void n_put(npc* n,Map *M,player *p,int m_id,string g,int z) {
+void n_put(npc* n,Map *M,player *p,int m_id,string g) {
     IMAGE t;
     wstring m;
     string sum = "";
@@ -4743,25 +4758,7 @@ void n_put(npc* n,Map *M,player *p,int m_id,string g,int z) {
             m = L"./Game/picture/npc" + m + L".png";
             LPCTSTR path = m.c_str();
             loadimage(&t, path, 0, 0, false);
-
-                if (g == "w") {
-                    if (p[0].pose == 1) {
-                        transparentimage(NULL, n[a].x * 48 - M[m_id].ox, n[a].y * 48 - 16 - M[m_id].oy- (-48 + 16 * (z + 1)) * (p[0].y + 10 <= M[m_id].y) * (p[0].y > 10), &t, 0xFF55FF, 64 + uk[n[a].avatar], 64*(n[a].avatar-1), 48, 64);
-                    }
-                    else if (p[0].pose == 2) {
-                        transparentimage(NULL, n[a].x * 48 - M[m_id].ox - (48 - 16 * (z + 1)) * (p[0].x >= 13) * (p[0].x + 14 < M[m_id].x), n[a].y * 48 - 16 - M[m_id].oy , &t, 0xFF55FF, 64 + uk[n[a].avatar], 64 * (n[a].avatar - 1), 48, 64);
-                    }
-                    else if (p[0].pose == 3) {
-                        transparentimage(NULL, n[a].x * 48 - M[m_id].ox - (-48 + 16 * (z + 1)) * (p[0].x > 13) * (p[0].x + 14 <= M[m_id].x), n[a].y * 48 - 16 - M[m_id].oy , &t, 0xFF55FF, 64 + uk[n[a].avatar], 64 * (n[a].avatar - 1), 48, 64);
-                    }
-                    else if (p[0].pose == 4) {
-                        transparentimage(NULL, n[a].x * 48 - M[m_id].ox, n[a].y * 48 - 16 - M[m_id].oy -(48 - 16 * (z + 1)) * (p[0].y >= 10) * (p[0].y + 10 < M[m_id].y), &t, 0xFF55FF, 64 + uk[n[a].avatar], 64 * (n[a].avatar - 1), 48, 64);
-                    }
-                }
-                else {
-                    transparentimage(NULL, n[a].x * 48 - M[m_id].ox, n[a].y * 48 - 16 - M[m_id].oy, &t, 0xFF55FF, 64 + uk[n[a].avatar], 64 * (n[a].avatar - 1), 48, 64);
-                }
-
+            transparentimage(NULL, n[a].x * 48 - M[m_id].ox, n[a].y * 48 - 16 - M[m_id].oy, &t, 0xFF55FF, 64 + uk[n[a].avatar], 64 * (n[a].avatar - 1), 48, 64);
             k++;
             sum = "";
         }
@@ -4769,70 +4766,70 @@ void n_put(npc* n,Map *M,player *p,int m_id,string g,int z) {
 }
 }
 void m_put(player* p,Map *m,int m_id) {
-    IMAGE p1;
-    loadimage(&p1, L"./Game/picture/p0.png", 0, 0, false);
     if (p[0].pose == 1) {
-            transparentimage(NULL, p[0].x * 48-m[m_id].ox, p[0].y * 48 - 16 - m[m_id].oy, &p1, 0xFF55FF, 64+8, 0, 48, 64);
+            transparentimage(NULL, p[0].x * 48-m[m_id].ox, p[0].y * 48 - 16 - m[m_id].oy,&player_image, 0xFF55FF, 64+8, 0, 48, 64);
     }
     else if (p[0].pose == 2) {
-        transparentimage(NULL, p[0].x * 48 - m[m_id].ox, p[0].y * 48-16 - m[m_id].oy, &p1, 0xFF55FF, 64+16, 64, 48, 64);
+        transparentimage(NULL, p[0].x * 48 - m[m_id].ox, p[0].y * 48-16 - m[m_id].oy, &player_image, 0xFF55FF, 64+16, 64, 48, 64);
     }
     else if (p[0].pose == 3) {
-        transparentimage(NULL, p[0].x * 48 - m[m_id].ox, p[0].y * 48-16 - m[m_id].oy, &p1, 0xFF55FF, 64, 128,48, 64);
+        transparentimage(NULL, p[0].x * 48 - m[m_id].ox, p[0].y * 48-16 - m[m_id].oy, &player_image, 0xFF55FF, 64, 128,48, 64);
     }
     else if (p[0].pose == 4) {
-        transparentimage(NULL, p[0].x * 48 - m[m_id].ox, p[0].y * 48-16 - m[m_id].oy, &p1, 0xFF55FF, 64+8, 192, 48, 64);
+        transparentimage(NULL, p[0].x * 48 - m[m_id].ox, p[0].y * 48-16 - m[m_id].oy, &player_image, 0xFF55FF, 64+8, 192, 48, 64);
     }
 }
-void box_put(BOX* box,int b_id) {
+void box_put(BOX* box,int b_id,Map *m,int m_id) {
     IMAGE  p1,p2;
-    loadimage(&p1, L"./Game/picture/box.png", 0.0, false);
-    loadimage(&p2, L"./Game/picture/box1.png", 0.0, false);
+    wstring mm;
     for (i = 0; i < b_id; i++) {
-        if (box[i].check == true) {
-            if (box[i].state == true) {
-                transparentimage(NULL, 48*box[i].x, 48*box[i].y, &p1, 0xFF55FF);
+        if (box[i].check == true) {           
+            if (box[i].state == true) {  
+                mm = L"./Game/picture/box" + to_wstring(box[i].type) + L"_off.png";
+                loadimage(&p1,mm.c_str(), 0.0, false);
+                transparentimage(NULL, 48*box[i].x-m[m_id].ox, 48 * box[i].y - m[m_id].oy, &p1, 0xFF55FF);
             }
-            else if (box[i].state == false) {
-                transparentimage(NULL, 48 * box[i].x, 48 * box[i].y, &p2, 0xFF55FF);
+            else if (box[i].state == false) { 
+                mm = L"./Game/picture/box" + to_wstring(box[i].type) + L"_on.png";
+                loadimage(&p2, mm.c_str(), 0.0, false);
+                transparentimage(NULL, 48 * box[i].x - m[m_id].ox, 48 * box[i].y - m[m_id].oy, &p2, 0xFF55FF);
             }
         }
     }
 }
-void m_map(player* p, Map* m, BOX* Box, int m_id, int b_id, npc* n, int z, string g) {
-    IMAGE p1;
-    if (g == "e") {
-
-    }
-    else {
+void m_map(player* p, Map* m, BOX* Box, int m_id,int b_id, npc* n, string g) {
     m[m_id].ox = (p[0].x > 13) * (p[0].x - 13) * 48 - (14 - (m[m_id].x - p[0].x)) * (p[0].x + 14 > m[m_id].x) * 48;
     m[m_id].oy = (p[0].y > 10) * (p[0].y - 10) * 48 - (10 - (m[m_id].y - p[0].y)) * (p[0].y + 10 > m[m_id].y) * 48;
-    }
     if (g == "w") {
-
-            if (p[0].pose == 1) {
-                putimage(0, 0, 1296, 960, &mapP, m[m_id].ox, m[m_id].oy + ( -48+16 * (z + 1)) * (p[0].y + 10 <= m[m_id].y) * (p[0].y >10));
-            }
-            else if (p[0].pose == 2) {
-                putimage(0, 0, 1296, 960, &mapP, m[m_id].ox + (48 - 16 * (z + 1)) * (p[0].x >= 13) * (p[0].x + 14 < m[m_id].x), m[m_id].oy);
-            }
-            else if (p[0].pose == 3) {
-                putimage(0, 0, 1296, 960, &mapP, m[m_id].ox + (-48 + 16 * (z + 1)) * (p[0].x > 13) * (p[0].x + 14 <= m[m_id].x), m[m_id].oy);
-            }
-            else if (p[0].pose == 4) {
-                putimage(0, 0, 1296, 960, &mapP, m[m_id].ox, m[m_id].oy + (48 - 16 * (z + 1)) * (p[0].y >=10) * (p[0].y + 10 < m[m_id].y));
-            }
+        if (p[0].pose == 1) {
+            m[m_id].oy += (-48 + 16 * (Z + 1)) * (p[0].y + 10 <= m[m_id].y) * (p[0].y > 10);
+            putimage(0, 0, 1296, 960, &mapP, m[m_id].ox, m[m_id].oy);
+        }
+        else if (p[0].pose == 2) {
+            m[m_id].ox += (48 - 16 * (Z + 1)) * (p[0].x >= 13) * (p[0].x + 14 < m[m_id].x);
+            putimage(0, 0, 1296, 960, &mapP, m[m_id].ox, m[m_id].oy);
+        }
+        else if (p[0].pose == 3) {
+            m[m_id].ox += (-48 + 16 * (Z + 1)) * (p[0].x > 13) * (p[0].x + 14 <= m[m_id].x);
+            putimage(0, 0, 1296, 960, &mapP, m[m_id].ox, m[m_id].oy);
+        }
+        else if (p[0].pose == 4) {
+            m[m_id].oy += (48 - 16 * (Z + 1)) * (p[0].y >= 10) * (p[0].y + 10 < m[m_id].y);
+            putimage(0, 0, 1296, 960, &mapP, m[m_id].ox, m[m_id].oy);
+        }
+        else {
+            putimage(0, 0, 1296, 960, &mapP, m[m_id].ox, m[m_id].oy);
+        }
     }
     else {
         putimage(0, 0, 1296, 960, &mapP, m[m_id].ox, m[m_id].oy);
-    }
-    box_put(Box, b_id);
+    }    
+    box_put(Box, b_id,m,m_id);
     for (int I = 0; I < m[m_id].nsize; I++) {
-        n_put(n, m,p,m_id,g,z);
+        n_put(n, m,p,m_id,g);
     }
 }
 string  m_act(player *p,Map *m,npc *n,int m_id) {
-    char w;
     FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE));
     if (GetAsyncKeyState(VK_ESCAPE) & 0x8000) {
         return"esc";
@@ -4843,49 +4840,47 @@ string  m_act(player *p,Map *m,npc *n,int m_id) {
                 if (GetAsyncKeyState(VK_DOWN) & 0x8000) {
                     if (p[0].y < m[m_id].y - 1 && ss[p[0].x][p[0].y + 1] == 0) {
                         p[0].y++;
-                            p[0].pose = 1;
+                        p[0].pose = 1; Z = 0;
                             return "w";
                     }
                     else {
-                        p[0].pose = -1; return"w";
+                        p[0].pose = 1; return"";
                     }
                 }
                 else if (GetAsyncKeyState(VK_LEFT) & 0x8000) {
                     if (p[0].x > 0 && ss[p[0].x - 1][p[0].y] == 0) {
                         p[0].x--;
-                        p[0].pose = 2;
+                        p[0].pose = 2; Z = 0;
                         return"w";
                     }
                     else {
-                        p[0].pose = -2; return"w";
+                        p[0].pose = 2; return"";
                     }
                 }
                 else if (GetAsyncKeyState(VK_RIGHT) & 0x8000) {
                     if (p[0].x < m[m_id].x - 1 && ss[p[0].x + 1][p[0].y] == 0) {
                         p[0].x++;
-                        p[0].pose = 3;
+                        p[0].pose = 3; Z = 0;
                         return"w";
                     }
                     else {
-                        p[0].pose = -3; return"w";
+                        p[0].pose = 3; return"";
                     }
                 }
                 else if (GetAsyncKeyState(VK_UP) & 0x8000) {
                     if (p[0].y > 0 && ss[p[0].x][p[0].y - 1] == 0) {
                         p[0].y--;
-                        p[0].pose = 4;
+                        p[0].pose = 4; Z = 0;
                         return"w";
                     }
                     else {
-                        p[0].pose = -4; return"w";
+                        p[0].pose = 4; return"";
                     }
-                }
-                
-
+                }            
         return"";
 }
-void m_set(Map* m, npc* n, player* p,e_npc *e_n ,BOX *Box,int m_id,int b_id) {
-    mciSendString(L"close bgm", NULL, 0, NULL);
+void m_set(Map* m, npc* n, player* p,e_npc *e_n ,BOX *Box,int m_id,int b_id, vector<IMAGE>& enemyimage) {
+
     int k, w, x, y;
     string number="",box="";   
     string filename;
@@ -4894,7 +4889,10 @@ void m_set(Map* m, npc* n, player* p,e_npc *e_n ,BOX *Box,int m_id,int b_id) {
     readmapjson(m,m_id,path);
     wstring mm,vos;
     LPCTSTR Path;
-    if (m[m_id].bgm != -1) {
+    loadimage(&player_image, L"./Game/picture/p0.png", 0, 0, false);
+    enemyimage.clear();
+    if (m[m_id].bgm != -1) {    
+        mciSendString(L"close bgm", NULL, 0, NULL);
         mm = L"open ./Game/Sound/bgm/bgm" + std::to_wstring(m[m_id].bgm) + L".mp3 alias bgm";
         Path = mm.c_str();
         mciSendString(Path, NULL, 0, NULL);
@@ -4905,7 +4903,7 @@ void m_set(Map* m, npc* n, player* p,e_npc *e_n ,BOX *Box,int m_id,int b_id) {
     mm = std::to_wstring(m_id);
     mm = L"./Game/map/map" + mm + L".png";
     LPCTSTR patH = mm.c_str();
-    IMAGE boxx; 
+    IMAGE boxx,ep; 
     loadimage(&boxx, patH, 0, 0, false);
     mapP = boxx;
     i = 0;
@@ -4954,12 +4952,19 @@ void m_set(Map* m, npc* n, player* p,e_npc *e_n ,BOX *Box,int m_id,int b_id) {
                         }
                         else if (w == m[m_id].e_set.size()) {
                             e_n[i].move = 0; e_n[i].pose = 1; e_n[i].type = 1; e_n[i].see = 0; e_n[i].live = 1; ss[e_n[i].x][e_n[i].y] = 1; e_n[i].kind = stoi(number); i++;
+                            mm = L"./Game/picture/enemy" + to_wstring(stoi(number)) + L".png";
+                            loadimage(&ep, mm.c_str(), 0, 0, false);
+                            enemyimage.push_back(ep);
                             w--;
                             break;
                         }
                         else {
                             e_n[i].move = 0; e_n[i].pose = 1; e_n[i].type = 1; e_n[i].see = 0; e_n[i].live = 1; ss[e_n[i].x][e_n[i].y] = 1; e_n[i].kind = stoi(number); i++;
+                            mm= L"./Game/picture/enemy" +to_wstring(stoi(number)) + L".png";                           
+                            loadimage(&ep, mm.c_str(), 0, 0, false); 
+                            enemyimage.push_back(ep);
                             w--;
+                            number = "";
                             break;
                         }
                 }
@@ -5018,7 +5023,7 @@ void m_set(Map* m, npc* n, player* p,e_npc *e_n ,BOX *Box,int m_id,int b_id) {
     }
     m[m_id].psize = I;
 }
-void m_check(player* p, Map* m, Exit* ex,BOX *Box, int& m_id,int b_id,npc *n,e_npc *e_n) {
+void m_check(player* p, Map* m, Exit* ex,BOX *Box, int& m_id,int b_id,npc *n,e_npc *e_n, vector<IMAGE>& enemyimage) {
     string s = "";
     int uuu,u,k;
 
@@ -5032,7 +5037,7 @@ void m_check(player* p, Map* m, Exit* ex,BOX *Box, int& m_id,int b_id,npc *n,e_n
                             m_id = ex[uuu].Mid;
                             p[0].x = ex[uuu].gx;
                             p[0].y = ex[uuu].gy;
-                            m_set(m, n, p, e_n,Box, m_id,b_id);
+                            m_set(m, n, p, e_n,Box, m_id,b_id,enemyimage);
                           }   
                         }
                     }
@@ -5046,26 +5051,15 @@ void m_check(player* p, Map* m, Exit* ex,BOX *Box, int& m_id,int b_id,npc *n,e_n
         }
 }
 void m_walk(Map *m,player *p,BOX *Box,int &m_id,int b_id,npc *n,string &g) {
-    if (p[0].pose < 0) {
-        p[0].pose *= -1;
-        g = "";
-        m_map(p, m, Box, m_id, b_id, n, Z, g);
-        m_put(p,m,m_id);
-        
-        return;
-    }
-    IMAGE p1;
-    loadimage(&p1, L"./Game/picture/p0.png", 0, 0, false);
     if (p[0].pose == 1) {
-        if (Z == 0) {
-            
-            transparentimage(NULL, p[0].x * 48 - m[m_id].ox, p[0].y*48 +(- 48 + 16 * (Z + 1) )* ((p[0].y + 10 >m[m_id].y) || (p[0].y <= 10)) - 16 - m[m_id].oy, &p1, 0xFF55FF, 8, 0, 48, 64);
+        if (Z == 0) {            
+            transparentimage(NULL, p[0].x * 48 - m[m_id].ox, p[0].y*48  - 16 - m[m_id].oy+ (-48 + 16 * (Z + 1)) , &player_image, 0xFF55FF, 8, 0, 48, 64);
         }
         else if (Z == 1) {
-            transparentimage(NULL, p[0].x * 48 - m[m_id].ox, p[0].y * 48 + (-48 + 16 * (Z + 1)) *( (p[0].y + 10 > m[m_id].y)|| (p[0].y <= 10) )- 16 - m[m_id].oy, &p1, 0xFF55FF, 128 + 8, 0, 48, 64);
+            transparentimage(NULL, p[0].x * 48 - m[m_id].ox, p[0].y * 48 - 16 - m[m_id].oy+ (-48 + 16 * (Z + 1)) , &player_image, 0xFF55FF, 128 + 8, 0, 48, 64);
         }
         else if (Z == 2) {
-            transparentimage(NULL, p[0].x * 48 - m[m_id].ox, p[0].y * 48 + (-48 + 16 * (Z + 1)) * ((p[0].y + 10 > m[m_id].y) || (p[0].y <= 10)) - 16 - m[m_id].oy, &p1, 0xFF55FF, 64 + 8, 0, 48, 64);
+            transparentimage(NULL, p[0].x * 48 - m[m_id].ox, p[0].y * 48 - 16 - m[m_id].oy+ (-48 + 16 * (Z + 1)) , &player_image, 0xFF55FF, 64 + 8, 0, 48, 64);
             ss[p[0].x][p[0].y - 1] = 0;
             ss[p[0].x][p[0].y] = 1;
         }
@@ -5073,13 +5067,13 @@ void m_walk(Map *m,player *p,BOX *Box,int &m_id,int b_id,npc *n,string &g) {
     else if (p[0].pose == 2) {
 
             if (Z == 0) {
-                transparentimage(NULL, p[0].x*48 +(48 - 16 * (Z + 1) )* ((p[0].x < 13) || (p[0].x + 14 >= m[m_id].x)) - m[m_id].ox, p[0].y * 48 - 16 - m[m_id].oy, &p1, 0xFF55FF, 16, 64, 48, 64);
+                transparentimage(NULL, p[0].x*48  - m[m_id].ox+ (48 - 16 * (Z + 1)) , p[0].y * 48 - 16 - m[m_id].oy, &player_image, 0xFF55FF, 16, 64, 48, 64);
             }
             else if (Z == 1) {
-                transparentimage(NULL, p[0].x * 48 + (48 - 16 * (Z + 1)) * ((p[0].x < 13) || (p[0].x + 14 >= m[m_id].x)) - m[m_id].ox, p[0].y * 48 - 16 - m[m_id].oy, &p1, 0xFF55FF, 128 + 16, 64, 48, 64);
+                transparentimage(NULL, p[0].x * 48  - m[m_id].ox+ (48 - 16 * (Z + 1)) , p[0].y * 48 - 16 - m[m_id].oy, &player_image, 0xFF55FF, 128 + 16, 64, 48, 64);
             }
             else if (Z == 2) {
-                transparentimage(NULL, p[0].x * 48 + (48 - 16 * (Z + 1)) * ((p[0].x < 13) ||(p[0].x + 14 >= m[m_id].x)) - m[m_id].ox, p[0].y * 48 - 16 - m[m_id].oy, &p1, 0xFF55FF, 64 + 16, 64, 48, 64);
+                transparentimage(NULL, p[0].x * 48  - m[m_id].ox+ (48 - 16 * (Z + 1)) , p[0].y * 48 - 16 - m[m_id].oy, &player_image, 0xFF55FF, 64 + 16, 64, 48, 64);
                 ss[p[0].x + 1][p[0].y] = 0;
                 ss[p[0].x][p[0].y] = 1;
             }
@@ -5088,13 +5082,13 @@ void m_walk(Map *m,player *p,BOX *Box,int &m_id,int b_id,npc *n,string &g) {
     else if (p[0].pose == 3) {
 
             if (Z == 0) {
-                transparentimage(NULL, p[0].x * 48 + (-48 + 16 * (Z + 1)) * ((p[0].x <=13) || (p[0].x + 14 > m[m_id].x)) - m[m_id].ox, p[0].y * 48 - 16 - m[m_id].oy, &p1, 0xFF55FF, 0, 128, 48, 64);
+                transparentimage(NULL, p[0].x * 48  - m[m_id].ox+ (-48 + 16 * (Z + 1)), p[0].y * 48 - 16 - m[m_id].oy, &player_image, 0xFF55FF, 0, 128, 48, 64);
             }
             else if (Z == 1) {
-                transparentimage(NULL, p[0].x * 48 + (-48 + 16 * (Z + 1)) * ((p[0].x <= 13) || (p[0].x + 14 > m[m_id].x)) - m[m_id].ox, p[0].y * 48 - 16 - m[m_id].oy, &p1, 0xFF55FF, 128 + 0, 128, 48, 64);
+                transparentimage(NULL, p[0].x * 48  - m[m_id].ox+ (-48 + 16 * (Z + 1)) , p[0].y * 48 - 16 - m[m_id].oy, &player_image, 0xFF55FF, 128 + 0, 128, 48, 64);
             }
             else if (Z == 2) {
-                transparentimage(NULL, p[0].x * 48 + (-48 + 16 * (Z + 1)) * ((p[0].x <= 13) || (p[0].x + 14 > m[m_id].x)) - m[m_id].ox, p[0].y * 48 - 16 - m[m_id].oy, &p1, 0xFF55FF, 64 + 0, 128, 48, 64);
+                transparentimage(NULL, p[0].x * 48  - m[m_id].ox+ (-48 + 16 * (Z + 1)), p[0].y * 48 - 16 - m[m_id].oy, &player_image, 0xFF55FF, 64 + 0, 128, 48, 64);
                 ss[p[0].x - 1][p[0].y] = 0;
                 ss[p[0].x][p[0].y] = 1;
             }
@@ -5102,13 +5096,13 @@ void m_walk(Map *m,player *p,BOX *Box,int &m_id,int b_id,npc *n,string &g) {
         }
     else if (p[0].pose == 4) {
             if (Z == 0) {
-                transparentimage(NULL, p[0].x * 48 - m[m_id].ox, p[0].y * 48 + (48 - 16 * (Z + 1)) * ((p[0].y + 10 >= m[m_id].y) || (p[0].y < 10)) - 16 - m[m_id].oy, &p1, 0xFF55FF, 8, 192, 48, 64);
+                transparentimage(NULL, p[0].x * 48 - m[m_id].ox, p[0].y * 48 - 16 - m[m_id].oy+ (48 - 16 * (Z + 1)) , &player_image, 0xFF55FF, 8, 192, 48, 64);
             }
             else if (Z == 1) {
-                transparentimage(NULL, p[0].x * 48 - m[m_id].ox, p[0].y * 48 + (48 - 16 * (Z + 1)) * ((p[0].y + 10 >= m[m_id].y) || (p[0].y < 10)) - 16 - m[m_id].oy, &p1, 0xFF55FF, 128 + 8, 192, 48, 64);
+                transparentimage(NULL, p[0].x * 48 - m[m_id].ox, p[0].y * 48 - 16 - m[m_id].oy+ (48 - 16 * (Z + 1)) , &player_image, 0xFF55FF, 128 + 8, 192, 48, 64);
             }
             else if (Z == 2) {
-                transparentimage(NULL, p[0].x * 48 - m[m_id].ox, p[0].y * 48 + (48 - 16 * (Z + 1)) * ((p[0].y + 10 >=m[m_id].y) || (p[0].y < 10)) - 16 - m[m_id].oy, &p1, 0xFF55FF, 64 + 8, 192, 48, 64);
+                transparentimage(NULL, p[0].x * 48 - m[m_id].ox, p[0].y * 48  - 16 - m[m_id].oy+ (48 - 16 * (Z + 1)) , &player_image, 0xFF55FF, 64 + 8, 192, 48, 64);
                 ss[p[0].x][p[0].y + 1] = 0;
                 ss[p[0].x][p[0].y] = 1;
             }
@@ -5882,6 +5876,7 @@ void menu_equip(player* p, arms* ar,armor *Ar,stone *st,Map *M,t_equip *t_E,item
     loadimage(&p5, L"./Game/picture/equip_block.png", 0, 0, false);
     loadimage(&p8, L"./Game/picture/item_block.png", 0, 0, false);
     while (1) {
+        flushmessage(-1);
         BeginBatchDraw();
         putimage(400, 0, &p1);
         transparentimage(NULL, 415, 450, &p4, 0xFF55FF);
@@ -6005,7 +6000,6 @@ void menu_equip(player* p, arms* ar,armor *Ar,stone *st,Map *M,t_equip *t_E,item
             if (m.x >860 && m.x< 1210&& m.y>208+i*40 && m.y <243+i*40 ) {                    
                 transparentimage(NULL, 860, 208 + i * 40, &p5);
                 if (i==0) {
-
                     path1 = ar[p[I].arms_id_1].story.c_str();
                 }
                 else if (i == 1) {
@@ -6017,13 +6011,28 @@ void menu_equip(player* p, arms* ar,armor *Ar,stone *st,Map *M,t_equip *t_E,item
                     }                
                 }
                 else if (i == 2) {
-                    path1 = Ar[p[I].armor_id].story.c_str();
+                    if (p[I].armor_id != -1) {
+                        path1 = Ar[p[I].armor_id].story.c_str();
+                    }
+                    else {
+                        path1 = L"";
+                    }
                 }
                 else if (i == 3) {
+                    if (p[I].stone_id != -1) {
                     path1 = st[p[I].stone_id].story.c_str();
+                    }
+                    else {
+                        path1 = L"";
+                    }
                 }
                 else if (i == 4) {
+                    if (p[I].t_id != -1) {
                     path1 = t_E[p[I].t_id].story.c_str();
+                    }
+                    else {
+                        path1 = L"";
+                    }
                 }
                 drawtext(path1,&r, DT_WORDBREAK);
                 if (m.lbutton) {
@@ -6544,6 +6553,7 @@ void menu_equip(player* p, arms* ar,armor *Ar,stone *st,Map *M,t_equip *t_E,item
             return;
         }
         EndBatchDraw();
+        Sleep(10);
     }
 }
 void menu_skill(player *p,skill *sk,Map *m,int m_id,int sk_id) {
@@ -6675,7 +6685,7 @@ void menu_system() {
         }
     }
 }
-void menu(player* p,item *it,arms *ar,armor *Ar,stone *st,flag* f,enemy *e,Map *M,npc *n,e_npc *e_n,Exit* EX,BOX *Box,skill *sk, m_flag* m_f,t_equip *t_E,int &P_id,int &f_id,int &i_id,int &ar_id,int &Ar_id,int &st_id,int b_id, int &psize,int &roundp, int &roundb, time_t &first, time_t &two, time_t &three,int &m_id,int ex_id,int sk_id,int m_fid,int t_Eid) {
+void menu(player* p,item *it,arms *ar,armor *Ar,stone *st,flag* f,enemy *e,Map *M,npc *n,e_npc *e_n,Exit* EX,BOX *Box,skill *sk, m_flag* m_f,t_equip *t_E,int &P_id,int &f_id,int &i_id,int &ar_id,int &Ar_id,int &st_id,int b_id, int &psize,int &roundp, int &roundb, time_t &first, time_t &two, time_t &three,int &m_id,int ex_id,int sk_id,int m_fid,int t_Eid, vector<IMAGE>& enemyimage) {
     settextcolor(WHITE);
     setbkmode(TRANSPARENT);
     settextstyle(30, 0, _T("Taipei Sans TC Beta"));
@@ -6821,7 +6831,7 @@ void menu(player* p,item *it,arms *ar,armor *Ar,stone *st,flag* f,enemy *e,Map *
         }
         else if (g == 5) {
             menu_load(p, ar, it, st, f,EX, m_f,t_E,P_id, i_id, ar_id, st_id, f_id, psize, first, two, three,m_id,ex_id,sk_id,m_fid,t_Eid);
-            m_map(p,M,Box, m_id,b_id, n,NULL,""); m_put(p, M, m_id); m_set(M, n, p, e_n, Box, m_id, b_id); m_put(p, M, m_id);
+            m_map(p,M,Box, m_id,b_id, n,""); m_put(p, M, m_id); m_set(M, n, p, e_n, Box, m_id, b_id,enemyimage); m_put(p, M, m_id);
             return;
         }
         else if (g == 6) {
@@ -6834,17 +6844,17 @@ void menu(player* p,item *it,arms *ar,armor *Ar,stone *st,flag* f,enemy *e,Map *
         }
     }
 }
-void m_e_ai(enemy* e, player* p, Map* m, e_npc* e_n, int m_id) {
+void m_e_ai(enemy* e, player* p, Map* m, e_npc* e_n, int m_id,vector<IMAGE> enemyimage) {
     int k,w,box[100];
     wstring vos;
     for (k = 0; k < m[m_id].esize; k++) {
         if (e_n[k].see == 0&&e_n[k].live==1) {
             if (abs(e_n[k].x - p[0].x) + abs(e_n[k].y - p[0].y) <= 4) {
-                mciSendString(L"close se", NULL, 0, NULL);
+                /*mciSendString(L"close se", NULL, 0, NULL);
                 mciSendString(L"open ./Game/Sound/SE/oylpu-opc5i.mp3 alias se", NULL, 0, NULL);
                 vos = L"setaudio se volume to " + to_wstring(soundSize);
                 mciSendString(vos.c_str(), NULL, 0, NULL);
-                mciSendString(L"play se from 0", NULL, 0, NULL);
+                mciSendString(L"play se from 0", NULL, 0, NULL);*/
                 Ai_bfs(e_n[k].x, e_n[k].y, p[0].x, p[0].y, box, m, m_id);
                 if (box[0] == 2) {
                     e_n[k].pose = 1;
@@ -6875,32 +6885,26 @@ void m_e_ai(enemy* e, player* p, Map* m, e_npc* e_n, int m_id) {
     }
     for ( k = 0; k < m[m_id].esize; k++) {
         if (e_n[k].move == -1 && e_n[k].live == 1) {
-            IMAGE p1;
-            wstring mm;
-            mm = std::to_wstring(e_n[k].kind);
-            mm = L"./Game/picture/enemy" + mm + L".png";
-            LPCTSTR path = mm.c_str();
-            loadimage(&p1, path, 0, 0, false);
             if (e_n[k].pose == 1) {
                 if (e_n[k].y + 1 > m[m_id].y||ss[e_n[k].x][e_n[k].y+1]==1) {
-                    transparentimage(NULL, e_n[k].x * 48-m[m_id].ox, e_n[k].y * 48 - m[m_id].oy - 16, &p1, 0xFF55FF, 64+8, 0, 48, 64);
+                    transparentimage(NULL, e_n[k].x * 48-m[m_id].ox , e_n[k].y * 48 - m[m_id].oy - 16 , &enemyimage[k], 0xFF55FF, 64+8, 0, 48, 64);
                     e_n[k].type++;
-                    if (e_n[k].type == 3) {
+                    if (e_n[k].type >= 3) {
                         e_n[k].type = 1;
                         e_n[k].move = 0;
                         e_n[k].see = 0;
                     }
                 }
                 else if (e_n[k].type == 1) {
-                    transparentimage(NULL, e_n[k].x * 48 - m[m_id].ox, e_n[k].y * 48 + 16 * e_n[k].type - m[m_id].oy-16, &p1, 0xFF55FF, 64+8-48, 0, 48, 64);
+                    transparentimage(NULL, e_n[k].x * 48 - m[m_id].ox , e_n[k].y * 48 + 16 * e_n[k].type - m[m_id].oy-16 , &enemyimage[k], 0xFF55FF, 64+8-48, 0, 48, 64);
                     e_n[k].type++;
                 }
                 else if (e_n[k].type == 2) {
-                    transparentimage(NULL, e_n[k].x * 48 - m[m_id].ox, e_n[k].y * 48 + 16 * e_n[k].type - m[m_id].oy - 16, &p1, 0xFF55FF, 64+8+48, 0, 48, 64);
+                    transparentimage(NULL, e_n[k].x * 48 - m[m_id].ox , e_n[k].y * 48 + 16 * e_n[k].type - m[m_id].oy - 16 , &enemyimage[k], 0xFF55FF, 64+8+48, 0, 48, 64);
                     e_n[k].type++;
                 }
                 else if (e_n[k].type == 3) {
-                    transparentimage(NULL, e_n[k].x * 48 - m[m_id].ox, e_n[k].y * 48 + 16 * e_n[k].type - m[m_id].oy - 16, &p1, 0xFF55FF, 64+8, 0, 48, 64);
+                    transparentimage(NULL, e_n[k].x * 48 - m[m_id].ox, e_n[k].y * 48 + 16 * e_n[k].type - m[m_id].oy - 16, &enemyimage[k], 0xFF55FF, 64+8, 0, 48, 64);
                     e_n[k].type = 1;
                     e_n[k].move = 0;
                     e_n[k].y++;
@@ -6912,24 +6916,24 @@ void m_e_ai(enemy* e, player* p, Map* m, e_npc* e_n, int m_id) {
             }
             else if (e_n[k].pose == 2) {
                 if (e_n[k].x - 1 < 0 || ss[e_n[k].x-1][e_n[k].y] == 1) {
-                    transparentimage(NULL, e_n[k].x * 48 - m[m_id].ox, e_n[k].y * 48 - m[m_id].oy - 16, &p1, 0xFF55FF, 64+16, 64, 48, 64);
+                    transparentimage(NULL, e_n[k].x * 48 - m[m_id].ox, e_n[k].y * 48 - m[m_id].oy - 16, &enemyimage[k], 0xFF55FF, 64+16, 64, 48, 64);
                     e_n[k].type++;
-                    if (e_n[k].type == 3) {
+                    if (e_n[k].type >= 3) {
                         e_n[k].type = 1;
                         e_n[k].move = 0;
                         e_n[k].see = 0;
                     }
                 }
                 else if (e_n[k].type == 1) {
-                    transparentimage(NULL, e_n[k].x * 48 - 16 * e_n[k].type - m[m_id].ox, e_n[k].y * 48 - m[m_id].oy - 16, &p1, 0xFF55FF, 64+16-48, 64, 48, 64);
+                    transparentimage(NULL, e_n[k].x * 48 - 16 * e_n[k].type - m[m_id].ox, e_n[k].y * 48 - m[m_id].oy - 16 , &enemyimage[k], 0xFF55FF, 64+16-48, 64, 48, 64);
                     e_n[k].type++;
                 }
                 else if (e_n[k].type == 2) {
-                    transparentimage(NULL, e_n[k].x * 48 - 16 * e_n[k].type - m[m_id].ox, e_n[k].y * 48 - m[m_id].oy - 16, &p1, 0xFF55FF, 64+16+48, 64, 48, 64);
+                    transparentimage(NULL, e_n[k].x * 48 - 16 * e_n[k].type - m[m_id].ox , e_n[k].y * 48 - m[m_id].oy - 16 , &enemyimage[k], 0xFF55FF, 64+16+48, 64, 48, 64);
                     e_n[k].type++;
                 }
                 else if (e_n[k].type == 3) {
-                    transparentimage(NULL, e_n[k].x * 48 - 16 * e_n[k].type - m[m_id].ox, e_n[k].y * 48 - m[m_id].oy - 16, &p1, 0xFF55FF, 64+16, 64, 48, 64);
+                    transparentimage(NULL, e_n[k].x * 48 - 16 * e_n[k].type - m[m_id].ox , e_n[k].y * 48 - m[m_id].oy - 16 , &enemyimage[k], 0xFF55FF, 64+16, 64, 48, 64);
                     e_n[k].type = 1;
                     e_n[k].move = 0;
                     e_n[k].x--;
@@ -6940,24 +6944,24 @@ void m_e_ai(enemy* e, player* p, Map* m, e_npc* e_n, int m_id) {
             }
             else if (e_n[k].pose == 3) {
                 if (e_n[k].x+1> m[m_id].x || ss[e_n[k].x+1 ][e_n[k].y] == 1) {
-                    transparentimage(NULL, e_n[k].x * 48 - m[m_id].ox, e_n[k].y * 48 - m[m_id].oy - 16, &p1, 0xFF55FF, 64, 128, 48, 64);
+                    transparentimage(NULL, e_n[k].x * 48 - m[m_id].ox , e_n[k].y * 48 - m[m_id].oy - 16 , &enemyimage[k], 0xFF55FF, 64, 128, 48, 64);
                     e_n[k].type++;
-                    if (e_n[k].type == 3) {
+                    if (e_n[k].type >= 3) {
                         e_n[k].type = 1;
                         e_n[k].move = 0;
                         e_n[k].see = 0;
                     }
                 }
                 else if (e_n[k].type == 1) {
-                    transparentimage(NULL, e_n[k].x * 48 + 16 * e_n[k].type - m[m_id].ox, e_n[k].y * 48 - m[m_id].oy - 16, &p1, 0xFF55FF, 64-48, 128, 48, 64);
+                    transparentimage(NULL, e_n[k].x * 48 + 16 * e_n[k].type - m[m_id].ox, e_n[k].y * 48 - m[m_id].oy - 16 , &enemyimage[k], 0xFF55FF, 64-48, 128, 48, 64);
                     e_n[k].type++;
                 }
                 else if (e_n[k].type == 2) {
-                    transparentimage(NULL, e_n[k].x * 48 + 16 * e_n[k].type - m[m_id].ox, e_n[k].y * 48 - m[m_id].oy - 16, &p1, 0xFF55FF, 64+48, 128, 48, 64);
+                    transparentimage(NULL, e_n[k].x * 48 + 16 * e_n[k].type - m[m_id].ox, e_n[k].y * 48 - m[m_id].oy - 16 , &enemyimage[k], 0xFF55FF, 64+48, 128, 48, 64);
                     e_n[k].type++;
                 }
                 else if (e_n[k].type == 3) {
-                    transparentimage(NULL, e_n[k].x * 48 + 16 * e_n[k].type - m[m_id].ox, e_n[k].y * 48 - m[m_id].oy - 16, &p1, 0xFF55FF, 64, 128, 48, 64);
+                    transparentimage(NULL, e_n[k].x * 48 + 16 * e_n[k].type - m[m_id].ox, e_n[k].y * 48 - m[m_id].oy - 16 , &enemyimage[k], 0xFF55FF, 64, 128, 48, 64);
                     e_n[k].type = 1;
                     e_n[k].move = 0;
                     e_n[k].x++;
@@ -6968,24 +6972,24 @@ void m_e_ai(enemy* e, player* p, Map* m, e_npc* e_n, int m_id) {
             }
             else if (e_n[k].pose == 4) {
                 if (e_n[k].y - 1 <0 || ss[e_n[k].x][e_n[k].y-1] == 1) {
-                    transparentimage(NULL, e_n[k].x * 48 - m[m_id].ox, e_n[k].y * 48 - m[m_id].oy - 16, &p1, 0xFF55FF, 64+8, 192, 48, 64);
+                    transparentimage(NULL, e_n[k].x * 48 - m[m_id].ox , e_n[k].y * 48 - m[m_id].oy - 16 , &enemyimage[k], 0xFF55FF, 64+8, 192, 48, 64);
                     e_n[k].type++;
-                    if (e_n[k].type == 3) {
+                    if (e_n[k].type >= 3) {
                         e_n[k].type = 1;
                         e_n[k].move = 0;
                         e_n[k].see = 0;
                     }
                 }
                 else if (e_n[k].type == 1) {
-                    transparentimage(NULL, e_n[k].x * 48 - m[m_id].ox, e_n[k].y * 48 - 16 * e_n[k].type - m[m_id].oy - 16, &p1, 0xFF55FF,64+8-48, 192, 48, 64);
+                    transparentimage(NULL, e_n[k].x * 48 - m[m_id].ox , e_n[k].y * 48 - 16 * e_n[k].type - m[m_id].oy - 16 , &enemyimage[k], 0xFF55FF,64+8-48, 192, 48, 64);
                     e_n[k].type++;
                 }
                 else if (e_n[k].type == 2) {
-                    transparentimage(NULL, e_n[k].x * 48 - m[m_id].ox, e_n[k].y * 48 - 16 * e_n[k].type - m[m_id].oy - 16, &p1, 0xFF55FF, 64+8+48, 192, 48, 64);
+                    transparentimage(NULL, e_n[k].x * 48 - m[m_id].ox , e_n[k].y * 48 - 16 * e_n[k].type - m[m_id].oy - 16 , &enemyimage[k], 0xFF55FF, 64+8+48, 192, 48, 64);
                     e_n[k].type++;
                 }
                 else if (e_n[k].type == 3) {
-                    transparentimage(NULL, e_n[k].x * 48 - m[m_id].ox, e_n[k].y * 48 - 16 * e_n[k].type - m[m_id].oy - 16, &p1, 0xFF55FF, 64+8, 192, 48, 64);
+                    transparentimage(NULL, e_n[k].x * 48 - m[m_id].ox , e_n[k].y * 48 - 16 * e_n[k].type - m[m_id].oy - 16 , &enemyimage[k], 0xFF55FF, 64+8, 192, 48, 64);
                     e_n[k].type = 1;
                     e_n[k].move = 0;
                     e_n[k].y--;
@@ -6994,33 +6998,26 @@ void m_e_ai(enemy* e, player* p, Map* m, e_npc* e_n, int m_id) {
                     e_n[k].see = 0;
                 }
             }
-
         }
         else if ((e_n[k].move == 0|| e_n[k].move == 1) && e_n[k].live == 1) {
-            IMAGE p2;
-            wstring mm;
-            mm = std::to_wstring(e_n[k].kind);
-            mm = L"./Game/picture/enemy" + mm + L".png";
-            LPCTSTR path = mm.c_str();
-            loadimage(&p2, path, 0, 0, false);
             if (e_n[k].pose == 1) {
-                transparentimage(NULL, e_n[k].x * 48 - m[m_id].ox, e_n[k].y * 48 - m[m_id].oy - 16, &p2, 0xFF55FF, 64+8, 0, 48, 64);
+                transparentimage(NULL, e_n[k].x * 48 - m[m_id].ox, e_n[k].y * 48 - m[m_id].oy - 16, &enemyimage[k], 0xFF55FF, 64+8, 0, 48, 64);
             }
             else if (e_n[k].pose == 2) {
-                transparentimage(NULL, e_n[k].x * 48 - m[m_id].ox, e_n[k].y * 48 - m[m_id].oy - 16, &p2, 0xFF55FF, 64+16, 64, 48, 64);
+                transparentimage(NULL, e_n[k].x * 48 - m[m_id].ox, e_n[k].y * 48 - m[m_id].oy - 16, &enemyimage[k], 0xFF55FF, 64+16, 64, 48, 64);
 
             }
             else if (e_n[k].pose == 3) {
-                transparentimage(NULL, e_n[k].x * 48 - m[m_id].ox, e_n[k].y * 48 - m[m_id].oy - 16, &p2, 0xFF55FF, 64, 128, 48, 64);
+                transparentimage(NULL, e_n[k].x * 48 - m[m_id].ox, e_n[k].y * 48 - m[m_id].oy - 16, &enemyimage[k], 0xFF55FF, 64, 128, 48, 64);
 
             }
             else if (e_n[k].pose == 4) {
-                transparentimage(NULL, e_n[k].x * 48 - m[m_id].ox, e_n[k].y * 48 - m[m_id].oy - 16, &p2, 0xFF55FF, 64+8, 192, 48, 64);
+                transparentimage(NULL, e_n[k].x * 48 - m[m_id].ox, e_n[k].y * 48 - m[m_id].oy - 16, &enemyimage[k], 0xFF55FF, 64+8, 192, 48, 64);
 
             }
         }
     }
-    if (F % 10 == 0) {
+    if (FP % 10 == 0) {
         for ( k = 0; k < m[m_id].esize; k++) {
             if (e_n[k].move == 1 && e_n[k].live == 1) {
                     int s = rand() % 10 + 1;
@@ -7063,28 +7060,25 @@ int b_check(player *p,e_npc *e_n,Map *m,int m_id) {
     }
     return -1;
 }
-void show(Map* m, player* p, enemy *e,e_npc *e_n,BOX *Box,int &m_id,int b_id,int z, npc* n,string &g) {
-    IMAGE map;
-    int k = 0;
+void show(Map* m, player* p, enemy *e,e_npc *e_n,BOX *Box,int &m_id,int b_id, npc* n,string g, vector<IMAGE> enemyimage) {
     BeginBatchDraw();
-    m_map(p,m, Box, m_id, b_id, n,z,g);
+    m_map(p,m, Box, m_id, b_id, n,g);
     if (g == "w") {
         m_walk(m, p,Box, m_id,b_id, n,g);
     }
     else { 
-        m_put(p,m,m_id); 
-    }
-    m_e_ai(e, p, m, e_n, m_id);
-    EndBatchDraw();
+       m_put(p,m,m_id); 
+    } 
+    m_e_ai(e, p, m, e_n, m_id,enemyimage);
+    FlushBatchDraw();
+    /*       */
     tb = clock();
-    if ((tb - ta) < 50) {
-        Sleep(50 - tb + ta);
+    if (tb - ta <35) {
+        Sleep(35 - (tb - ta));
     }
-    else {
-        gg++;
-    }
-    ta = tb;
-    F++;
+    ta = clock();
+    FP++;    
+
 }
 void readBmapjson(b_map *b_m,terrain (*te)[50], const char* filename,int b_mid) {
     Json::Reader reader;
@@ -7103,6 +7097,9 @@ void readBmapjson(b_map *b_m,terrain (*te)[50], const char* filename,int b_mid) 
                 te[i][j].type = 0;
                 te[i][j].mA = 1;
                 te[i][j].mB = 1;
+                te[i][j].npc = 0;
+                te[i][j].enemy = 0;
+                te[i][j].player = 0;
             }
         }
         for (unsigned int k = 0; k < root["layers"].size(); k++) {
@@ -7581,6 +7578,7 @@ void b_event(flag *f,b_flag *b_f,player *p,npc *n,b_map *b_m,enemy_type *e_t,ene
                     const char* path = filename.c_str();
                     readeventjson(p, n, f, m, Box, path, m_id, b_id);
                     b_f[fk].check = 0;
+                    b_n[0].hp = 15;
                 }
             }
 
@@ -8386,7 +8384,7 @@ void trade(player *p,item *it,arms *ar,t_equip *t_E,shop *sp,int &sp_id,int i_id
     wstring mm;
     int J = 0,sum=0;
     clock_t time_a=0,time_b;
-    RECT t={595,0,695,90},text={0,100,643,167}, Text;
+    RECT t={595,0,695,90},Text={0,100,643,267}, text{652,100,1296,262};
     int choseA = 1,choseB=1,choseC=1, chosea = 1, choseb = 1, chosec = 1,choseI=-1,chosei=-1,qua=0,Qua=0,F,itema[100]={0}, itemA[100]={0},armsA[100]={0},armsa[100]={0},t_EA[100]={0},t_Ea[100]={0},a[100]={0}, A[100] = {0},b[100],B[100];
     getimage(&get, 0, 0, 1296, 960);
     loadimage(&sp_block, L"./Game/picture/shop_block.png", 0, 0, false);
@@ -8750,27 +8748,59 @@ void trade(player *p,item *it,arms *ar,t_equip *t_E,shop *sp,int &sp_id,int i_id
             transparentimage(NULL, 1206, 290 + chosei * 40, &add, 0xFF55FF);
             transparentimage(NULL, 1256, 290 + chosei * 40, &reduce, 0xFF55FF);
         }
-        for (i = 0; i < i_id; i++) {
-         
-            sum += itemA[i];
-            sum -= itema[i];
+        for (i = 0; i < i_id; i++) {         
+            sum += itemA[i]*it[i].value;
+            sum -= itema[i] * it[i].value;
         }
         for (i = 0; i < ar_id; i++) {
-            sum += armsA[i];
-            sum -= armsa[i];
+            sum += armsA[i] * ar[i].value;
+            sum -= armsa[i] * ar[i].value;
         }
         for (i = 0; i < t_Eid; i++) {
-            sum += t_EA[i];
-            sum -= t_Ea[i];
+            sum += t_EA[i]*t_E[i].value;
+            sum -= t_Ea[i] * t_E[i].value;
         }            
         if (A[choseI] == 1) {
-            drawtext(it[choseI].Name.c_str(), &Text, DT_WORDBREAK);
+            drawtext(it[B[choseI]].story.c_str(), &Text, DT_WORDBREAK);
         }
         else if (A[choseI] == 2) {
-            drawtext(ar[choseI].name.c_str(), &Text, DT_WORDBREAK);
+            drawtext(ar[B[choseI]].story.c_str(), &Text, DT_WORDBREAK);
         }
         else if (A[choseI] == 3) {
-            drawtext(t_E[choseI].name.c_str(), &Text, DT_WORDBREAK);
+            drawtext(t_E[B[choseI]].story.c_str(), &Text, DT_WORDBREAK);
+        }
+        if (a[chosei] == 1) {
+            drawtext(it[b[chosei]].story.c_str(), &text, DT_WORDBREAK);
+        }
+        else if (a[chosei] == 2) {
+            drawtext(ar[b[chosei]].story.c_str(), &text, DT_WORDBREAK);
+        }
+        else if (a[chosei] == 3) {
+            drawtext(t_E[b[chosei]].story.c_str(), &text, DT_WORDBREAK);
+        }
+        if (em.x > 505 && em.x < 587 && em.y>0 && em.y < 90 && (clock() - time_a)>400) {
+            if (sum >= 0) {
+                for (i = 0; i < i_id; i++) {
+                    it[i].number -= itemA[i];
+                    sp[sp_id].i_number[i] += itemA[i];
+                    sp[sp_id].i_number[i] -= itema[i];
+                    it[i].number += itema[i];
+                }
+                for (i = 0; i < ar_id; i++) {
+                    ar[i].number -= armsA[i];
+                    sp[sp_id].ar_number[i] += armsA[i];
+                    sp[sp_id].ar_number[i] -= armsa[i];
+                    ar[i].number += armsa[i];
+                }
+                for (i = 0; i < t_Eid; i++) {
+                    t_E[i].number -= t_EA[i];
+                    sp[sp_id].t_E_number[i] += t_EA[i];
+                    sp[sp_id].t_E_number[i] -= t_Ea[i];
+                    t_E[i].number += t_Ea[i];
+                }
+                sp_id = -1;
+                break;
+            }
         }
         drawtext(to_wstring(sum).c_str(), &t, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
         EndBatchDraw();
@@ -8778,14 +8808,14 @@ void trade(player *p,item *it,arms *ar,t_equip *t_E,shop *sp,int &sp_id,int i_id
         Sleep(10);
     }
 }
-int main() {    
-    HWND hwnd=initgraph(1296, 960);
-    SetWindowPos(hwnd, HWND_TOP, 250, 10, 1296, 960,0);
+int main() {
+    HWND hwnd = initgraph(1296, 960);
+    SetWindowPos(hwnd, HWND_TOP, 250, 10, 1296, 960, 0);
     initgraph(1296, 960);
     settextcolor(WHITE);
     setbkmode(TRANSPARENT);
     settextstyle(30, 0, _T("Taipei Sans TC Beta"));
-    hwnd = GetHWnd();    
+    hwnd = GetHWnd();
     HMENU hmenu = GetSystemMenu(hwnd, FALSE);
     if (hmenu != NULL) {
         int count = GetMenuItemCount(hmenu);
@@ -8796,24 +8826,25 @@ int main() {
             DrawMenuBar(hwnd);
         }
     }
-    SetWindowText(hwnd,L"隕星傳奇");
+    SetWindowText(hwnd, L"隕星傳奇");
     srand(time(NULL));
-    int  id=0, P_id=0,m_id=1, psize=1, load = 0,n_id=1,i_id=14,ar_id=7,Ar_id=2,st_id=2,f_id=12,b_mid,ex_id=10,b_id=2,sk_id=13,buff_id=7,m_fid=5,b_nid=0,t_Eid=2,sp_id=-1;
-    /*變數數量*/
+    int  variable = 1, id = 0, P_id = 0, m_id = 1, psize = 1, load = 0, n_id = 1, i_id = 15, ar_id = 8, Ar_id = 2, st_id = 2, f_id = 15, b_mid, ex_id = 12, b_id = 5, sk_id = 13, buff_id = 7, m_fid = 5, b_nid = 0, t_Eid = 2, sp_id = -1;
+    /*變數數量*/    
     wofstream wofs;
+    vector<IMAGE> enemyimage;
     player p[3];
-    enemy_type e_t[2];
+    enemy_type e_t[3];
     enemy e[10];
-    arms  ar[7];
+    arms  ar[8];
     armor Ar[2];
-    item  it[14];
-    Map   m[7];
+    item  it[15];
+    Map   m[9];
     npc  n[100];
     stone st[2];
     flag f[100];
     e_npc e_n[100];
-    b_map b_m[3];
-    Exit EX[10];
+    b_map b_m[4];
+    Exit EX[12];
     m_flag m_f[100];
     BOX Box[10];
     b_flag b_f[100];
@@ -8825,56 +8856,63 @@ int main() {
     t_equip t_E[2];
     shop sp[1];
     int ix, iy, abox1[1];
-    int  t, roundp = 0, roundb = 0,roundn=0;
-    string  chose = "l" ;
+    int  t, roundp = 0, roundb = 0, roundn = 0;
+    string  chose = "l";
     wstring vos;
-    string a, b = ".txt", read = "";    
-    time_t first=0, two=0,three=0;
+    string a, b = ".txt", read = "";
+    time_t first = 0, two = 0, three = 0;
+    if (variable == 1) {
     m[2].psize = 1; m[2].nsize = 1; m[2].esize = 0; m[2].exitsize = 3; m[2].box_size = 1; m[2].exit_set = "1_2_3_"; m[2].npcid = "3-"; m[2].mevent_size = 1; m[2].mevent_set = "1_"; m[2].box_set = "1n";
     m[1].psize = 1; m[1].nsize = 0; m[1].esize = 0; m[1].exitsize = 1; m[1].box_size = 1; m[1].exit_set = "0_"; m[1].mevent_size = 1; m[1].mevent_set = "0_"; m[1].box_set = "0n";
     m[0].x = 27; m[0].y = 20; m[0].psize = 1; m[0].nsize = 1; m[0].esize = 3; m[0].npcid = "1-";  m[0].b_set = "b0b0b0z"; m[0].e_set = "x10y13zx5y5zx17y17z"; m[0].block = "x2y4";
     m[3].psize = 1; m[3].nsize = 0; m[3].esize = 0; m[3].exitsize = 1; m[3].exit_set = "5_";
     m[4].psize = 1; m[4].nsize = 1; m[4].npcid = "5-"; m[4].esize = 0; m[4].exitsize = 3; m[4].exit_set = "4_6_8_"; m[4].mevent_size = 2; m[4].mevent_set = "2_3_";
-    m[5].nsize = 1;m[5].npcid="6-"; m[5].esize = 2; m[5].b_set = "b0zb0z"; m[5].e_set = "x14y11k0x3y0k0"; m[5].exitsize = 1; m[5].exit_set = "7_"; m[5].mevent_size = 0;
+    m[5].nsize = 0; m[5].esize = 2; m[5].b_set = "b0zb0z"; m[5].e_set = "x12y9k0x15y16k0"; m[5].exitsize = 2; m[5].exit_set = "7_10_"; m[5].mevent_size = 0;
     m[6].nsize = 1; m[6].npcid = "7-"; m[6].esize = 0; m[6].exitsize = 1; m[6].exit_set = "9_"; m[6].mevent_size = 1; m[6].mevent_set = "4_";
-    b_m[0].esize = 1; b_m[0].e_set = "e0x5y4"; b_m[0].p_set = "x18y14x19y14"; b_m[0].cx = 0; b_m[0].cy = 0;
+    m[7].nsize = 0; m[7].esize = 0; m[7].exitsize = 1; m[7].exit_set = ""; m[7].mevent_size = 1; m[7].mevent_set = "";
+    m[8].nsize = 0; m[8].esize = 4; m[8].b_set = "b3zb3zb3zb3z"; m[8].e_set = "x41y42k2x25y26k0x14y10k2x52y10k0"; m[8].exitsize = 1; m[8].exit_set = "11_"; m[8].mevent_size = 0; m[8].mevent_set = ""; m[8].box_set = "2n3n4n";
+    b_m[0].esize = 1; b_m[0].e_set = "e0x5y4"; b_m[0].p_set = "x18y14x19y14"; b_m[0].cx = 0; b_m[0].cy = 0; b_m[0].fsize = 0; b_m[0].nsize = 0;
     b_m[1].esize = 8; b_m[1].e_set = "e1x0y26e1x0y28e1x0y27e1x0y44e1x49y44e1x5y0e1x49y15e1x26y44"; b_m[1].p_set = "x12y25"; b_m[1].cx = 12; b_m[1].cy = 25; b_m[1].fsize = 2; b_m[1].f_set = "0n1n";
     b_m[2].esize = 2; b_m[2].e_set = "e0x5y4e0x6y3"; b_m[2].p_set = "x18y13x19y13"; b_m[2].cx = 0; b_m[2].cy = 0; b_m[2].fsize = 1; b_m[2].f_set = "2n"; b_m[2].nsize = 1; b_m[2].n_set = "n0x16y10";
+    b_m[3].esize = 1; b_m[3].e_set = "e2x3y1"; b_m[3].p_set = "x3y12x4y12"; b_m[3].cx = 0; b_m[3].cy = 0; b_m[3].fsize = 0; b_m[3].nsize = 0;
     p[0].name = L"艾倫"; p[0].story = L"見習醫生"; p[0].lv = 1; p[0].mhp = 12; p[0].hp = 12; p[0].dex = 10; p[0].Move = 6; p[0].isize = 1; p[0].asize = 1; p[0].x = 10; p[0].y = 10; p[0].speed = 10; p[0].turn = 0; p[0].abox = 0; p[0].pose = 1; p[0].str = 10; p[0].INT = 10; p[0].con = 10; p[0].cha = 10; p[0].wis = 10; p[0].arms_id_1 = 4; p[0].arms_id_2 = -1; p[0].armor_id = 1; p[0].stone_id = 0; p[0].s_check[4] = 1; p[0].state = 1; p[0].exp = 0; p[0].dexUp = 50; p[0].strExp = 40; p[0].intUp = 60; p[0].conUp = 20; p[0].chaUp = 60; p[0].wisUp = 20; p[0].act = 1; p[0].Act = 1; p[0].arms_b_1 = 1; p[0].arms_b_2 = 0; p[0].b_id_1 = -1; p[0].b_id_2 = -1;
     p[1].name = L"夏洛特"; p[1].story = L"獵人"; p[1].lv = 1; p[1].mhp = 12; p[1].hp = 12; p[1].dex = 10; p[1].Move = 6; p[1].isize = 1; p[1].asize = 1; p[1].x = 10; p[1].y = 10; p[1].speed = 10; p[1].turn = 0; p[1].abox = 0; p[1].pose = 1; p[1].str = 10; p[1].INT = 10; p[1].con = 10; p[1].cha = 10; p[1].wis = 10; p[1].arms_id_1 = 0; p[1].arms_id_2 = 6; p[1].armor_id = 0; p[1].stone_id = 0; p[1].s_check[3] = 1; p[1].exp = 0; p[1].dexUp = 60; p[1].strExp = 30; p[1].intUp = 20; p[1].conUp = 20; p[1].chaUp = 60; p[1].wisUp = 60; p[1].act = 1; p[1].Act = 1; p[1].t_id = 1; p[1].arms_b_1 = 5; p[1].arms_b_2 = 1; p[1].b_id_1 = 0; p[1].b_id_2 = -1;
     p[2].name = L"愛麗絲"; p[2].story = L"騎士"; p[2].lv = 1; p[2].mhp = 10; p[2].hp = 10; p[2].dex = 10; p[2].move = 6; p[2].isize = 1; p[2].asize = 1; p[2].x = 10; p[2].y = 10; p[2].speed = 12; p[2].turn = 0; p[2].abox = 0; p[2].pose = 1; p[2].str = 11; p[2].INT = 10; p[2].con = 11; p[2].cha = 10; p[2].wis = 10; p[2].arms_id_1 = 2; p[2].stone_id = 1;
-    e_t[0].name = L"野狼"; e_t[0].story = L"團體行動的動物 隨著數量增加危險性也會大幅上升"; e_t[0].baid = 1; e_t[0].str = 12; e_t[0].dex = 15; e_t[0].con = 12; e_t[0].INT = 3; e_t[0].wis = 14; e_t[0].cha = 7; e_t[0].lv = 1; e_t[0].mhp = 11; e_t[0].hp = 11; e_t[0].Move = 7; e_t[0].speed = 12; e_t[0].exp = 105; 
-    e_t[1].name = L"帝國動員兵"; e_t[1].story = L"帝國戰時動員的士兵 只接受過基礎的軍事訓練"; e_t[1].baid = 0; e_t[1].str = 11; e_t[1].dex = 10; e_t[1].con = 11; e_t[1].INT = 10; e_t[1].wis = 10; e_t[1].cha = 10; e_t[1].lv = 1; e_t[1].mhp = 10; e_t[1].hp = 10; e_t[1].Move = 5; e_t[1].speed = 11; e_t[1].exp = 50; 
-    b_nt[0].name = L"戴恩"; b_nt[0].story = L"老練的獵手，曾在巴蘭斯獨立戰爭中擔任狙擊手"; b_nt[0].lv = 15; b_nt[0].mhp = 20; b_nt[0].Move = 5; b_nt[0].speed = 15; b_nt[0].pose = 2; b_nt[0].str = 15; b_nt[0].dex = 20; b_nt[0].con = 15; b_nt[0].INT = 10; b_nt[0].wis = 12; b_nt[0].cha = 9; b_nt[0].baid = 0;
+    e_t[0].name = L"野狼"; e_t[0].story = L"團體行動的動物 隨著數量增加危險性也會大幅上升"; e_t[0].baid = 1; e_t[0].str = 12; e_t[0].dex = 15; e_t[0].con = 12; e_t[0].INT = 3; e_t[0].wis = 14; e_t[0].cha = 7; e_t[0].lv = 1; e_t[0].mhp = 11; e_t[0].hp = 11; e_t[0].Move = 7; e_t[0].speed = 12; e_t[0].exp = 105;
+    e_t[1].name = L"帝國動員兵"; e_t[1].story = L"帝國戰時動員的士兵 只接受過基礎的軍事訓練"; e_t[1].baid = 0; e_t[1].str = 11; e_t[1].dex = 10; e_t[1].con = 11; e_t[1].INT = 10; e_t[1].wis = 10; e_t[1].cha = 10; e_t[1].lv = 1; e_t[1].mhp = 10; e_t[1].hp = 10; e_t[1].Move = 5; e_t[1].speed = 11; e_t[1].exp = 150;
+    e_t[2].name = L"野蜂"; e_t[2].story = L"領地意識極強，一但靠近就會使用帶有毒液的尾針攻擊"; e_t[2].baid = 7; e_t[2].str = 3; e_t[2].dex = 13; e_t[2].con = 10; e_t[2].INT = 1; e_t[1].wis = 7; e_t[2].cha = 1; e_t[2].lv = 1; e_t[2].mhp = 5; e_t[2].hp = 5; e_t[2].Move = 5; e_t[2].speed = 15; e_t[2].exp = 50;
+    b_nt[0].name = L"戴恩"; b_nt[0].story = L"老練的獵手，曾在巴蘭斯獨立戰爭中擔任狙擊手"; b_nt[0].lv = 15; b_nt[0].hp = 15; b_nt[0].mhp = 20; b_nt[0].Move = 5; b_nt[0].speed = 15; b_nt[0].pose = 2; b_nt[0].str = 15; b_nt[0].dex = 20; b_nt[0].con = 15; b_nt[0].INT = 10; b_nt[0].wis = 12; b_nt[0].cha = 9; b_nt[0].baid = 0;
     ar[0].name = L"巡林者"; ar[0].dmg = "1d12"; ar[0].Dmg = L"1d12"; ar[0].range = 5; ar[0].story = L"巴蘭斯獵戶所喜愛的獵槍，能精準發射足以殺傷大型獵物的彈葯，是帝國在大戰後遺留的產物\n傷害:1d12\n裝填時間:5S"; ar[0].number = 0; ar[0].bullet = 5; ar[0].mbullet = 5; ar[0].type = "rr"; ar[0].time = 5;
     ar[1].name = L"爪子"; ar[1].dmg = "2d4+2"; ar[1].Dmg = L"2d4+2"; ar[1].hit = "1d4+2"; ar[1].range = 1; ar[1].number = 0; ar[1].bullet = 1; ar[1].mbullet = 1; ar[1].type = "m";
     ar[2].name = L"長劍"; ar[2].dmg = "1d8"; ar[2].Dmg = L"1d8"; ar[2].hit = "1d2"; ar[2].range = 1; ar[2].story = L"巴蘭斯騎士所使用的制式長劍\n傷害:1d8\n命中加值:1d2"; ar[2].number = 0; ar[2].bullet = 1; ar[2].mbullet = 1; ar[2].type = "m";
     ar[3].name = L"石中劍"; ar[3].dmg = "1d8"; ar[3].Dmg = L"1d8"; ar[3].hit = "1d2"; ar[3].range = 1; ar[3].story = L"傳說只有神選之人才能使用的聖劍\n傷害:1d8\n命中加值:1d2+3"; ar[3].number = 0; ar[3].bullet = 1; ar[3].mbullet = 1; ar[3].type = "m";
     ar[4].name = L"短刀"; ar[4].dmg = "1d4"; ar[4].Dmg = L"1d4"; ar[4].hit = "1d2+1"; ar[4].range = 1; ar[4].story = L"生活中常見的工具，作為武器用來近戰或投擲都很實用\n傷害:1d4\n命中加值:1d2+1"; ar[4].number = 0; ar[4].bullet = 1; ar[4].mbullet = 1; ar[4].type = "m";
-    ar[5].name = L"30式手槍"; ar[5].dmg = "2d4"; ar[5].Dmg = L"2d4"; ar[5].hit = "1d2"; ar[5].range = 3; ar[5].story = L"大戰中配發給共和軍官使用的手槍，全稱是諾曼30式輪轉手槍，槍身刻有守護二字\n傷害:2d4\n命中加值:1d2 裝填時間:3S" ; ar[5].number = 0; ar[5].bullet = 6; ar[5].mbullet = 6; ar[5].type = "rp"; 
+    ar[5].name = L"30式手槍"; ar[5].dmg = "2d4"; ar[5].Dmg = L"2d4"; ar[5].hit = "1d2"; ar[5].range = 3; ar[5].story = L"大戰中配發給共和軍官使用的手槍，全稱是諾曼30式輪轉手槍，槍身刻有守護二字\n傷害:2d4\n命中加值:1d2 裝填時間:3S"; ar[5].number = 0; ar[5].bullet = 6; ar[5].mbullet = 6; ar[5].type = "rp";
     ar[6].name = L"獵刀"; ar[6].dmg = "1d5"; ar[6].Dmg = L"1d5"; ar[6].hit = "1d2"; ar[6].range = 1; ar[6].story = L"用來給獵物剝皮和切肉的刀具\n傷害:1d5\n命中加值:1d2"; ar[6].number = 0; ar[6].bullet = 1; ar[6].mbullet = 1; ar[6].type = "m";
+    ar[7].name = L"尾針"; ar[7].dmg = "1d2+1"; ar[7].Dmg = L"1d2+1"; ar[7].range = 1; ar[7].story = L"昆蟲防衛自身的武器，帶毒"; ar[7].number = 0; ar[7].bullet = 1; ar[7].mbullet = 1; ar[7].type = "m";
     Ar[0].name = L"獵手服"; Ar[0].story = L"與森林近似的顏色能讓獵手不容易被發現，特殊的設計使穿著者能靈巧的移動\n防禦加值:1，閃避加值:1";
     Ar[1].name = L"粗布襯衫"; Ar[1].story = L"便宜實惠耐穿，一天著裝的好選擇\n防禦加值:1";
-    it[0].Name = L"步槍子彈"; it[0].name = "步槍子彈"; it[0].number = 10; it[0].type = 'b'; it[0].story = L"可以裝填步槍跟機槍的子彈\n傷害加值:2\n命中加值:2"; it[0].range = 0;
-    it[1].Name = L"繃帶"; it[1].name = "繃帶"; it[1].number = 0; it[1].type = 'h'; it[1].story = L"保護傷處與止血，避免傷口惡化\n使用10秒後回復5HP並獲得兩層生命回復"; it[1].range = 1;
+    it[0].Name = L"步槍子彈"; it[0].name = "步槍子彈"; it[0].number = 10; it[0].type = 'b'; it[0].story = L"可以裝填步槍跟機槍的子彈\n傷害加值:2\n命中加值:2"; it[0].range = 0; it[0].value = 200;
+    it[1].Name = L"繃帶"; it[1].name = "繃帶"; it[1].number = 0; it[1].type = 'h'; it[1].story = L"保護傷處與止血，消毒過的布匹能避免傷口惡化\n使用10秒後回復5HP並獲得兩層生命回復"; it[1].range = 1; it[1].value = 100;
     it[2].Name = L"通常彈2"; it[2].name = "通常彈"; it[2].number = 0; it[2].type = 'b'; it[2].story = L"";
-    it[3].Name = L"手槍子彈"; it[3].name = "手槍子彈"; it[3].number = 0; it[3].type = 'b'; it[3].story = L"可以裝填手槍和衝鋒槍的子彈\n傷害加值:1"; it[3].range = 0;
+    it[3].Name = L"手槍子彈"; it[3].name = "手槍子彈"; it[3].number = 0; it[3].type = 'b'; it[3].story = L"可以裝填手槍和衝鋒槍的子彈\n傷害加值:1"; it[3].range = 100;
     it[4].Name = L"藥物清單"; it[4].name = "藥物清單"; it[4].number = 0; it[4].type = 'm'; it[4].story = L"父親紀錄需要藥物的內容，大部分都是與外傷處理的藥物有關";
-    it[5].Name = L"百三聖水"; it[5].name = "百三聖水"; it[5].number = 1; it[5].type = 'h'; it[5].story = L"由白教生產的聖水藥劑，3%的聖水濃度能提供足夠回復輕傷的生命力\n回復10HP"; it[5].range = 1;
+    it[5].Name = L"百三聖水"; it[5].name = "百三聖水"; it[5].number = 1; it[5].type = 'h'; it[5].story = L"由白教生產的聖水藥劑，3%的聖水濃度能提供足夠回復輕傷的生命力\n回復10HP"; it[5].range = 1; it[5].value = 300;
     it[6].Name = L"白之聖典"; it[6].name = "白之聖典"; it[6].number = 1; it[6].type = 'm'; it[6].story = L"艾倫已逝母親的遺物，古樸的書頁紀錄著白教的教義，但與教會的許多觀點有所分歧，因為一些緣故，似乎有未知力量能激發自身的潛能";
-    it[7].Name = L"巴平"; it[7].name = "巴平"; it[7].number = 1; it[7].type = 'm'; it[7].story = L"巴蘭斯建國後鑄造的銀幣，巴蘭斯國的貨幣基本單位";
-    it[8].Name = L"阿根"; it[8].name = "阿根"; it[8].number = 1; it[8].type = 'm'; it[8].story = L"巴蘭斯建國後鑄造的金幣，1巴平可以兌換10阿根";
-    it[9].Name = L"古彭"; it[9].name = "古彭"; it[9].number = 1; it[9].type = 'm'; it[9].story = L"巴蘭斯建國後鑄造的銅幣，1阿根可以兌換10古彭";
-    it[10].Name = L"蘋果"; it[10].name = "蘋果"; it[10].number = 1; it[10].type = 'e'; it[10].story = L"遍布整片大陸的水果，民間有著\"一天一蘋果，醫生遠離我\"的俗諺\n食物 為單體回復20%HP\n儲存上限:10";
-    it[11].Name = L"柳橙"; it[11].name = "柳橙"; it[11].number = 1; it[11].type = 'e'; it[11].story = L"能治療敗血症的水果，製成的柳橙汁也有良效\n食物 為單體回復25%HP\n儲存上限:10";
-    it[12].Name = L"馬鈴薯"; it[12].name = "馬鈴薯"; it[12].number = 1; it[12].type = 'm'; it[12].story = L"易於保存以及種植，使得成為多數家庭中一天的主食\n食材";
-    it[13].Name = L"豌豆罐頭"; it[13].name = "豌豆罐頭"; it[13].number = 1; it[13].type = 'e'; it[13].story = L"運用了最新的儲存技術，可以保存很久的罐頭食品，存放了豌豆\n食物 為單位回復30%生命";
+    it[7].Name = L"巴平"; it[7].name = "巴平"; it[7].number = 0; it[7].type = 'm'; it[7].story = L"巴蘭斯建國後鑄造的銀幣，巴蘭斯國的貨幣基本單位"; it[7].value = 1000;
+    it[8].Name = L"阿根"; it[8].name = "阿根"; it[8].number = 5; it[8].type = 'm'; it[8].story = L"巴蘭斯建國後鑄造的金幣，1巴平可以兌換10阿根"; it[8].value = 100;
+    it[9].Name = L"古彭"; it[9].name = "古彭"; it[9].number = 20; it[9].type = 'm'; it[9].story = L"巴蘭斯建國後鑄造的銅幣，1阿根可以兌換10古彭"; it[9].value = 10;
+    it[10].Name = L"蘋果"; it[10].name = "蘋果"; it[10].number = 1; it[10].type = 'e'; it[10].story = L"遍布整片大陸的水果，民間有著\"一天一蘋果，醫生遠離我\"的俗諺\n食物 為單體回復20%HP\n儲存上限:10"; it[10].value = 20;
+    it[11].Name = L"柳橙"; it[11].name = "柳橙"; it[11].number = 1; it[11].type = 'e'; it[11].story = L"能治療敗血症的水果，製成的柳橙汁也有良效\n食物 為單體回復25%HP\n儲存上限:10"; it[11].value = 25;
+    it[12].Name = L"馬鈴薯"; it[12].name = "馬鈴薯"; it[12].number = 1; it[12].type = 'm'; it[12].story = L"易於保存以及種植，使之成為多數家庭中一天的主食\n食材"; it[12].value = 30;
+    it[13].Name = L"豌豆罐頭"; it[13].name = "豌豆罐頭"; it[13].number = 1; it[13].type = 'e'; it[13].story = L"運用了最新的儲存技術，可以保存很久的罐頭食品，存放了豌豆\n食物 為單位回復30%生命"; it[13].value = 150;
+    it[14].Name = L"小紅莓"; it[14].name = "小紅莓"; it[14].number = 0; it[14].type = 'e'; it[14].story = L"自然給予旅人的恩賜，旅行時總能發現並用來充飢\n食物 為單體回復10%HP\n儲存上限:25"; it[14].value = 5;
     st[0].name = L"長青石"; st[0].number = 1; st[0].story = L"從星隕礦採掘出的伴生礦 沾染了生命的氣息\nHP+2"; st[0].type = "H+2";
     st[1].name = L"烈風石"; st[1].number = 1; st[1].story = L"從星隕礦採掘出的伴生礦 沾染了狂風的氣息\n速度+2"; st[1].type = "S+2";
     t_E[0].name = L"簡易醫療箱"; t_E[0].story = L"父親為艾倫準備的醫療箱，能很好的存放藥物與器材\n戰鬥中能攜帶的藥物數量增加 進行治療時所需的時間減少20%"; t_E[0].size = 3; t_E[0].number = 0;
     t_E[1].name = L"彈藥袋"; t_E[1].story = L"便於攜帶彈藥與裝填的布袋\n減少裝填時間1秒"; t_E[1].size = 3; t_E[1].number = 0;
     n[0].name = L"";
-    n[1].name = L"朱利安"; n[1].x = 3; n[1].y=6; n[1].avatar=1;
+    n[1].name = L"朱利安"; n[1].x = 3; n[1].y = 6; n[1].avatar = 1;
     n[2].name = L"???";
     n[3].name = L"愛德華"; n[3].x = 23; n[3].y = 12; n[3].avatar = 1;
     n[4].name = L"士兵"; n[4].x = 13; n[4].y = 26; n[4].avatar = 3;
@@ -8888,16 +8926,21 @@ int main() {
     EX[4].x = 12; EX[4].y = 24; EX[4].gx = 19; EX[4].gy = 18; EX[4].Mid = 2; EX[4].state = true; EX[4].cx = 12; EX[4].cy = 24;
     EX[5].x = 13; EX[5].y = 13; EX[5].gx = 19; EX[5].gy = 13; EX[5].Mid = 2; EX[5].state = true; EX[5].cx = 13; EX[5].cy = 13;
     EX[6].x = 26; EX[6].y = 0; EX[6].gx = 23; EX[6].gy = 18; EX[6].Mid = 5; EX[6].state = false; EX[6].cx = 27; EX[6].cy = 0;
-    EX[7].x = 22; EX[7].y =19; EX[7].gx = 26; EX[7].gy = 1; EX[7].Mid = 4; EX[7].state = true; EX[7].cx = 23; EX[7].cy = 19;
+    EX[7].x = 22; EX[7].y = 19; EX[7].gx = 26; EX[7].gy = 1; EX[7].Mid = 4; EX[7].state = true; EX[7].cx = 23; EX[7].cy = 19;
     EX[8].x = 41; EX[8].y = 43; EX[8].gx = 15; EX[8].gy = 18; EX[8].Mid = 6; EX[8].state = true; EX[8].cx = 41; EX[8].cy = 43;
     EX[9].x = 15; EX[9].y = 19; EX[9].gx = 41; EX[9].gy = 44; EX[9].Mid = 4; EX[9].state = true; EX[9].cx = 15; EX[9].cy = 19;
+    EX[10].x = 2; EX[10].y = 0; EX[10].gx = 58; EX[10].gy = 46; EX[10].Mid = 8; EX[10].state = true; EX[10].cx = 3; EX[10].cy = 0;
+    EX[11].x = 58; EX[11].y = 47; EX[11].gx = 3; EX[11].gy = 1; EX[11].Mid = 5; EX[11].state = true; EX[11].cx = 59; EX[11].cy = 47;
     m_f[0].x = 14; m_f[0].y = 9; m_f[0].check = 0;
     m_f[1].x = 23; m_f[1].y = 12; m_f[1].check = 0;
     m_f[2].x = 27; m_f[2].y = 9; m_f[2].check = 0;
     m_f[3].x = 24; m_f[3].y = 26; m_f[3].check = 0;
     m_f[4].x = 14; m_f[4].y = 14; m_f[4].check = 0;
-    Box[0].state = true; Box[0].x = 16; Box[0].y=9;
-    Box[1].state = true; Box[1].x = 15; Box[1].y = 12;
+    Box[0].state = true; Box[0].x = 16; Box[0].y = 9; Box[0].type = 0;
+    Box[1].state = true; Box[1].x = 15; Box[1].y = 12; Box[1].type = 0;
+    Box[2].state = true; Box[2].x = 59; Box[2].y = 45; Box[2].type = 1;
+    Box[3].state = true; Box[3].x = 18; Box[3].y = 45; Box[3].type = 1;
+    Box[4].state = true; Box[4].x = 40; Box[4].y = 37; Box[4].type = 1;
     sk[0].name = L"戰場敏銳"; sk[0].story = L"抓準敵人攻勢的破綻\n被動:每30秒為我方全員取得一層戰術優勢"; sk[0].type = "b0"; sk[0].cost = 3;
     sk[1].name = L"瞄準"; sk[1].story = L"進行射擊前的精準估算 每3點移動力換取一層攻擊優勢"; sk[1].type = "B"; sk[1].cost = 3;
     sk[2].name = L"巴頓術"; sk[2].story = L"一種運用杖技、腿法與柔術的綜合護身術\n近戰命中計算時加入靈巧 命中時機率使對手獲得失衡"; sk[2].type = "A"; sk[2].cost = 3;
@@ -8911,7 +8954,7 @@ int main() {
     sk[10].name = L"戰鎖"; sk[10].story = L"運用近戰技巧封鎖敵人的行動，使敵我雙方進入無法移動與無法閃避的狀態\n直到封鎖判定失敗，或是雙方中有單位死亡"; sk[10].cost = 2;
     sk[11].name = L"核心護盾"; sk[11].story = L"藉由星隕石能量搭建力場護盾，使凡人能正面對抗槍械的關鍵\n被動:根據星隕石等級獲得LV*20的力場護盾"; sk[11].cost = 2;
     sk[12].name = L"白之利刃"; sk[12].story = L"為一名友軍的武器注入生命之力\nHP未滿時，攻擊時回復20%已損失生命"; sk[12].cost = 2;
-    bu[0].name = L"戰場敏銳"; bu[0].story = L"戰場敏銳:每30秒為我方全員取得一層戰術優勢"; 
+    bu[0].name = L"戰場敏銳"; bu[0].story = L"戰場敏銳:每30秒為我方全員取得一層戰術優勢";
     bu[1].name = L"攻擊優勢"; bu[1].story = L"當進攻失敗時消耗一層優勢 進行一次重新判定 直到成功或優勢耗盡";
     bu[2].name = L"戰術優勢"; bu[2].story = L"戰術優勢:當進攻或閃躲失敗時消耗一層優勢 進行一次重新判定 直到成功或優勢耗盡";
     bu[3].name = L"失衡"; bu[3].story = L"移動力減半、行動時獲得一層劣勢";
@@ -8921,13 +8964,14 @@ int main() {
     bu[7].name = L"加護"; bu[7].story = L"加護:每一層加護可以減少一點所受的生命傷害";
     bu[8].name = L"力場護盾"; bu[8].story = L"當單位受到傷害時自動扣除相同護盾減少傷害，但攻擊者持有力場護盾且近戰攻擊時則無法減免";
     sp[0].i_number[10] = 10;   sp[0].i_number[11] = 10;   sp[0].i_number[12] = 10;   sp[0].i_number[13] = 10;
+}
 /*開始畫面*/
     while (1) {
         int s = start();
         if (s == 1) {
             first = time(NULL);
             p[0].state = 1;
-            event(f, p, n,m_f,m,Box, EX,e,e_n,m_id,b_mid,b_id);
+            event(f, b_f,p, n,m_f,m,Box, EX,e,e_n,m_id,b_mid,b_id);
             /*事件在這裡event(f,p,n);*/
             break;
         }
@@ -8939,17 +8983,17 @@ int main() {
             }
         }
     }
-    F = 0;
+    FP = 0;
         b_mid = -1;
         
-        m_set(m, n, p, e_n, Box, m_id, b_id);m_map(p,m, Box, m_id, b_id, n,NULL,""); m_put(p, m, m_id);;
+        m_set(m, n, p, e_n, Box, m_id, b_id,enemyimage);m_map(p,m, Box, m_id, b_id, n,""); m_put(p, m, m_id);;
             string g;
             Z = 2;
 
    while (1) {
 /*一般模式*/
             while (1) {
-                event(f, p, n, m_f, m, Box,EX,e,e_n, m_id, b_mid, b_id);
+                event(f, b_f,p, n, m_f, m, Box,EX,e,e_n, m_id, b_mid, b_id);
                 if (sp_id != -1) {
                     trade(p, it,ar,t_E, sp, sp_id, i_id,ar_id,t_Eid);
                 }
@@ -8957,8 +9001,9 @@ int main() {
                     b_mid = b_check(p, e_n, m, m_id);
                 }
                 if (Z == 2) {
-                    m_check(p, m, EX, Box, m_id,b_id, n, e_n);
+                    m_check(p, m, EX, Box, m_id,b_id, n, e_n,enemyimage);
                     FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE));
+                    flushmessage(-1);
                 }
                 /*!=-1*/
                 if (b_mid !=-1) {
@@ -9009,9 +9054,11 @@ int main() {
                 }
                 if (g == "esc") {
                     FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE));
+                    flushmessage(-1);
                     Sleep(500);
-                    menu(p, it, ar,Ar, st, f, e,m,n,e_n, EX,Box,sk,m_f,t_E,P_id, f_id, i_id, ar_id, Ar_id,st_id,b_id, m[m_id].psize, roundp, roundb, first, two, three, m_id, ex_id, sk_id,m_fid,t_Eid);
+                    menu(p, it, ar,Ar, st, f, e,m,n,e_n, EX,Box,sk,m_f,t_E,P_id, f_id, i_id, ar_id, Ar_id,st_id,b_id, m[m_id].psize, roundp, roundb, first, two, three, m_id, ex_id, sk_id,m_fid,t_Eid,enemyimage);
                     FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE));                    
+                    flushmessage(-1);
                     Sleep(500);
                     if (m[m_id].bgm != -1) {
                         wstring mm,vos;
@@ -9022,12 +9069,8 @@ int main() {
                         vos = L"setaudio bgm volume to " + to_wstring(voiceSize);
                         mciSendString(vos.c_str(), NULL, 0, NULL);
                     }
-                    m_map(p,m, Box, m_id, b_id, n,Z,g);
-                    m_put(p,m,m_id);
-                    EndBatchDraw();
                 }
-                show(m, p, e, e_n,Box, m_id,b_id,Z, n, g);
-
+                show(m, p, e, e_n,Box, m_id,b_id, n, g,enemyimage);
             }
 /*戰鬥模式*/
         mciSendString(L"open ./Game/Sound/SE/魔王魂_戦闘18.mp3", NULL, 0, NULL);
@@ -9037,7 +9080,7 @@ int main() {
             FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE));
             if (battle_check(p, e, b_m, b_mid) == 1) {
                 b_end_menu(p, e, b_m, b_mid);
-                battle2map(p, n, e_n, m, m_id); m_map(p, m, Box, m_id, b_id, n, Z, g); m_put(p, m, m_id); b_mid = -1; break;
+                battle2map(p, n, e_n, m, m_id); m_map(p, m, Box, m_id, b_id, n, g); m_put(p, m, m_id); b_mid = -1; break;
             }
             b_event(f,b_f, p, n, b_m, e_t, e,m,Box,b_n, b_mid,P_id, b_m[b_mid].psize,buff_id,b_id,b_nid);
             settextstyle(18, 0, _T("Taipei Sans TC Beta"));
