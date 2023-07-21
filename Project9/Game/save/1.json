@@ -1,19 +1,33 @@
 {
    "P_id" : 0,
    "arms" : {
-      "bullet" : [ 5, 1, 1, 1, 1, 6, 1 ],
-      "mbullet" : [ 5, 1, 1, 1, 1, 6, 1 ],
-      "number" : [ 0, 0, 0, 0, 0, 1, 0 ]
+      "bullet" : [ 5, 1, 1, 1, 1, 6, 1, 1 ],
+      "mbullet" : [ 5, 1, 1, 1, 1, 6, 1, 1 ],
+      "number" : [ 0, 0, 0, 0, 0, 0, 0, 0 ]
    },
-   "exit" : [ true, true, true, true, true, true, false, true, true, true ],
+   "box_state" : [ false, true, true, true, true, true, true, true, true ],
+   "exit" : [
+      true,
+      true,
+      false,
+      true,
+      true,
+      true,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true
+   ],
    "flag" : {
-      "check" : [ 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0 ]
+      "check" : [ 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
    },
    "item" : {
-      "number" : [ 10, 0, 0, 30, 1, 1, 1, 1, 1, 1 ,1,1,1,1]
+      "number" : [ 0, 3, 0, 0, 0, 3, 1, 0, 5, 20, 0, 0, 0, 0, 0, 0, 0 ]
    },
-   "m_flag" : [ 0, 1, 0, 0 ],
-   "m_id" : 6,
+   "m_flag" : [ 0, 0, 0, 0, 0, 0, 0 ],
+   "m_id" : 1,
    "player" : {
       "INT" : [ 10 ],
       "abox" : [ 0 ],
@@ -44,7 +58,7 @@
       "sp" : [ 0 ],
       "speed" : [ 10 ],
       "state" : [ 1 ],
-      "stone_id" : [ 0 ],
+      "stone_id" : [ -1 ],
       "str" : [ 10 ],
       "strExp" : [ 40 ],
       "t_Box" : {
@@ -55,104 +69,23 @@
       "turn" : [ 0 ],
       "wis" : [ 10 ],
       "wisExp" : [ 50 ],
-      "x" : [ 14 ],
-      "y" : [ 16 ]
+      "x" : [ 16 ],
+      "y" : [ 10 ]
    },
    "psize" : 1,
+   "shop" : {
+      "ar_number_0" : [ 0, 0, 0, 0, 0, 0, 0, 0 ],
+      "i_number_0" : [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 10, 10, 10, 0, 0, 0 ],
+      "t_E_number_0" : [ 0, 0 ]
+   },
    "soundSize" : 500,
    "stone" : {
-      "number" : [ 1, 1 ]
-   },
-   "t_equip" : {
-      "number" : [ 1, 0 ]
-   },
-   "time" : 243,
-   "voiceSize" : 500
-}
-{
-   "P_id" : 0,
-   "arms" : {
-      "bullet" : [ 5, 1, 1, 1, 1, 6, 1, 0 ],
-      "mbullet" : [ 5, 1, 1, 1, 1, 6, 1, 0 ],
-      "number" : [ 0, 0, 0, 0, 0, 0, 0, 0 ]
-   },
-   "exit" : [
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true
-   ],
-   "flag" : {
-      "check" : [ 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0 ]
-   },
-   "item" : {
-      "number" : [ 10, 0, 0, 29, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
-   },
-   "m_flag" : [ 0, 1, 1, 0, 0 ],
-   "m_id" : 8,
-   "player" : {
-      "INT" : [ 11, 10 ],
-      "abox" : [ 0, 0 ],
-      "arms_b_1" : [ 1, 1 ],
-      "arms_b_2" : [ 1, 1 ],
-      "arms_id_1" : [ 4, 0 ],
-      "arms_id_2" : [ 5, 6 ],
-      "asize" : [ 1, 1 ],
-      "b_id_1" : [ -1, 0 ],
-      "b_id_2" : [ 3, -1 ],
-      "cha" : [ 11, 11 ],
-      "chaExp" : [ 10, 10 ],
-      "con" : [ 10, 10 ],
-      "conExp" : [ 70, 70 ],
-      "dex" : [ 11, 11 ],
-      "dexExp" : [ 0, 10 ],
-      "exp" : [ 159, 159 ],
-      "hp" : [ 10, 12 ],
-      "intExp" : [ 10, 70 ],
-      "isize" : [ 1, 1 ],
-      "lv" : [ 2, 2 ],
-      "mhp" : [ 12, 12 ],
-      "move" : [ 6, 6 ],
-      "pose" : [ 3, 2 ],
-      "skill" : {
-         "s_check_0" : [ 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0 ],
-         "s_check_1" : [ 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
-      },
-      "sp" : [ 1, 1 ],
-      "speed" : [ 10, 10 ],
-      "state" : [ 1, 1 ],
-      "stone_id" : [ 0, 0 ],
-      "str" : [ 10, 10 ],
-      "strExp" : [ -858993420, -858993430 ],
-      "t_Box" : {
-         "id0" : [ 1, 5, 3 ],
-         "id1" : [ -1, -1, -1 ],
-         "size0" : [ 3, 3, 1 ],
-         "size1" : [ 0, 0, 0 ]
-      },
-      "t_id" : [ 0, 1 ],
-      "turn" : [ 0, 100 ],
-      "wis" : [ 10, 11 ],
-      "wisExp" : [ 70, 10 ],
-      "x" : [ 57, 19 ],
-      "y" : [ 44, 14 ]
-   },
-   "psize" : 2,
-   "soundSize" : 500,
-   "stone" : {
-      "number" : [ 1, 1 ]
+      "number" : [ 0, 0 ]
    },
    "t_equip" : {
       "number" : [ 0, 0 ]
    },
-   "time" : 340,
+   "task_state" : [ 1, 0 ],
+   "time" : 21,
    "voiceSize" : 500
 }
