@@ -1,7 +1,12 @@
 {
   "task_d": 0,
+  "task_u": 2,
   "flag": 1,
   "team_state": 1,
+  "item": {
+    "id": [ 0 ],
+    "number": [30 ]
+  },
   "talk": [
     {
       "npc": -1,
