@@ -11,6 +11,7 @@
  <tileset firstgid="962" source="../../../../Desktop/未命名-1.tsx"/>
  <tileset firstgid="1090" source="門1.tsx"/>
  <tileset firstgid="1092" source="../../../../Desktop/門2.tsx"/>
+ <tileset firstgid="1094" source="鐵絲網MK1.tsx"/>
  <layer id="1" name="圖塊層 1" width="27" height="20">
   <properties>
    <property name="block" type="bool" value="false"/>

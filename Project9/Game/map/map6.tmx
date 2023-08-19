@@ -12,6 +12,7 @@
  <tileset firstgid="225" source="未命名-1.tsx"/>
  <tileset firstgid="481" source="未命名-2.tsx"/>
  <tileset firstgid="737" source="黑.tsx"/>
+ <tileset firstgid="738" source="桌子2.tsx"/>
  <layer id="1" name="圖塊層 1" width="27" height="20">
   <properties>
    <property name="blcok" type="bool" value="false"/>
