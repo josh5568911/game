@@ -5,7 +5,7 @@
       "mbullet" : [ 5, 1, 1, 1, 1, 6, 1, 1 ],
       "number" : [ 0, 0, 0, 0, 0, 0, 0, 0 ]
    },
-   "box_state" : [ false, false, true, true, true, true, true, true, true ],
+  "box_state": [ false, false, false, false, false, false, false, false, false ],
    "exit" : [
       true,
       true,
