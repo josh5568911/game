@@ -399,7 +399,7 @@ void p_put(player* p, b_map* b_m, int psize, int b_mid);
 void b_nput(b_npc* b_n, b_map* b_m, int b_nid, int nsize, int b_mid);
 void e_put(enemy* e, b_map* b_m, int esize, int b_mid);
 void maps(player* p, int P_id, enemy* e, b_map* b_m,arms *ar, terrain(*te)[50], int b_mid);
-int rollcount(string hit,wstring b19,int h,enemy *e,int id) {
+int rollcountA(string hit,wstring b19,int h,enemy *e,int id) {
     int k,kt,g=0,s=0,t=0,sumA=0,sumB=0,a,b,num=0;
     string box="";
     if (hit != "0") {
@@ -531,6 +531,75 @@ int rollcount(string hit,wstring b19,int h,enemy *e,int id) {
         s1 = 1;
     }
     return num*100 / (20 * 20 * s * s1);
+}
+int rollcountB(string hit, int h, player* p, int P_id) {
+    int k, kt, g = 0, s = 0, t = 0, sumA = 0, sumB = 0, a, b, num = 0;
+    string box = "";
+    if (hit != "0") {
+        for (k = 0; k < hit.size(); k++) {
+            if (hit[k] == 'd') {
+                t = stoi(box);
+                box = "";
+                k++;
+            }
+            if (hit[k] == '+') {
+                s = stoi(box);
+                g = 1;
+                box = "";
+                k++;
+            }
+            else if (hit[k] == '-') {
+                s = stoi(box);
+                g = -1;
+                box = "";
+                k++;
+            }
+            box += hit[k];
+        }
+        if (s != 0) {
+            if (g == 1) {
+                g *= stoi(box);
+            }
+            else if (g == -1) {
+                g *= stoi(box);
+            }
+        }
+        else {
+            s = stoi(box);
+        }
+        h += g;
+    }
+    for (a = 1; a <= 20; a++) {
+        sumA = 0; sumB = 0;
+        sumA += a;
+        for (b = 1; b <= 20; b++) {
+            sumB += b;
+            for (k = 1; k <= s; k++) {
+                sumA += k;
+                if (p[P_id].buff_check[27] > 0) {
+                    sumB /= 2;
+                }
+                if (sumA + h > sumB) {
+                    num++;
+                }
+                sumA -= k;
+            }
+            if (s == 0) {
+                    if (p[P_id].buff_check[27] > 0) {
+                        sumB /= 2;
+                    }
+                    if (sumA + h > sumB) {
+                        num++;
+                    }
+            }
+           sumB -= b;         
+        }
+         sumA -= a;
+    }   
+    if (s == 0) {
+        s = 1;
+     }  
+    return num * 100 / (20 * 20 * s);
 }
 int p_buff_check(wofstream* wofs, string chose, player* p,enemy *e,b_npc *b_n, buff* bu,arms *ar, b_map* b_m, terrain(*te)[50], int P_id, int b_mid,int bu_id) {
     int I, k,bi,bt;
@@ -827,6 +896,22 @@ int p_buff_check(wofstream* wofs, string chose, player* p,enemy *e,b_npc *b_n, b
           }
           if (p[P_id].buff_check[28] > 0) {
               p[P_id].buff_check[28] = 0;
+          }
+          if (p[P_id].buff_check[31] > 0) {
+              if (roll("", 2) > p[P_id].con) {
+                  settextcolor(RGB(255, 0, 0));
+                  settextstyle(25, 0, _T("Taipei Sans TC Beta"));
+                  outtextxy(p[P_id].x * 48 - b_m[b_mid].ox, p[P_id].y * 48 - b_m[b_mid].oy - 40, to_wstring(-3).c_str());
+                  settextstyle(18, 0, _T("Taipei Sans TC Beta"));
+                  settextcolor(RGB(0, 0, 0));
+                  p[P_id].hp -= 3;
+                  *wofs << L"(T" << b_m[b_mid].time << L")" << p[P_id].name << L"受到" << 3 << L"點中毒傷害" << endl;
+                  FlushBatchDraw();
+                  Sleep(500);
+              }
+              else {
+                  p[P_id].buff_check[31]--;
+              }
           }
     }
 }
@@ -1742,6 +1827,7 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
             else if (root["mType"].asInt() == 3) {
                 loadimage(&ef_1, L"./Game/picture/shot.png", 0, 0, false);
                 loadimage(&ef_2, L"./Game/picture/爆発2.png", 0, 0, false);
+                loadimage(&ef_3, L"./Game/picture/shot_1.png", 0, 0, false);
                 ui = 5;
                 wstring sPath = L"open ./Game/Sound/SE/爆発1.mp3 alias boom";
                 mciSendString(sPath.c_str(), NULL, 0, NULL);
@@ -2297,19 +2383,19 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
                 }
             }
             if (pa == 1 && k == 5) {               
-                if (ei == 6) {
+                if (ei == 15) {
                     if (ubs % 3 == 0) {
-                        transparentimage(NULL, 48 * 16 , ubs*16, &ma4_0, 0xFF55FF);
+                        transparentimage(NULL, 48 * 13 , ubs*16, &ma4_0, 0xFF55FF);
                     }
                     else if (ubs % 3 == 1) {
-                        transparentimage(NULL, 48 * 16, ubs * 16, &ma4_1, 0xFF55FF);
+                        transparentimage(NULL, 48 * 13, ubs * 16, &ma4_1, 0xFF55FF);
                     }
                     else if (ubs % 3 == 2) {
-                        transparentimage(NULL, 48 * 16, ubs * 16, &ma4_2, 0xFF55FF);
+                        transparentimage(NULL, 48 * 13, ubs * 16, &ma4_2, 0xFF55FF);
                     }
                     ubs++;
                 }
-                if (ei <6) {
+                if (ei <15) {
                     if (ei % 3 == 0) {
                         transparentimage(NULL, 48 * 18 - ei * 16, 48 * 7, &ma3_0, 0xFF55FF);
                     }
@@ -2675,7 +2761,7 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
             }
             FlushBatchDraw(); 
             start_time = clock();
-            for (; (clock() - start_time) < 1;);
+            for (; (clock() - start_time) < 2;);
               F++;
           }
         }
@@ -3882,7 +3968,7 @@ void p_attack(wofstream* wofs, player *p,enemy *e,enemy_type *e_t,b_npc *b_n,arm
                 loadimage(&h_r, L"./Game/picture/H_R.png", 0, 0, false);
                 sss = 1;
                 BeginBatchDraw();
-                int hx, hy,ha,hc,hv,hd,hcv,hrc,absa,wheel=0;
+                int hx, hy,ha,hc,hv=0,hd,hcv=0,hrc,absa,wheel=0;
                 hv = p[P_id].buff_check[1] + p[P_id].buff_check[2];
                 while (sss != 0)
                 {
@@ -3910,8 +3996,8 @@ void p_attack(wofstream* wofs, player *p,enemy *e,enemy_type *e_t,b_npc *b_n,arm
                                             }
                                             ha = 0,hc=0;
                                             hv=0,hcv=0, hd=0;
-                                            if (e[id].y * 48 - b_m[b_mid].oy + 48 + 200 > 720) {
-                                                hy = e[id].y * 48 - b_m[b_mid].oy -200;
+                                            if (e[id].y * 48 - b_m[b_mid].oy + 48 + 250 > 720) {
+                                                hy = e[id].y * 48 - b_m[b_mid].oy -250;
                                             }
                                             else {
                                                 hy = e[id].y * 48 - b_m[b_mid].oy + 48;
@@ -3931,18 +4017,18 @@ void p_attack(wofstream* wofs, player *p,enemy *e,enemy_type *e_t,b_npc *b_n,arm
                                             if (e[id].buff_check[19] > 0) {
                                                 mm += L"+1d"+to_wstring(p[P_id].cha / 2);    
                                                 if (e[id].buff_check[20] == 1 || (ar[ar_id].type[0] == 'r' && p[P_id].buff_check[25] == 1)) {
-                                                    hrc = rollcount(ar[ar_id].hit, mm, 10000 - hc, e, id);
+                                                    hrc = rollcountA(ar[ar_id].hit, mm, 10000 - hc, e, id);
                                                 }
                                                 else {
-                                                    hrc = rollcount(ar[ar_id].hit, mm, ha - hc, e, id);                                                
+                                                    hrc = rollcountA(ar[ar_id].hit, mm, ha - hc, e, id);                                                
                                                 }
                                             }             
                                             else {
                                                 if (e[id].buff_check[20] == 1 || (ar[ar_id].type[0] == 'r' && p[P_id].buff_check[25] == 1)) {
-                                                    hrc = rollcount(ar[ar_id].hit, L"", 10000 - hc, e, id);
+                                                    hrc = rollcountA(ar[ar_id].hit, L"", 10000 - hc, e, id);
                                                 }
                                                 else {
-                                                hrc=rollcount(ar[ar_id].hit, L"", ha - hc,e,id);
+                                                hrc=rollcountA(ar[ar_id].hit, L"", ha - hc,e,id);
                                                 }
                                             }
                                             rect = { hx + 5,hy + 40,hx + 95,hy + 95 };
@@ -3966,6 +4052,9 @@ void p_attack(wofstream* wofs, player *p,enemy *e,enemy_type *e_t,b_npc *b_n,arm
                                             mm = to_wstring(hd);
                                             rect = { hx + 150,hy + 100,hx + 200,hy + 150 };
                                             drawtext(mm.c_str(), &rect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+                                            mm = ar[ar_id].Dmg;
+                                            rect = { hx + 85,hy + 200,hx + 195,hy + 246 };
+                                            drawtext(mm.c_str(), &rect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
                                             if (hcv >= hd) {
                                                 absa = 100-hrc;
                                                 for (int I = 0; I < hcv - hd; I++) {
@@ -3978,7 +4067,7 @@ void p_attack(wofstream* wofs, player *p,enemy *e,enemy_type *e_t,b_npc *b_n,arm
                                             }
                                             else{
                                                 absa = hrc;
-                                                for (int I = 0; I < hcv - hd; I++) {
+                                                for (int I = 0; I < hd-hcv; I++) {
                                                     absa *= hrc;
                                                     absa /= 100;
                                                 }
@@ -5177,6 +5266,8 @@ void e_attack(wofstream *wofs,arms *ar,armor *Ar,player *p,enemy *e,b_npc *b_n,b
     wstring nn,vos,mm;
     IMAGE get;
     TCHAR t[5];
+    RECT rect;
+    ExMessage m1;
     if (e[id].hp > 0) {
     if (e[id].target == 0) {
         if (ar[e[id].baid].range >= abs(e[id].x-p[P_id].x) + abs(e[id].y-p[P_id].y)) {
@@ -5403,6 +5494,113 @@ void e_attack(wofstream *wofs,arms *ar,armor *Ar,player *p,enemy *e,b_npc *b_n,b
                 }
             }
 
+            int sss = 1;
+            BeginBatchDraw();
+            int hx, hy, ha, hc, hv, hd=0, hcv=0, hrc, absa, wheel = 0;
+            IMAGE h_r;
+            loadimage(&h_r, L"./Game/picture/R_H.png", 0, 0, false);
+            hv =  p[P_id].buff_check[2];
+            if (hv > 0) {
+                int ar_id = e[id].baid;
+            while (sss != 0)
+            {              
+                putimage(0, 0, &get);  
+                hx = 400,hy=250;
+                ha = 0, hc = 0;
+                hcv = 0, hd = 0;
+                putimage(hx, hy, &h_r);
+                if (ar[ar_id].type[0] == 'r') {
+                    ha += (e[id].dex - 10) / 2;
+                }
+                else  if (ar[ar_id].type[0] == 'm') {
+                    ha += (e[id].str - 10) / 2;
+                }
+                hc += (p[P_id].dex - 10) / 2+Ar[p[P_id].armor_id].EDV;
+                mm = to_wstring(1 + ha) + L"~" + to_wstring(20 + ha);
+                if (ar[ar_id].hit != "0") {
+                    mm += L"+" + string2wstring(ar[ar_id].hit);
+                }
+                 if (p[P_id].buff_check[14] == 1 || p[P_id].buff_check[20] == 1) {
+                        hrc = rollcountB(ar[ar_id].hit, 10000 - hc, p, P_id);
+                 }
+                 else {
+                        hrc = rollcountB(ar[ar_id].hit, ha - hc, p, P_id);
+                 }                
+                rect = { hx + 5,hy + 40,hx + 95,hy + 95 };
+                drawtext(mm.c_str(), &rect, DT_WORDBREAK);
+                mm = to_wstring(1 + hc) + L"~" + to_wstring(20 + hc);
+                if (p[P_id].buff_check[27] == 1) {
+                    mm = to_wstring(0 + hc) + L"~" + to_wstring(10 + hc);
+                }
+                if (p[P_id].buff_check[14] == 1 || p[P_id].buff_check[20] == 1 ) {
+                    mm = L"0";
+                    ha = 100000;
+                }
+                rect = { hx + 105,hy + 40,hx + 195,hy + 95 };
+                hcv = e[id].buff_check[29] + e[id].buff_check[30] + wheel;
+                drawtext(mm.c_str(), &rect, DT_WORDBREAK);
+                mm = to_wstring(hcv) + L"(" + to_wstring(hv) + L")";
+                rect = { hx + 50,hy + 100,hx + 100,hy + 150 };
+                drawtext(mm.c_str(), &rect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+                hd = e[id].buff_check[1] + e[id].buff_check[2];
+                mm = to_wstring(hd);
+                rect = { hx + 150,hy + 100,hx + 200,hy + 150 };
+                drawtext(mm.c_str(), &rect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+                mm = ar[ar_id].Dmg;
+                rect = { hx + 85,hy + 200,hx + 195,hy + 246 };
+                drawtext(mm.c_str(), &rect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);              
+                if (hcv >= hd) {                  
+                    absa = hrc;
+                    for (int I = 0; I < hcv - hd; I++) {
+                        absa *= hrc;
+                        absa /= 100;
+                    }
+                    rect = { hx + 120,hy + 156,hx + 163,hy + 189 };
+                    mm = to_wstring(absa);
+                    drawtext(mm.c_str(), &rect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+                   
+                }
+                else { 
+                    absa = 100 - hrc;
+                    for (int I = 0; I < hd - hcv; I++) {
+                        absa *= (100 - hrc);
+                        absa /= 100;
+                    }
+                    rect = { hx + 120,hy + 156,hx + 163,hy + 189 };
+                    mm = to_wstring(100 - absa);
+                    drawtext(mm.c_str(), &rect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+                }
+                FlushBatchDraw();               
+                m1 = getmessage(EM_MOUSE);
+                if (m1.message == WM_MOUSEWHEEL) {
+                    int delta = m1.wheel;
+                    int lines = delta / WHEEL_DELTA;
+                    if (wheel + lines >= 0 && wheel + lines <= hv) {
+                        wheel += lines;
+                    }
+                }
+
+                if (m1.lbutton) {
+                    if (p[P_id].buff_check[2] - (hcv - e[id].buff_check[29]-e[id].buff_check[30]) < 0) {
+                        p[P_id].buff_check[2] = 0;
+                    }
+                    else {
+                        p[P_id].buff_check[2] -= (hcv - e[id].buff_check[29]-e[id].buff_check[30]);
+                    }
+                    e[id].buff_check[29] = 0;
+                    e[id].buff_check[30] = 0;
+                    e[id].buff_check[1] = 0;
+                    e[id].buff_check[2] = 0;
+                    sss = 0;
+                }
+                if (m1.rbutton) {
+                    return;
+                }
+         
+            }
+            }
+            hcv -= hd;
+            while (1) {
             if (ar[e[id].baid].type[0] == 'r') {
                 ATK = roll("", 2) + roll(ar[e[id].baid].hit, 1)+(e[id].dex-10)/2;
             }
@@ -5415,6 +5613,22 @@ void e_attack(wofstream *wofs,arms *ar,armor *Ar,player *p,enemy *e,b_npc *b_n,b
             }
             if (p[P_id].buff_check[14] == 1||p[P_id].buff_check[20]==1) {
                 AC = 0;
+            }
+            if (hcv == 0) {
+                break;
+            }
+            if (hcv < 0) {
+                if (ATK > AC) {
+                    break;
+                }
+                hcv++;
+            }
+            if (hcv > 0) {
+                if (ATK <= AC) {
+                    break;
+                }
+                hcv--;
+            }            
             }
             IMAGE ae;
             if (e[id].baid == 0) {
@@ -5492,6 +5706,9 @@ void e_attack(wofstream *wofs,arms *ar,armor *Ar,player *p,enemy *e,b_npc *b_n,b
                 }
                 *wofs << L"(T" << b_m[b_mid].time << L")" << e[id].name << L"用"<<ar[e[id].baid].name<<L"命中"<<p[P_id].name<<L"造成"<<DMG<<L"點傷害("<<ATK<<">"<<AC<<")" << endl;
                 EndBatchDraw();
+                if (e[id].baid == 7) {
+                    p[P_id].buff_check[31]++;
+                }
                 IMAGE tri;
                 loadimage(&tri, L"./Game/picture/tri.png", 0, 0, false);
                 transparentimage(NULL, (e[id].x) * 48 - b_m[b_mid].ox, ((e[id].y - 1) * 48) - b_m[b_mid].oy-40, &tri);
@@ -8035,11 +8252,44 @@ void event(flag *f,b_flag *b_f,player *p,npc *n,m_flag *m_f,Map *m,BOX *Box,Exit
          }
      }
      if (f[16].check == 0) {
-         if (m_id == 8&&p[0].x==2&&p[0].y==0) {
+         if (m_id == 8 && p[0].x <= 2 && p[0].y == 0) {
+             string filename;
+             filename = "./Game/story/event" + to_string(11) + string(".json");
+             readeventjson(p, n, f, m, Box, tk, m_f, it, st, filename.c_str(), m_id, b_id);
+             f[16].check = 1;
+         }   
+     }
+     if (f[17].check == 0) {
+         if (m_id == 8 && p[0].x <= 2 && p[0].y == 0) {
+          IMAGE block;
+         ExMessage em;
+         loadimage(&block,L"./Game/picture/lose_chose.png", 0, 0, false);
+         RECT rect={500+5,350+5,505+240,355+60};
+         putimage(500, 350, &block);
+         settextstyle(18, 0, _T("Taipei Sans TC Beta"));
+         drawtext(L"前方有危險的氣息，是否繼續前進", &rect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+         FlushBatchDraw();
+         while (1) {
+             em = getmessage(EM_MOUSE);
+             if (em.lbutton) {
+             if (em.x>500+21&&em.x<500+21+72&&em.y>350+67&&em.y<350+67+25) {
+                 f[17].check= 1;
+                 f[18].check = 1;
+                 break;
+             }
+             else if (em.x >500+149 && em.x< 500+149+72&& em.y>350+67 && em.y <350+67+25 ) {
+                string filename = "./Game/story/event" + to_string(20) + string(".json");
+                readeventjson(p, n, f, m, Box, tk, m_f, it, st, filename.c_str(), m_id, b_id);
+                p[0].y = 1;
+                break;
+             }
+             }
+
+         }        
+         }
+     }
+     if (f[18].check == 1) {
           string filename;
-          filename = "./Game/story/event" + to_string(11) + string(".json");
-          readeventjson(p, n, f, m, Box, tk, m_f, it, st, filename.c_str(), m_id, b_id);
-         f[16].check = 1;
          p[2].name = L"女騎士";
          filename = "./Game/story/event" + to_string(12) + string(".json");
          readeventjson(p, n, f, m, Box, tk, m_f, it, st, filename.c_str(), m_id, b_id);
@@ -8060,7 +8310,7 @@ void event(flag *f,b_flag *b_f,player *p,npc *n,m_flag *m_f,Map *m,BOX *Box,Exit
          filename = "./Game/story/event" + to_string(19) + string(".json");
          readeventjson(p, n, f, m, Box, tk, m_f, it, st, filename.c_str(), m_id, b_id);       
          b_mid = 4;
-          }    
+         f[18].check = 0;          
          }
      if (m_f[1].check == 1) {
          EX[2].state = true;
@@ -14057,12 +14307,12 @@ int main() {
             DrawMenuBar(hwnd);
         }
     }
-    SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+    SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
     bc_l = GetForegroundWindow();
     HCURSOR hcur = (HCURSOR)LoadImage(NULL, _T("./Game/picture/mouse.cur"), IMAGE_CURSOR, 0, 0, LR_LOADFROMFILE);
     SetClassLongPtr(hwnd, GCLP_HCURSOR, (long)hcur);
     SetWindowText(hwnd, L"隕星傳奇");
-    int  variable = 1, id = 0, P_id = 0, m_id = 1, psize = 1, load = 0, n_id = 1, i_id = 17, ar_id = 9, Ar_id = 2, st_id = 2, f_id = 16, b_mid, ex_id = 14, b_id = 9, sk_id = 20, buff_id = 31, m_fid = 11, b_nid = 0, t_Eid = 2, sp_id = -1,tk_id=5;
+    int  variable = 1, id = 0, P_id = 0, m_id = 1, psize = 1, load = 0, n_id = 1, i_id = 17, ar_id = 9, Ar_id = 2, st_id = 2, f_id = 19, b_mid, ex_id = 14, b_id = 9, sk_id = 20, buff_id = 32, m_fid = 11, b_nid = 0, t_Eid = 2, sp_id = -1,tk_id=5;
     /*變數數量*/    
     wofstream wofs;
     player p[3];
@@ -14215,7 +14465,7 @@ int main() {
     sk[6].name = L"白之加護"; sk[6].story = L"為一名友方單位注入生命之力\n效果:消耗1AP，給予5+(WIS/2)的護盾，以及60秒的(WIS/7)層加護"; sk[6].type = "B"; sk[6].cost = 3;
     sk[7].name = L"星隕石激活"; sk[7].story = L"使星隕石系統的核心能量激活\n被動:根據星隕石種類獲得額外的屬性與能力"; sk[7].type = "S"; sk[7].cost = 3;
     sk[8].name = L"哨戒"; sk[8].story = L"效果:消耗1AP，獲得三層哨戒狀態，每當武器範圍內有敵人進入或是移動以及攻擊，進行一次攻擊判定"; sk[8].cost = 2;
-    sk[9].name = L"集火號令"; sk[9].story = L"效果:一回合可以標記一個敵方目標使對該目標的對抗判定獲得一個獎勵骰，獎勵骰的面數取決於標記者魅力/2"; sk[9].cost = 2; sk[9].type = "A";
+    sk[9].name = L"集火號令"; sk[9].story = L"效果:一回合可以標記一個敵方目標使對該目標的命中判定獲得一個獎勵骰，獎勵骰的面數取決於標記者魅力/2"; sk[9].cost = 2; sk[9].type = "A";
     sk[10].name = L"戰鎖"; sk[10].story = L"運用近戰技巧封鎖一名敵人單位的行動，使敵我雙方進入無法移動與無法閃避的狀態\n效果:直到10+(STR+DEX)/5秒後，或是雙方中有單位死亡"; sk[10].cost = 2;
     sk[11].name = L"核心護盾"; sk[11].story = L"藉由星隕石能量搭建星隕護盾，星隕石的常見運用方法\n被動:根據星隕石等級獲得LV*10的星隕護盾"; sk[11].cost = 2; sk[11].type = "S";
     sk[12].name = L"白之利刃"; sk[12].story = L"消耗1AP，為一名友軍的武器注入生命之力\n效果:攻擊時最終傷害獲得(持有者WIS-5)/2點加值，單位普攻時回復20%已損失生命，持續15+WIS秒"; sk[12].cost = 2;
@@ -14246,7 +14496,7 @@ int main() {
     bu[16].name = L"神眷護盾"; bu[16].story = L"當單位受到傷害時自動扣除相同護盾減少傷害";
     bu[17].name = L"長青石:激活"; bu[17].story = L"每30秒回復2HP，MHP+2";
     bu[18].name = L"烈風石:激活"; bu[18].story = L"DEX+1，速度+2";
-    bu[19].name = L"集火目標"; bu[19].story = L"對抗時，對方獲得一個特殊獎勵骰";
+    bu[19].name = L"集火目標"; bu[19].story = L"命中判定時，對方獲得一個特殊獎勵骰";
     bu[20].name = L"封鎖中"; bu[20].story = L"無法移動與閃避";
     bu[21].name = L"白之利刃"; bu[21].story = L"普攻時最終傷害獲得(持有者WIS-5)/2點加值，單位攻擊時回復20%已損失生命";
     bu[22].name = L"哨戒"; bu[22].story = L"當敵人進入或是在武器射程內進行移動跟行動前，先進行一次攻擊，優先使用射程較遠的武器，槍械會消耗彈藥";
@@ -14258,6 +14508,7 @@ int main() {
     bu[28].name = L"掩護射擊"; bu[28].story = L"本單位回合開始前，當我方單位在本單位武器範圍內攻擊敵方單位未擊殺時，本單位追加一次攻擊，持有槍械且裝有彈藥才能生效";
     bu[29].name = L"戰術劣勢"; bu[29].story = L"當進攻或閃躲成功時自動移除一層劣勢 進行一次重新判定 直到失敗或劣勢耗盡";
     bu[30].name = L"進攻劣勢"; bu[30].story = L"當進攻成功時自動移除一層劣勢 進行一次重新判定 直到失敗或劣勢耗盡";
+    bu[31].name = L"中毒-蜂毒"; bu[31].story = L"回合開始時進行體質鑑定，成功則移除一層而失敗將受到3點傷害";
     /*    bu[].name = L""; bu[].story = L"";*/
     sp[0].i_number[10] = 10;   sp[0].i_number[11] = 10;   sp[0].i_number[12] = 10;   sp[0].i_number[13] = 10; sp[0].i_number[16] = 3;
     sp[1].i_number[7] = 10; sp[1].i_number[8] = 10; sp[1].i_number[9] = 10; sp[1].type = "a";
