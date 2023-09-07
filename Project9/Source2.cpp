@@ -1764,9 +1764,9 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
     setbkmode(TRANSPARENT);
     settextstyle(30, 0, _T("Taipei Sans TC Beta"));
     IMAGE t_block, a1, tri, c1,mmp,p1,p2,p3,p4,ma1_0,ma1_1,ma1_2,ma2_0, ma2_1, ma2_2, ma3_0, ma3_1, ma3_2, ma4_0, ma4_1, ma4_2,ef_1,ef_2,ef_3,ef_4,Get,can_0,can_1,ene1,ene2,ene3,ene4,get;
-    RECT t={0,696,150,696+60};
+    RECT t={50,696+5,210,696+60+5};
     time_t bom=time(NULL),ts=time(NULL);
-    int ui=0, uj=0, uk=0,uK=0,ei=0,ej=0,pa=0,Ei=0,Ej=0,ep=0,EI=0,EJ=0,po=0,uI=0;
+    int ui=0, uj=0, uk=0,uK=0,ei=0,ej=0,pa=0,Ei=0,Ej=0,ep=0,EI=0,EJ=0,po=0,uI=0, numFrames;
     loadimage(&t_block, L"./Game/picture/talkblock.png", 0, 0, false);
     loadimage(&tri, L"./Game/picture/talktri.png", 0, 0, false);
     loadimage(&mmp, L"./Game/picture/Mmap.png", 0, 0, false);
@@ -1827,14 +1827,20 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
             else if (root["mType"].asInt() == 3) {
                 loadimage(&ef_1, L"./Game/picture/shot.png", 0, 0, false);
                 loadimage(&ef_2, L"./Game/picture/爆発2.png", 0, 0, false);
-                loadimage(&ef_3, L"./Game/picture/shot_1.png", 0, 0, false);
+                loadimage(&ef_3, L"./Game/picture/msg.png", 0, 0, false);
                 ui = 5;
                 wstring sPath = L"open ./Game/Sound/SE/爆発1.mp3 alias boom";
                 mciSendString(sPath.c_str(), NULL, 0, NULL);
                 wstring vos = L"setaudio boom volume to " + to_wstring(soundSize);
+                mciSendString(vos.c_str(), NULL, 0, NULL);               
+                sPath = L"open ./Game/Sound/SE/重機関銃を乱射1.mp3 alias shoot";
+                mciSendString(sPath.c_str(), NULL, 0, NULL);
+                vos = L"setaudio shoot volume to " + to_wstring(soundSize);
                 mciSendString(vos.c_str(), NULL, 0, NULL);
+                mciSendString(L"play shoot repeat", NULL, 0, NULL);
             }
             else if (root["mType"].asInt() == 4) {
+                mciSendString(L"close shoot", NULL, 0, NULL);
                 loadimage(&p1, L"./Game/picture/npc10.png", 0, 0, false);
                 loadimage(&p2, L"./Game/picture/p2.png", 0, 0, false);
                 loadimage(&p3, L"./Game/picture/npc11.png", 0, 0, false);
@@ -1946,7 +1952,6 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
                 putimage(0, 0, &cg);
             }
             if (root["talk"][k]["npc"].asInt() != -1) {
-                settextcolor(BLACK);
                 settextstyle(23, 0, _T("Taipei Sans TC Beta"));
                 LPCTSTR path = n[root["talk"][k]["npc"].asInt()].name.c_str();
                 drawtext(path, &t, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
@@ -1956,11 +1961,10 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
                     mm = L"./Game/picture/t_npc" + mm + L"_" + std::to_wstring(root["talk"][k]["face"].asInt()) + L".png";
                     LPCTSTR path = mm.c_str();
                     loadimage(&p1, path, 0, 0, false);
-                    transparentimage(NULL, 0, 746, &p1, 0xFF55FF);
+                    transparentimage(NULL, 50, 746, &p1, 0xFF55FF);
                 }
             }
             else {
-                settextcolor(BLACK);
                 settextstyle(23, 0, _T("Taipei Sans TC Beta"));
                 LPCTSTR path = p[root["talk"][k]["player"].asInt()].name.c_str();
                 drawtext(path, &t, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
@@ -1969,7 +1973,7 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
                 mm = L"./Game/picture/player" + mm + L"_" + std::to_wstring(root["talk"][k]["face"].asInt()) + L".png";
                 path = mm.c_str();
                 loadimage(&p1, path, 0, 0, false);
-                transparentimage(NULL, 0, 746, &p1, 0xFF55FF);
+                transparentimage(NULL, 50, 746, &p1, 0xFF55FF);
             }
             settextcolor(WHITE);
             settextstyle(30, 0, _T("Taipei Sans TC Beta"));
@@ -2186,7 +2190,9 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
                     }
                 }
             }
-            else if ( root["mType"].asInt() == 3 && F % 40 == 0) {
+            else if ( root["mType"].asInt() == 3 && F % 40 == 0) {    
+                 ui--;     
+                 Ei++;
                 putimage(0,0,&mmp);
                 transparentimageA(NULL, 300, 100-10, &ef_1, ui * 300, uj * 120, 300, 120);
                 transparentimageA(NULL, 0, 150, &ef_1, ui * 300, uj * 120, 300, 120);
@@ -2194,8 +2200,9 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
                 transparentimageA(NULL, 96 + 30+48+10, 150 + 96+48+10, &ef_1, ui * 300, uj * 120, 300, 120);
                 transparentimageA(NULL, 96 + 30, 150 + 96+96+20, &ef_1, ui * 300, uj * 120, 300, 120);
                 transparentimageA(NULL, 80, 150 + 96 + 48 + 210, &ef_1, ui * 300, uj * 120, 300, 120);
-                transparentimageA(NULL, 80+80, 150 + 96 + 48 + 210+80, &ef_1, ui * 300, uj * 120, 300, 120);                
-                ui--;                
+                transparentimageA(NULL, 80+80, 150 + 96 + 48 + 210+80, &ef_1, ui * 300, uj * 120, 300, 120);
+                transparentimageA(NULL, 8*48, 6*48, &ef_3, Ei * 120, Ej * 320, 120, 320);
+                transparentimageA(NULL, 9 * 48, 0 * 48, &ef_3, Ei * 120, Ej * 320, 120, 320);
                 if (time(NULL)-bom>2){                
                     if (ei == 0 && ej == 0) {
                     wstring vos = L"play boom from 0";
@@ -2219,6 +2226,14 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
                 if (uj == 3) {
                     uj = 0;
                 }
+                if (Ei == 6) {
+                    Ei = 0;
+                    Ej++;
+                }
+                if (Ej == 5) {
+                    Ej = 0;
+                }
+                
             }
             else if (root["mType"].asInt() == 4 && F % 40 == 0) {
                 if (k < 5) {
@@ -2679,7 +2694,7 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
                 else {
                     tt += s[w];
                     LPCTSTR path = tt.c_str();
-                    outtextxy(30 * W + 150, 696 + K * 50 + 5, path);
+                    outtextxy(30 * W + 250, 716 + K * 50 + 5, path);
                     W++;
                 }
                 w++;
@@ -2799,7 +2814,7 @@ void readmapeventjson(player* p, npc* n,m_flag *m_f,arms *ar,item *it,Map *m,t_e
     setbkmode(TRANSPARENT);
     settextstyle(30, 0, _T("Taipei Sans TC Beta"));
     IMAGE t_block, a1, tri, c1;
-    RECT t = { 0,696,150,696 + 60 };
+    RECT t = { 50,696 + 5,210,696 + 60 + 5 };
     bool bo=true;
     loadimage(&t_block, L"./Game/picture/talkblock.png", 0, 0, false);
     loadimage(&tri, L"./Game/picture/talktri.png", 0, 0, false);
@@ -2817,7 +2832,6 @@ void readmapeventjson(player* p, npc* n,m_flag *m_f,arms *ar,item *it,Map *m,t_e
             BeginBatchDraw();
             putimage(0, 696, &t_block);
             if (root["talk"][k]["npc"].asInt() != -1) {
-                settextcolor(BLACK);
                 settextstyle(23, 0, _T("Taipei Sans TC Beta"));
                 LPCTSTR path = n[root["talk"][k]["npc"].asInt()].name.c_str();
                 drawtext(path, &t, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
@@ -2827,11 +2841,10 @@ void readmapeventjson(player* p, npc* n,m_flag *m_f,arms *ar,item *it,Map *m,t_e
                     mm = L"./Game/picture/t_npc" + mm + L"_" + std::to_wstring(root["talk"][k]["face"].asInt()) + L".png";
                     LPCTSTR path = mm.c_str();
                     loadimage(&p1, path, 0, 0, false);
-                    transparentimage(NULL, 0, 746, &p1, 0xFF55FF);
+                  transparentimage(NULL, 50, 746, &p1, 0xFF55FF);
                 }
             }
             else {
-                settextcolor(BLACK);
                 settextstyle(23, 0, _T("Taipei Sans TC Beta"));
                 LPCTSTR path = p[root["talk"][k]["player"].asInt()].name.c_str();
                 drawtext(path, &t, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
@@ -2840,7 +2853,7 @@ void readmapeventjson(player* p, npc* n,m_flag *m_f,arms *ar,item *it,Map *m,t_e
                 mm = L"./Game/picture/player" + mm + L"_" + std::to_wstring(root["talk"][k]["face"].asInt()) + L".png";
                 path = mm.c_str();
                 loadimage(&p1, path, 0, 0, false);
-                transparentimage(NULL, 0, 746, &p1, 0xFF55FF);
+                transparentimage(NULL, 50, 746, &p1, 0xFF55FF);
             }
             EndBatchDraw();
             wstring s = UTF8ToUnicode(root["talk"][k]["sentence"].asString());
@@ -2856,7 +2869,7 @@ void readmapeventjson(player* p, npc* n,m_flag *m_f,arms *ar,item *it,Map *m,t_e
                 else {
                     tt += s[w];
                     LPCTSTR path = tt.c_str();
-                    outtextxy(30 * W + 150, 696 + K * 50 + 5, path);
+                    outtextxy(30 * W + 250, 716 + K * 50 + 5, path);
                     W++;
                     Sleep(30);
                 }
@@ -2901,7 +2914,7 @@ void readmapeventjson(player* p, npc* n,m_flag *m_f,arms *ar,item *it,Map *m,t_e
                     else {
                         tt += s[w];
                         LPCTSTR path = tt.c_str();
-                        outtextxy(30 * W+10, 696 + K * 50 + 5, path);
+                        outtextxy(30 * W + 250, 716 + K * 50 + 5, path);
                         W++;
                         Sleep(50);
                     }
@@ -3970,6 +3983,12 @@ void p_attack(wofstream* wofs, player *p,enemy *e,enemy_type *e_t,b_npc *b_n,arm
                 BeginBatchDraw();
                 int hx, hy,ha,hc,hv=0,hd,hcv=0,hrc,absa,wheel=0;
                 hv = p[P_id].buff_check[1] + p[P_id].buff_check[2];
+                HWND hwnd = GetForegroundWindow();
+                RECT reCt;
+                GetWindowRect(hwnd, &reCt);
+                int left = reCt.left;
+                int top = reCt.top;
+                SetCursorPos(p[P_id].x * 48 - b_m[b_mid].ox + 24 + left, p[P_id].y * 48 - b_m[b_mid].oy + 48 + top);
                 while (sss != 0)
                 {
                     // 获取一条鼠标消息
@@ -5033,8 +5052,7 @@ void p_walk(wofstream *wofs,player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar, t
                              transparentimage(NULL, 48 * i - b_m[b_mid].ox, 48 * j - b_m[b_mid].oy, &mb);
                     }
                 }
-            }
-       
+            }       
             IMAGE p1;
             wstring mm;
             LPCTSTR path;
@@ -5047,22 +5065,26 @@ void p_walk(wofstream *wofs,player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar, t
             p_put(p, b_m, psize, b_mid);
             ui(p, e, b_m, P_id, esize, psize, b_mid,bu_id);
             EndBatchDraw();
+            HWND hwnd = GetForegroundWindow();
+            RECT rect;
+            GetWindowRect(hwnd, &rect);
+            int left = rect.left;
+            int top = rect.top; 
+            SetCursorPos(p[P_id].x*48-b_m[b_mid].ox+24+left, p[P_id].y*48 - b_m[b_mid].oy+48+top);
             int sss = 1;
             while (sss != 0)
             {
                 ExMessage m;
-                m = getmessage(EM_MOUSE);
-                switch (m.message) {
 
-                case WM_LBUTTONDOWN:
+                m = getmessage(EM_MOUSE);
+                if (m.lbutton) {
                     for (j = 0; j < 20; j++) {
                         for (i = 0; i < 15; i++) {
                             if (m.x <= j * 48 + 48 && m.x >= j * 48 && m.y <= i * 48 + 48 && m.y >= i * 48 && dr[j + b_m[b_mid].ox / 48][i + b_m[b_mid].oy / 48] == 1&&m.x<960&&m.y<720) {
                                     int box[3000];
                                     bfs(b_m,te,p[P_id].x, p[P_id].y, j + b_m[b_mid].ox / 48, i + b_m[b_mid].oy / 48, box, p[P_id].move, P_id,b_mid,p[P_id].move);
                                     int k, w = 0;
-                                    int xbox = p[P_id].x, ybox = p[P_id].y;
-                                    
+                                    int xbox = p[P_id].x, ybox = p[P_id].y;                                    
                                     while (1) {
                                         if (box[w] == 2) {
                                             if (p[P_id].move >= te[xbox][ybox + 1].mA) {
@@ -5109,9 +5131,7 @@ void p_walk(wofstream *wofs,player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar, t
                                             }
                                         }
                                         if (box[w] == 2) {
-
                                             for (k = 0; k <= 48; k += 16) {
-
                                                 BeginBatchDraw();
                                                 maps(p, P_id, e, b_m, ar, te, b_mid);
                                                 e_put(e, b_m, esize, b_mid);
@@ -5247,9 +5267,9 @@ void p_walk(wofstream *wofs,player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar, t
                             }
                         }
                     }
-                case WM_RBUTTONUP:
-                    sss = 0;	// 按鼠标右键退出程序
-
+                }
+                if (m.rbutton) {
+                    sss = 0;
                 }
             }
         }
@@ -8254,7 +8274,7 @@ void event(flag *f,b_flag *b_f,player *p,npc *n,m_flag *m_f,Map *m,BOX *Box,Exit
      if (f[16].check == 0) {
          if (m_id == 8 && p[0].x <= 2 && p[0].y == 0) {
              string filename;
-             filename = "./Game/story/event" + to_string(11) + string(".json");
+             filename = "./Game/story/event" + to_string(19) + string(".json");
              readeventjson(p, n, f, m, Box, tk, m_f, it, st, filename.c_str(), m_id, b_id);
              f[16].check = 1;
          }   
@@ -14308,10 +14328,10 @@ int main() {
         }
     }
     SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
-    bc_l = GetForegroundWindow();
     HCURSOR hcur = (HCURSOR)LoadImage(NULL, _T("./Game/picture/mouse.cur"), IMAGE_CURSOR, 0, 0, LR_LOADFROMFILE);
     SetClassLongPtr(hwnd, GCLP_HCURSOR, (long)hcur);
     SetWindowText(hwnd, L"隕星傳奇");
+    bc_l = FindWindow(NULL,L"隕星傳奇");
     int  variable = 1, id = 0, P_id = 0, m_id = 1, psize = 1, load = 0, n_id = 1, i_id = 17, ar_id = 9, Ar_id = 2, st_id = 2, f_id = 19, b_mid, ex_id = 14, b_id = 9, sk_id = 20, buff_id = 32, m_fid = 11, b_nid = 0, t_Eid = 2, sp_id = -1,tk_id=5;
     /*變數數量*/    
     wofstream wofs;
