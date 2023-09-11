@@ -1757,8 +1757,9 @@ void readmapjson(Map* m,int m_id, const char* filename) {
     in.close();
 }
 void m_map(player* p, Map* m, BOX* Box, int m_id, int b_id, npc* n, string g);
-void show(Map* m, player* p, enemy* e, e_npc* e_n, BOX* Box, int& m_id, int b_id, npc* n, string g);
+void show(Map* m, player* p, enemy* e, e_npc* e_n, BOX* Box, int& m_id, int b_id, npc* n,flag *f, string g);
 void n_put(npc *n,Map *M,player *p,int m_id);
+void  m_set(Map* m, npc* n, player* p,e_npc *e_n ,BOX *Box,int m_id,int b_id);
 void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f,item *it,stone *st,const char* filename,int &m_id,int b_id) {
     settextcolor(WHITE);
     setbkmode(TRANSPARENT);
@@ -1828,7 +1829,6 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
                 loadimage(&ef_1, L"./Game/picture/shot.png", 0, 0, false);
                 loadimage(&ef_2, L"./Game/picture/爆発2.png", 0, 0, false);
                 loadimage(&ef_3, L"./Game/picture/msg.png", 0, 0, false);
-                ui = 5;
                 wstring sPath = L"open ./Game/Sound/SE/爆発1.mp3 alias boom";
                 mciSendString(sPath.c_str(), NULL, 0, NULL);
                 wstring vos = L"setaudio boom volume to " + to_wstring(soundSize);
@@ -1919,6 +1919,32 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
                 vos = L"setaudio zun volume to " + to_wstring(soundSize);
                 mciSendString(vos.c_str(), NULL, 0, NULL);
             }
+            else if (root["mType"].asInt() == 9) {
+            EJ = 4;
+            loadimage(&p1, L"./Game/picture/p0.png", 0, 0, false);
+            loadimage(&p2, L"./Game/picture/p1.png", 0, 0, false);
+            loadimage(&p3, L"./Game/picture/alice_sleep.png", 0, 0, false);
+            loadimage(&p4, L"./Game/picture/eba.png", 0, 0, false);
+            loadimage(&ene1, L"./Game/picture/enemy0.png", 0, 0, false);
+            loadimage(&ene2, L"./Game/picture/enemy3.png", 0, 0, false);
+            loadimage(&ene4, L"./Game/picture/enemy4.png", 0, 0, false);
+            loadimage(&ene3, L"./Game/picture/死狼.png", 0, 0, false);
+            loadimage(&ef_1, L"./Game/picture/shot.png", 0, 0, false);
+            loadimage(&ef_2, L"./Game/picture/shot_2.png", 0, 0, false);
+            wstring sPath = L"open ./Game/Sound/SE/拳銃2.mp3 alias shot";
+            mciSendString(sPath.c_str(), NULL, 0, NULL);
+            wstring vos = L"setaudio shot volume to " + to_wstring(soundSize);
+            mciSendString(vos.c_str(), NULL, 0, NULL);
+            sPath = L"open ./Game/Sound/SE/eSe0.mp3 alias woo";
+            mciSendString(sPath.c_str(), NULL, 0, NULL);
+             vos = L"setaudio woo volume to " + to_wstring(soundSize);
+            mciSendString(vos.c_str(), NULL, 0, NULL);
+            }
+            else if (root["mType"].asInt() == 10) {
+            loadimage(&p1, L"./Game/picture/p0.png", 0, 0, false);
+            loadimage(&p2, L"./Game/picture/p1.png", 0, 0, false);
+            loadimage(&p3, L"./Game/picture/p3.png", 0, 0, false);
+            }
         }
         if (root.isMember("map")) {
             m_id = root["map"].asInt();
@@ -1989,7 +2015,7 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
                 transparentimage(NULL, 14 * 48, 11 * 48 - 16, &p2, 0xFF55FF, 128 * (ubs % 2) + 16, 64, 48, 64);
                 ubs++;
             }
-            else if (root["mType"].asInt() == 2 && F % 40 == 0) {      
+            else if (root["mType"].asInt() == 2 && F % 30 == 0) {      
                 putimage(0, 0, 1296, 696, &mmp, ui * 1296 + 48 * uk, uj * 960 + 48 * uK);
                 if (k == 4&&ep==0) {
                     pa = 1;
@@ -2190,8 +2216,7 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
                     }
                 }
             }
-            else if ( root["mType"].asInt() == 3 && F % 40 == 0) {    
-                 ui--;     
+            else if ( root["mType"].asInt() == 3 && F % 30 == 0) {       
                  Ei++;
                 putimage(0,0,&mmp);
                 transparentimageA(NULL, 300, 100-10, &ef_1, ui * 300, uj * 120, 300, 120);
@@ -2219,12 +2244,14 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
                     ej = 0; bom = time(NULL);                
 
                 }
-                }
-                if (ui == 0) {
-                    ui = 5; uj++;
-                }
+                }     
+                uj++;
                 if (uj == 3) {
+                    ui--;
                     uj = 0;
+                }  
+                if (ui == 0) {
+                    ui = 5;;
                 }
                 if (Ei == 6) {
                     Ei = 0;
@@ -2235,7 +2262,7 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
                 }
                 
             }
-            else if (root["mType"].asInt() == 4 && F % 40 == 0) {
+            else if (root["mType"].asInt() == 4 && F % 30 == 0) {
                 if (k < 5) {
                 if (time(NULL) - bom > 2) {
                         wstring vos = L"play boom from 0";
@@ -2337,7 +2364,7 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
                     }
                 }            
 }
-            else if (root["mType"].asInt() == 5 && F % 40 == 0) {
+            else if (root["mType"].asInt() == 5 && F % 30 == 0) {
             putimage(0, 0, &mmp);
             transparentimage(NULL, 21 * 48, 9 * 48 - 16, &p3, 0xFF55FF, 64 + 8, 64, 48, 64);
             transparentimage(NULL, 21 * 48, 6 * 48 - 16, &p3, 0xFF55FF, 64 + 8, 64, 48, 64);
@@ -2429,7 +2456,7 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
                 }
             }
             }
-            else if (root["mType"].asInt() == 6 && F % 40 == 0) {
+            else if (root["mType"].asInt() == 6 && F % 30 == 0) {
             putimage(0, 0, &mmp);
             transparentimage(NULL, 3 * 48, 8 * 48 - 16, &p1, 0xFF55FF, 64 + 8, 128, 48, 64);
             if ((k > 1 || ei ==-1)&&k!=3&&k!=6&&k<9) {
@@ -2522,7 +2549,7 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
                 transparentimage(NULL, 48 * 11, 48 * 9, &can_0, 0xFF55FF);
             }
             }
-            else if (root["mType"].asInt() == 7 && F % 40 == 0) {
+            else if (root["mType"].asInt() == 7 && F % 30 == 0) {
             putimage(0, 0, &mmp);
             if (k == 1 && w >= s.size() - 1 && ubs != -1 && pa == 0) {
                 pa = 1;
@@ -2540,7 +2567,7 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
                 }
             }
             }
-            else if (root["mType"].asInt() == 8 && F % 40 == 0) {
+            else if (root["mType"].asInt() == 8 && F % 30 == 0) {
             putimage(0, 0, &mmp);
             if (k == 0 && ubs == -1) {
                 transparentimage(NULL, 13.5 * 48, 5 * 48 - 16 , &p3, 0xFF55FF, 64  + 8, 0, 48, 64);
@@ -2677,9 +2704,115 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
                 }
             }
             }
+             else if (root["mType"].asInt() == 9 && F % 30 == 0) {
+             putimage(0, 0, &mmp);
+             transparentimage(NULL, 17 * 48, 5 * 48 - 16, &ene3);
+             transparentimage(NULL, 12 * 48, 8 * 48 - 16, &ene3);
+             if (k < 8) {
+                 transparentimage(NULL,48*13+16,48*5,&p3);
+                 if (k > 2) {
+                     transparentimage(NULL, 13 * 48 + 16, 6 * 48 - 16, &p1, 0xFF55FF, 64 + 8, 192, 48, 64);
+                 }
+             }             
+             if (k > 7) {
+                 transparentimage(NULL, 13 * 48+16, 5 * 48 - 16, &p4);
+             }
+             if (k > 0 ) {
+                 transparentimage(NULL, 9 * 48, 5 * 48 - 16, &ene3);
+                 transparentimage(NULL, 15 * 48, 8 * 48 - 16, &ene3);             
+                 transparentimage(NULL, 15 * 48, 5 * 48 - 16, &p2, 0xFF55FF, 64 + 8, 0, 48, 64);                 
+             }
+             if (k == 1) {
+                 transparentimage(NULL, 12 * 48, 5 * 48 - 16, &p1, 0xFF55FF, 64 + 8, 0, 48, 64);
+             }
+             if (k == 2 && ubs == 0) {
+                 transparentimage(NULL, 12 * 48, 5 * 48 - 16 , &p1, 0xFF55FF, 64  + 8, 0, 48, 64);
+             }
+             if (k == 2 && uk == 4) {
+                 transparentimage(NULL, 12 * 48 + uk * 16, 6 * 48 - 16, &p1, 0xFF55FF, 64+ 8, 192, 48, 64);
+             }
+             if (k == 0 && ei == 5 && EJ == -1) {
+                 transparentimage(NULL, 12 * 48, 5 * 48 - 16, &p1, 0xFF55FF, 64 + 8, 0, 48, 64);
+                 transparentimage(NULL, 15 * 48, 5 * 48 - 16, &p2, 0xFF55FF, 64 + 8, 0, 48, 64);
+                 transparentimage(NULL, 9 * 48, 5 * 48 - 16, &ene3);
+                 transparentimage(NULL, 15 * 48, 8 * 48 - 16, &ene3);
+             }
+             if (k == 1 && ubs == 0) {
+                 pa = 1;
+             }
+             if (k == 2 && s[w] == '^'&&ubs==0) {
+                 pa = 1;
+                 ubs = 0;
+             }
+             if (k == 0) {
+                 transparentimage(NULL, 13 * 48+15, 8 * 48 , &ene2, 0xFF55FF, 64, 192, 48, 64);
+                 transparentimage(NULL, 12 * 48, 10 * 48 - 16, &ene4, 0xFF55FF, 64, 192, 48, 64);
+                 transparentimage(NULL, 15 * 48, 10 * 48 - 16, &ene4, 0xFF55FF, 64, 192, 48, 64);
+             }
+             if (k == 0 && pa == 0 && w == 0) {
+                 pa = 1;
+             }
+             if (k == 0 && pa == 1) {
+                 if (EJ == 4 && EI== 0) {
+                     mciSendString(L"play shot from 0", NULL, 0, NULL);
+                 }
+                 transparentimage(NULL, 12 * 48, 5 * 48 - 16, &p1, 0xFF55FF, 64 + 8, 64, 48, 64);
+                 transparentimage(NULL, 15 * 48, 5 * 48 - 16, &p2, 0xFF55FF, 64 + 8, 0, 48, 64);
+                 transparentimage(NULL, 9 * 48, 5 * 48 - 16, &ene1, 0xFF55FF, 64  , 128, 48, 64);
+                 transparentimage(NULL, 15 * 48, 8 * 48 - 16, &ene1, 0xFF55FF, 64 + 8, 192, 48, 64);
+                 transparentimageA(NULL, 8 * 48 - 35, 4 * 48+10 , &ef_1, ei * 320, ej * 120, 320, 120);
+                 transparentimageA(NULL, 15 * 48 - 35, 6 * 48 - 10, &ef_2, EI * 120, EJ * 300, 120, 300);
+                 if (EJ >=0) {
+                     EI++;
+                 }
+                 if (EI == 3) {
+                     EI = 0;
+                     EJ--;
+                 }
+                 if (ei < 5) {
+                     ej++;
+                 }
+                 if (ej == 3) {
+                     ej = 0;
+                     ei++;
+                 }
+                 if (ei == 5 && EJ ==- 1) {
+                     mciSendString(L"play woo from 1", NULL, 0, NULL);
+                     pa = 0;
+                 }
+             }
+             if (k == 1 && pa == 1) {
+                 if (8 * 48 + ubs * 16 <= 13 * 48) {
+                 transparentimage(NULL, 13 * 48 + 15, 8 * 48+ubs*16, &ene2, 0xFF55FF, 48*(ubs%3)+16, 0, 48, 64);
+                 }
+                 else {
+                     pa = 0;
+                 }
+                 if (10 * 48 - 16 + ubs * 16 <= 13 * 48) {
+                 transparentimage(NULL, 12 * 48, 10 * 48 - 16 + ubs * 16, &ene4, 0xFF55FF, 48 * (ubs % 3)+16, 0, 48, 64);
+                 transparentimage(NULL, 15 * 48, 10 * 48 - 16 + ubs * 16, &ene4, 0xFF55FF, 48 * (ubs % 3)+16, 0, 48, 64);
+                 }
+                 ubs++;
+             }
+             if (k == 2 && pa == 1) {
+                 if (ubs <= 3) {
+                 transparentimage(NULL, 12 * 48, 5 * 48 - 16+ubs*16, &p1, 0xFF55FF, 64*(ubs%3) + 8, 0, 48, 64);
+                 ubs++;
+                 }
+                 if (ubs == 4) {
+                     transparentimage(NULL, 12 * 48+ uk * 16, 6 * 48 - 16 , &p1, 0xFF55FF, 64 * (uk % 3) + 8, 128, 48, 64);
+                     uk++;
+                     if (uk == 4) {
+                         pa = 0;
+                     }
+                 }
+             }
+             }
+              else if (root["mType"].asInt() == 10 && F % 30 == 0) {
+              putimage(0, 0, 1296, 696, &mmp, 48, 48*16);
+              }
             }
-
-            if ((w < s.size() && w < Bu) && F % 20==0 && pa == 0) {
+            if ((w < s.size() && w < Bu) && F % 30==0 && pa == 0) {
                 tt = L"";
                 if (s[w] == '^') {
                     K++;
@@ -5001,7 +5134,7 @@ void p_walk(wofstream *wofs,player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar, t
     wstring vos;
     if (chose == "w" && p[P_id].move > 0) {
             b_camera(b_m, p[P_id].x,p[P_id].y, b_mid);
-            int rx, ry, m, X, Y,dr[100][100],cost[100][100];
+            int rx, ry, m, X, Y,dr[100][100],cost[100][100],box[3000]={0}, box_id = 0, p_move;
             BeginBatchDraw();
             maps(p, P_id, e, b_m, ar, te, b_mid);
             IMAGE mb;
@@ -5071,21 +5204,21 @@ void p_walk(wofstream *wofs,player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar, t
             int left = rect.left;
             int top = rect.top; 
             SetCursorPos(p[P_id].x*48-b_m[b_mid].ox+24+left, p[P_id].y*48 - b_m[b_mid].oy+48+top);
-            int sss = 1;
+            int sss = 1,mx=p[P_id].x*48,my= p[P_id].y * 48;
+            p_move = p[P_id].move;
+            BeginBatchDraw();
+            setfillcolor(RGB(0, 156, 255));
             while (sss != 0)
             {
                 ExMessage m;
-
                 m = getmessage(EM_MOUSE);
                 if (m.lbutton) {
                     for (j = 0; j < 20; j++) {
                         for (i = 0; i < 15; i++) {
                             if (m.x <= j * 48 + 48 && m.x >= j * 48 && m.y <= i * 48 + 48 && m.y >= i * 48 && dr[j + b_m[b_mid].ox / 48][i + b_m[b_mid].oy / 48] == 1&&m.x<960&&m.y<720) {
-                                    int box[3000];
-                                    bfs(b_m,te,p[P_id].x, p[P_id].y, j + b_m[b_mid].ox / 48, i + b_m[b_mid].oy / 48, box, p[P_id].move, P_id,b_mid,p[P_id].move);
                                     int k, w = 0;
-                                    int xbox = p[P_id].x, ybox = p[P_id].y;                                    
-                                    while (1) {
+                                    int xbox = p[P_id].x, ybox = p[P_id].y;             
+                                    for (w = 0; w < box_id; w++) {
                                         if (box[w] == 2) {
                                             if (p[P_id].move >= te[xbox][ybox + 1].mA) {
                                                 p[P_id].move = p[P_id].move - te[xbox][ybox + 1].mA;
@@ -5203,9 +5336,6 @@ void p_walk(wofstream *wofs,player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar, t
 
                                             ybox--;
                                         }
-                                        else if (box[w] == 0) {
-                                            break;
-                                        }
                                         if (te[xbox][ybox].trap == 2) {
                                             p[P_id].move = 0;
                                             p[P_id].buff_check[27]++;
@@ -5226,7 +5356,6 @@ void p_walk(wofstream *wofs,player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar, t
                                                 p[P_id].buff_Size++;
                                             }
                                         }
-                                        w++;
                                     }
                                     int x = p[P_id].x, y = p[P_id].y;
                                     if (x + 1 < b_m[b_mid].x && te[x + 1][y].type == 0) {
@@ -5270,6 +5399,442 @@ void p_walk(wofstream *wofs,player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar, t
                 }
                 if (m.rbutton) {
                     sss = 0;
+                }
+                if (m.message== WM_MOUSEMOVE) {
+                    if (te[m.x / 48 + b_m[b_mid].ox / 48][m.y / 48 + b_m[b_mid].oy / 48].type != 1 && te[m.x / 48 + b_m[b_mid].ox / 48][m.y / 48 + b_m[b_mid].oy / 48].player != 1 && te[m.x / 48 + b_m[b_mid].ox / 48][m.y / 48 + b_m[b_mid].oy / 48].npc != 1 && te[m.x / 48 + b_m[b_mid].ox / 48][m.y / 48 + b_m[b_mid].oy / 48].enemy != 1&&m.x<960&&m.y<720) {
+                    if (m.x < mx - b_m[b_mid].ox) {
+                        if (box[box_id - 1] ==6&&m.x/48+b_m[b_mid].ox /48== mx / 48 - 1 && m.y / 48 + b_m[b_mid].oy / 48 == my / 48) {
+                            p_move += te[m.x / 48+b_m[b_mid].ox/48][m.y / 48 + b_m[b_mid].oy / 48].mA;
+                            box_id--;
+                            mx = m.x / 48 * 48+b_m[b_mid].ox;
+                        }
+                        else if(p_move>=te[m.x/48+b_m[b_mid].ox/48][m.y/48 + b_m[b_mid].oy / 48].mA && m.x / 48 + b_m[b_mid].ox / 48 == mx / 48 - 1 && m.y / 48 + b_m[b_mid].oy / 48 == my / 48) {
+                            box[box_id] = 4;
+                            box_id++;
+                            mx = m.x / 48 * 48 + b_m[b_mid].ox;
+                            p_move -= te[mx / 48][my / 48].mA;
+                        }
+                        q.push({ mx / 48,my / 48 });
+                        for (i = 0; i < b_m[b_mid].x; i++) {
+                            for (j = 0; j < b_m[b_mid].y; j++) {
+                                dr[i][j] = 0;
+                                cost[i][j] = 10000;
+                            }
+                        }
+                        X = q.front().first;
+                        Y = q.front().second;
+                        cost[X][Y] = 0;
+                        while (1) {
+                            if (q.empty()) {
+                                break;
+                            }
+                            X = q.front().first;
+                            Y = q.front().second;
+                            if (cost[X + 1][Y] > cost[X][Y] + te[X + 1][Y].mA && te[X + 1][Y].type != 1 && X + 1 < b_m[b_mid].x) {
+                                cost[X + 1][Y] = cost[X][Y] + te[X + 1][Y].mA;
+                                q.push({ X + 1,Y });
+                            }
+                            if (cost[X - 1][Y] > cost[X][Y] + te[X - 1][Y].mA && te[X - 1][Y].type != 1 && X - 1 >= 0) {
+                                cost[X - 1][Y] = cost[X][Y] + te[X - 1][Y].mA;
+                                q.push({ X - 1,Y });
+                            }
+                            if (cost[X][Y + 1] > cost[X][Y] + te[X][Y + 1].mA && te[X][Y + 1].type != 1 && Y + 1 < b_m[b_mid].y) {
+                                cost[X][Y + 1] = cost[X][Y] + te[X][Y + 1].mA;
+                                q.push({ X ,Y + 1 });
+                            }
+                            if (cost[X][Y - 1] > cost[X][Y] + te[X][Y - 1].mA && te[X][Y - 1].type != 1 && Y - 1 >= 0) {
+                                cost[X][Y - 1] = cost[X][Y] + te[X][Y - 1].mA;
+                                q.push({ X ,Y - 1 });
+                            }
+                            if (dr[X][Y] == 0 && te[X][Y].enemy == 0 && te[X][Y].npc == 0 && te[X][Y].player == 0 && cost[X][Y] <= p_move) {
+                                dr[X][Y] = 1;
+                            }
+                            q.pop();
+                        }
+                        maps(p, P_id, e, b_m, ar, te, b_mid);
+                        for (i = 0; i < b_m[b_mid].x; i++) {
+                            for (j = 0; j < b_m[b_mid].y; j++) {
+                                if (dr[i][j] == 1) {
+                                    transparentimage(NULL, 48 * i - b_m[b_mid].ox, 48 * j - b_m[b_mid].oy, &mb);
+                                }
+                            }
+                        }
+                            int px=p[P_id].x*48, py=p[P_id].y*48;
+                        for (i = 0; i < box_id; i++) {
+                            if (box[i] == 2) {
+                                 py+=48;
+                                 POINT pts[] = { {px-b_m[b_mid].ox+20, py-b_m[b_mid].oy},{px  - b_m[b_mid].ox + 26, py  - b_m[b_mid].oy}, {px - b_m[b_mid].ox + 26, py  - b_m[b_mid].oy+30}, {px - b_m[b_mid].ox + 20, py  - b_m[b_mid].oy + 30} };
+                                 solidpolygon(pts, 4);    
+                                 POINT pts3[] = { {px - b_m[b_mid].ox + 14, py - b_m[b_mid].oy + 30}, {px - b_m[b_mid].ox + 32,py - b_m[b_mid].oy + 30}, {px - b_m[b_mid].ox + 23, py - b_m[b_mid].oy + 45} };
+                                 solidpolygon(pts3, 3);
+                            }
+                            else if (box[i] == 4) {
+                                px-=48;
+                                POINT pts[] = { {px - b_m[b_mid].ox+18 , py - b_m[b_mid].oy + 20},{px - b_m[b_mid].ox +18, py - b_m[b_mid].oy + 26}, {px - b_m[b_mid].ox + 48, py - b_m[b_mid].oy + 26}, {px - b_m[b_mid].ox + 48, py - b_m[b_mid].oy + 20} };
+                                solidpolygon(pts, 4);
+                                POINT pts3[] = { {px - b_m[b_mid].ox + 18, py - b_m[b_mid].oy + 14}, {px - b_m[b_mid].ox + 18,py - b_m[b_mid].oy + 32}, {px - b_m[b_mid].ox + 3, py - b_m[b_mid].oy + 23} };
+                                solidpolygon(pts3, 3);
+                            }
+                            else if (box[i] == 6) {
+                                px+=48;
+                                POINT pts[] = { {px - b_m[b_mid].ox , py - b_m[b_mid].oy + 20},{px - b_m[b_mid].ox , py - b_m[b_mid].oy + 26}, {px - b_m[b_mid].ox + 30, py - b_m[b_mid].oy + 26}, {px - b_m[b_mid].ox + 30, py - b_m[b_mid].oy + 20} };
+                                solidpolygon(pts, 4);
+                                POINT pts3[] = { {px - b_m[b_mid].ox + 30, py - b_m[b_mid].oy + 14}, {px - b_m[b_mid].ox + 30,py - b_m[b_mid].oy + 32}, {px - b_m[b_mid].ox + 45, py - b_m[b_mid].oy + 23} };
+                                solidpolygon(pts3, 3);
+                            }
+                            else if (box[i] == 8) {
+                                py-=48;
+                                POINT pts[] = { {px - b_m[b_mid].ox + 20, py - b_m[b_mid].oy+18},{px - b_m[b_mid].ox + 26, py - b_m[b_mid].oy+18}, {px - b_m[b_mid].ox + 26, py - b_m[b_mid].oy + 48}, {px - b_m[b_mid].ox + 20, py - b_m[b_mid].oy + 48} };
+                                solidpolygon(pts, 4);
+                                POINT pts3[] = { {px - b_m[b_mid].ox + 14, py - b_m[b_mid].oy + 18}, {px - b_m[b_mid].ox + 32,py - b_m[b_mid].oy + 18}, {px - b_m[b_mid].ox + 23, py - b_m[b_mid].oy + 3} };
+                                solidpolygon(pts3, 3);
+                            }
+                        }
+                        e_put(e, b_m, esize, b_mid);
+                        b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
+                        p_put(p, b_m, psize, b_mid);
+                        ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
+                        FlushBatchDraw();
+                    }
+                    else if (m.y < my - b_m[b_mid].oy) {
+                        if (box[box_id - 1] == 2 && m.x / 48 + b_m[b_mid].ox/48 == mx / 48&& m.y / 48 + b_m[b_mid].oy / 48 == my / 48-1) {
+                            p_move += te[m.x / 48 + b_m[b_mid].ox / 48][m.y / 48 + b_m[b_mid].oy / 48].mA;
+                            box_id--;
+                            my = m.y / 48 * 48 + b_m[b_mid].oy;
+                        }
+                        else if(p_move >= te[m.x / 48][m.y / 48].mA && m.x / 48 + b_m[b_mid].ox / 48 == mx / 48 && m.y / 48 + b_m[b_mid].oy / 48 == my / 48-1) {
+                            box[box_id] = 8;
+                            box_id++;
+                            my = m.y / 48 * 48 + b_m[b_mid].oy;
+                            p_move -= te[mx / 48][my / 48].mA;
+                        }
+                        q.push({ mx / 48,my / 48 });
+                        for (i = 0; i < b_m[b_mid].x; i++) {
+                            for (j = 0; j < b_m[b_mid].y; j++) {
+                                dr[i][j] = 0;
+                                cost[i][j] = 10000;
+                            }
+                        }
+                        X = q.front().first;
+                        Y = q.front().second;
+                        cost[X][Y] = 0;
+                        while (1) {
+                            if (q.empty()) {
+                                break;
+                            }
+                            X = q.front().first;
+                            Y = q.front().second;
+                            if (cost[X + 1][Y] > cost[X][Y] + te[X + 1][Y].mA && te[X + 1][Y].type != 1 && X + 1 < b_m[b_mid].x) {
+                                cost[X + 1][Y] = cost[X][Y] + te[X + 1][Y].mA;
+                                q.push({ X + 1,Y });
+                            }
+                            if (cost[X - 1][Y] > cost[X][Y] + te[X - 1][Y].mA && te[X - 1][Y].type != 1 && X - 1 >= 0) {
+                                cost[X - 1][Y] = cost[X][Y] + te[X - 1][Y].mA;
+                                q.push({ X - 1,Y });
+                            }
+                            if (cost[X][Y + 1] > cost[X][Y] + te[X][Y + 1].mA && te[X][Y + 1].type != 1 && Y + 1 < b_m[b_mid].y) {
+                                cost[X][Y + 1] = cost[X][Y] + te[X][Y + 1].mA;
+                                q.push({ X ,Y + 1 });
+                            }
+                            if (cost[X][Y - 1] > cost[X][Y] + te[X][Y - 1].mA && te[X][Y - 1].type != 1 && Y - 1 >= 0) {
+                                cost[X][Y - 1] = cost[X][Y] + te[X][Y - 1].mA;
+                                q.push({ X ,Y - 1 });
+                            }
+                            if (dr[X][Y] == 0 && te[X][Y].enemy == 0 && te[X][Y].npc == 0 && te[X][Y].player == 0 && cost[X][Y] <= p_move) {
+                                dr[X][Y] = 1;
+                            }
+                            q.pop();
+                        }
+                        maps(p, P_id, e, b_m, ar, te, b_mid);
+                        for (i = 0; i < b_m[b_mid].x; i++) {
+                            for (j = 0; j < b_m[b_mid].y; j++) {
+                                if (dr[i][j] == 1) {
+                                    transparentimage(NULL, 48 * i - b_m[b_mid].ox, 48 * j - b_m[b_mid].oy, &mb);
+                                }
+                            }
+                        }
+                        int px = p[P_id].x * 48, py = p[P_id].y * 48;
+                        for (i = 0; i < box_id; i++) {
+                            if (box[i] == 2) {
+                                py += 48;
+                                POINT pts[] = { {px - b_m[b_mid].ox + 20, py - b_m[b_mid].oy},{px - b_m[b_mid].ox + 26, py - b_m[b_mid].oy}, {px - b_m[b_mid].ox + 26, py - b_m[b_mid].oy + 30}, {px - b_m[b_mid].ox + 20, py - b_m[b_mid].oy + 30} };
+                                solidpolygon(pts, 4);
+                                POINT pts3[] = { {px - b_m[b_mid].ox + 14, py - b_m[b_mid].oy + 30}, {px - b_m[b_mid].ox + 32,py - b_m[b_mid].oy + 30}, {px - b_m[b_mid].ox + 23, py - b_m[b_mid].oy + 45} };
+                                solidpolygon(pts3, 3);
+                            }
+                            else if (box[i] == 4) {
+                                px -= 48;
+                                POINT pts[] = { {px - b_m[b_mid].ox + 18 , py - b_m[b_mid].oy + 20},{px - b_m[b_mid].ox + 18, py - b_m[b_mid].oy + 26}, {px - b_m[b_mid].ox + 48, py - b_m[b_mid].oy + 26}, {px - b_m[b_mid].ox + 48, py - b_m[b_mid].oy + 20} };
+                                solidpolygon(pts, 4);
+                                POINT pts3[] = { {px - b_m[b_mid].ox + 18, py - b_m[b_mid].oy + 14}, {px - b_m[b_mid].ox + 18,py - b_m[b_mid].oy + 32}, {px - b_m[b_mid].ox + 3, py - b_m[b_mid].oy + 23} };
+                                solidpolygon(pts3, 3);
+                            }
+                            else if (box[i] == 6) {
+                                px += 48;
+                                POINT pts[] = { {px - b_m[b_mid].ox , py - b_m[b_mid].oy + 20},{px - b_m[b_mid].ox , py - b_m[b_mid].oy + 26}, {px - b_m[b_mid].ox + 30, py - b_m[b_mid].oy + 26}, {px - b_m[b_mid].ox + 30, py - b_m[b_mid].oy + 20} };
+                                solidpolygon(pts, 4);
+                                POINT pts3[] = { {px - b_m[b_mid].ox + 30, py - b_m[b_mid].oy + 14}, {px - b_m[b_mid].ox + 30,py - b_m[b_mid].oy + 32}, {px - b_m[b_mid].ox + 45, py - b_m[b_mid].oy + 23} };
+                                solidpolygon(pts3, 3);
+                            }
+                            else if (box[i] == 8) {
+                                py -= 48;
+                                POINT pts[] = { {px - b_m[b_mid].ox + 20, py - b_m[b_mid].oy + 18},{px - b_m[b_mid].ox + 26, py - b_m[b_mid].oy + 18}, {px - b_m[b_mid].ox + 26, py - b_m[b_mid].oy + 48}, {px - b_m[b_mid].ox + 20, py - b_m[b_mid].oy + 48} };
+                                solidpolygon(pts, 4);
+                                POINT pts3[] = { {px - b_m[b_mid].ox + 14, py - b_m[b_mid].oy + 18}, {px - b_m[b_mid].ox + 32,py - b_m[b_mid].oy + 18}, {px - b_m[b_mid].ox + 23, py - b_m[b_mid].oy + 3} };
+                                solidpolygon(pts3, 3);
+                            }
+                        }
+                        e_put(e, b_m, esize, b_mid);
+                        b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
+                        p_put(p, b_m, psize, b_mid);
+                        ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
+                        FlushBatchDraw();
+                    }
+                    else if (m.x > mx + 48 - b_m[b_mid].ox) {
+                        if (box[box_id - 1] == 4 && m.x / 48 + b_m[b_mid].ox / 48 == mx / 48+1 && m.y / 48 + b_m[b_mid].oy / 48 == my / 48) {
+                            p_move += te[m.x / 48 + b_m[b_mid].ox / 48][m.y / 48 + b_m[b_mid].oy / 48].mA;
+                            box_id--;
+                            mx = m.x / 48 * 48 + b_m[b_mid].ox;
+                        }
+                        else if(p_move >= te[m.x / 48][m.y / 48].mA && m.x / 48 + b_m[b_mid].ox / 48 == mx / 48+1 && m.y / 48 + b_m[b_mid].oy / 48 == my / 48) {
+                            box[box_id] = 6;
+                            box_id++;
+                            mx = m.x / 48 * 48+b_m[b_mid].ox;
+                            p_move -= te[mx / 48][my / 48].mA;
+                        }
+                        q.push({ mx / 48,my / 48 });
+                        for (i = 0; i < b_m[b_mid].x; i++) {
+                            for (j = 0; j < b_m[b_mid].y; j++) {
+                                dr[i][j] = 0;
+                                cost[i][j] = 10000;
+                            }
+                        }
+                        X = q.front().first;
+                        Y = q.front().second;
+                        cost[X][Y] = 0;
+                        while (1) {
+                            if (q.empty()) {
+                                break;
+                            }
+                            X = q.front().first;
+                            Y = q.front().second;
+                            if (cost[X + 1][Y] > cost[X][Y] + te[X + 1][Y].mA && te[X + 1][Y].type != 1 && X + 1 < b_m[b_mid].x) {
+                                cost[X + 1][Y] = cost[X][Y] + te[X + 1][Y].mA;
+                                q.push({ X + 1,Y });
+                            }
+                            if (cost[X - 1][Y] > cost[X][Y] + te[X - 1][Y].mA && te[X - 1][Y].type != 1 && X - 1 >= 0) {
+                                cost[X - 1][Y] = cost[X][Y] + te[X - 1][Y].mA;
+                                q.push({ X - 1,Y });
+                            }
+                            if (cost[X][Y + 1] > cost[X][Y] + te[X][Y + 1].mA && te[X][Y + 1].type != 1 && Y + 1 < b_m[b_mid].y) {
+                                cost[X][Y + 1] = cost[X][Y] + te[X][Y + 1].mA;
+                                q.push({ X ,Y + 1 });
+                            }
+                            if (cost[X][Y - 1] > cost[X][Y] + te[X][Y - 1].mA && te[X][Y - 1].type != 1 && Y - 1 >= 0) {
+                                cost[X][Y - 1] = cost[X][Y] + te[X][Y - 1].mA;
+                                q.push({ X ,Y - 1 });
+                            }
+                            if (dr[X][Y] == 0 && te[X][Y].enemy == 0 && te[X][Y].npc == 0 && te[X][Y].player == 0 && cost[X][Y] <= p_move) {
+                                dr[X][Y] = 1;
+                            }
+                            q.pop();
+                        }
+                        maps(p, P_id, e, b_m, ar, te, b_mid);
+                        for (i = 0; i < b_m[b_mid].x; i++) {
+                            for (j = 0; j < b_m[b_mid].y; j++) {
+                                if (dr[i][j] == 1) {
+                                    transparentimage(NULL, 48 * i - b_m[b_mid].ox, 48 * j - b_m[b_mid].oy, &mb);
+                                }
+                            }
+                        }
+                        int px = p[P_id].x * 48, py = p[P_id].y * 48;
+                        for (i = 0; i < box_id; i++) {
+                            if (box[i] == 2) {
+                                py += 48;
+                                POINT pts[] = { {px - b_m[b_mid].ox + 20, py - b_m[b_mid].oy},{px - b_m[b_mid].ox + 26, py - b_m[b_mid].oy}, {px - b_m[b_mid].ox + 26, py - b_m[b_mid].oy + 30}, {px - b_m[b_mid].ox + 20, py - b_m[b_mid].oy + 30} };
+                                solidpolygon(pts, 4);
+                                POINT pts3[] = { {px - b_m[b_mid].ox + 14, py - b_m[b_mid].oy + 30}, {px - b_m[b_mid].ox + 32,py - b_m[b_mid].oy + 30}, {px - b_m[b_mid].ox + 23, py - b_m[b_mid].oy + 45} };
+                                solidpolygon(pts3, 3);
+                            }
+                            else if (box[i] == 4) {
+                                px -= 48;
+                                POINT pts[] = { {px - b_m[b_mid].ox + 18 , py - b_m[b_mid].oy + 20},{px - b_m[b_mid].ox + 18, py - b_m[b_mid].oy + 26}, {px - b_m[b_mid].ox + 48, py - b_m[b_mid].oy + 26}, {px - b_m[b_mid].ox + 48, py - b_m[b_mid].oy + 20} };
+                                solidpolygon(pts, 4);
+                                POINT pts3[] = { {px - b_m[b_mid].ox + 18, py - b_m[b_mid].oy + 14}, {px - b_m[b_mid].ox + 18,py - b_m[b_mid].oy + 32}, {px - b_m[b_mid].ox + 3, py - b_m[b_mid].oy + 23} };
+                                solidpolygon(pts3, 3);
+                            }
+                            else if (box[i] == 6) {
+                                px += 48;
+                                POINT pts[] = { {px - b_m[b_mid].ox , py - b_m[b_mid].oy + 20},{px - b_m[b_mid].ox , py - b_m[b_mid].oy + 26}, {px - b_m[b_mid].ox + 30, py - b_m[b_mid].oy + 26}, {px - b_m[b_mid].ox + 30, py - b_m[b_mid].oy + 20} };
+                                solidpolygon(pts, 4);
+                                POINT pts3[] = { {px - b_m[b_mid].ox + 30, py - b_m[b_mid].oy + 14}, {px - b_m[b_mid].ox + 30,py - b_m[b_mid].oy + 32}, {px - b_m[b_mid].ox + 45, py - b_m[b_mid].oy + 23} };
+                                solidpolygon(pts3, 3);
+                            }
+                            else if (box[i] == 8) {
+                                py -= 48;
+                                POINT pts[] = { {px - b_m[b_mid].ox + 20, py - b_m[b_mid].oy + 18},{px - b_m[b_mid].ox + 26, py - b_m[b_mid].oy + 18}, {px - b_m[b_mid].ox + 26, py - b_m[b_mid].oy + 48}, {px - b_m[b_mid].ox + 20, py - b_m[b_mid].oy + 48} };
+                                solidpolygon(pts, 4);
+                                POINT pts3[] = { {px - b_m[b_mid].ox + 14, py - b_m[b_mid].oy + 18}, {px - b_m[b_mid].ox + 32,py - b_m[b_mid].oy + 18}, {px - b_m[b_mid].ox + 23, py - b_m[b_mid].oy + 3} };
+                                solidpolygon(pts3, 3);
+                            }
+                        }
+                        e_put(e, b_m, esize, b_mid);
+                        b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
+                        p_put(p, b_m, psize, b_mid);
+                        ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
+                        FlushBatchDraw();
+                    }
+                    else if (m.y > my + 48-b_m[b_mid].oy) {
+                        if (box[box_id - 1] == 8 && m.x / 48 + b_m[b_mid].ox / 48 == mx / 48 && m.y / 48 + b_m[b_mid].oy / 48 == my / 48+1) {
+                            p_move += te[m.x / 48 + b_m[b_mid].ox / 48][m.y / 48 + b_m[b_mid].oy / 48].mA;
+                            box_id--;
+                            my = m.y / 48 * 48 + b_m[b_mid].oy;
+                        }
+                        else if(p_move >= te[m.x / 48][m.y / 48].mA && m.x / 48 + b_m[b_mid].ox / 48 == mx / 48 && m.y / 48 + b_m[b_mid].oy / 48 == my / 48+1) {
+                            box[box_id] = 2;
+                            box_id++;
+                            my = m.y / 48 * 48 + b_m[b_mid].oy;
+                            p_move -= te[mx / 48][my / 48].mA;
+                        }
+                        q.push({ mx / 48,my / 48 });
+                        for (i = 0; i < b_m[b_mid].x; i++) {
+                            for (j = 0; j < b_m[b_mid].y; j++) {
+                                dr[i][j] = 0;
+                                cost[i][j] = 10000;
+                            }
+                        }
+                        X = q.front().first;
+                        Y = q.front().second;
+                        cost[X][Y] = 0;
+                        while (1) {
+                            if (q.empty()) {
+                                break;
+                            }
+                            X = q.front().first;
+                            Y = q.front().second;
+                            if (cost[X + 1][Y] > cost[X][Y] + te[X + 1][Y].mA && te[X + 1][Y].type != 1 && X + 1 < b_m[b_mid].x) {
+                                cost[X + 1][Y] = cost[X][Y] + te[X + 1][Y].mA;
+                                q.push({ X + 1,Y });
+                            }
+                            if (cost[X - 1][Y] > cost[X][Y] + te[X - 1][Y].mA && te[X - 1][Y].type != 1 && X - 1 >= 0) {
+                                cost[X - 1][Y] = cost[X][Y] + te[X - 1][Y].mA;
+                                q.push({ X - 1,Y });
+                            }
+                            if (cost[X][Y + 1] > cost[X][Y] + te[X][Y + 1].mA && te[X][Y + 1].type != 1 && Y + 1 < b_m[b_mid].y) {
+                                cost[X][Y + 1] = cost[X][Y] + te[X][Y + 1].mA;
+                                q.push({ X ,Y + 1 });
+                            }
+                            if (cost[X][Y - 1] > cost[X][Y] + te[X][Y - 1].mA && te[X][Y - 1].type != 1 && Y - 1 >= 0) {
+                                cost[X][Y - 1] = cost[X][Y] + te[X][Y - 1].mA;
+                                q.push({ X ,Y - 1 });
+                            }
+                            if (dr[X][Y] == 0 && te[X][Y].enemy == 0 && te[X][Y].npc == 0 && te[X][Y].player == 0 && cost[X][Y] <= p_move) {
+                                dr[X][Y] = 1;
+                            }
+                            q.pop();
+                        }
+                        maps(p, P_id, e, b_m, ar, te, b_mid);
+                        for (i = 0; i < b_m[b_mid].x; i++) {
+                            for (j = 0; j < b_m[b_mid].y; j++) {
+                                if (dr[i][j] == 1) {
+                                    transparentimage(NULL, 48 * i - b_m[b_mid].ox, 48 * j - b_m[b_mid].oy, &mb);
+                                }
+                            }
+                        }
+                        int px = p[P_id].x * 48, py = p[P_id].y * 48;
+                        for (i = 0; i < box_id; i++) {
+                            if (box[i] == 2) {
+                                py += 48;
+                                POINT pts[] = { {px - b_m[b_mid].ox + 20, py - b_m[b_mid].oy},{px - b_m[b_mid].ox + 26, py - b_m[b_mid].oy}, {px - b_m[b_mid].ox + 26, py - b_m[b_mid].oy + 30}, {px - b_m[b_mid].ox + 20, py - b_m[b_mid].oy + 30} };
+                                solidpolygon(pts, 4);
+                                POINT pts3[] = { {px - b_m[b_mid].ox + 14, py - b_m[b_mid].oy + 30}, {px - b_m[b_mid].ox + 32,py - b_m[b_mid].oy + 30}, {px - b_m[b_mid].ox + 23, py - b_m[b_mid].oy + 45} };
+                                solidpolygon(pts3, 3);
+                            }
+                            else if (box[i] == 4) {
+                                px -= 48;
+                                POINT pts[] = { {px - b_m[b_mid].ox + 18 , py - b_m[b_mid].oy + 20},{px - b_m[b_mid].ox + 18, py - b_m[b_mid].oy + 26}, {px - b_m[b_mid].ox + 48, py - b_m[b_mid].oy + 26}, {px - b_m[b_mid].ox + 48, py - b_m[b_mid].oy + 20} };
+                                solidpolygon(pts, 4);
+                                POINT pts3[] = { {px - b_m[b_mid].ox + 18, py - b_m[b_mid].oy + 14}, {px - b_m[b_mid].ox + 18,py - b_m[b_mid].oy + 32}, {px - b_m[b_mid].ox + 3, py - b_m[b_mid].oy + 23} };
+                                solidpolygon(pts3, 3);
+                            }
+                            else if (box[i] == 6) {
+                                px += 48;
+                                POINT pts[] = { {px - b_m[b_mid].ox , py - b_m[b_mid].oy + 20},{px - b_m[b_mid].ox , py - b_m[b_mid].oy + 26}, {px - b_m[b_mid].ox + 30, py - b_m[b_mid].oy + 26}, {px - b_m[b_mid].ox + 30, py - b_m[b_mid].oy + 20} };
+                                solidpolygon(pts, 4);
+                                POINT pts3[] = { {px - b_m[b_mid].ox + 30, py - b_m[b_mid].oy + 14}, {px - b_m[b_mid].ox + 30,py - b_m[b_mid].oy + 32}, {px - b_m[b_mid].ox + 45, py - b_m[b_mid].oy + 23} };
+                                solidpolygon(pts3, 3);
+                            }
+                            else if (box[i] == 8) {
+                                py -= 48;
+                                POINT pts[] = { {px - b_m[b_mid].ox + 20, py - b_m[b_mid].oy + 18},{px - b_m[b_mid].ox + 26, py - b_m[b_mid].oy + 18}, {px - b_m[b_mid].ox + 26, py - b_m[b_mid].oy + 48}, {px - b_m[b_mid].ox + 20, py - b_m[b_mid].oy + 48} };
+                                solidpolygon(pts, 4);
+                                POINT pts3[] = { {px - b_m[b_mid].ox + 14, py - b_m[b_mid].oy + 18}, {px - b_m[b_mid].ox + 32,py - b_m[b_mid].oy + 18}, {px - b_m[b_mid].ox + 23, py - b_m[b_mid].oy + 3} };
+                                solidpolygon(pts3, 3);
+                            }
+                        }
+                        e_put(e, b_m, esize, b_mid);
+                        b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
+                        p_put(p, b_m, psize, b_mid);
+                        ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
+                        FlushBatchDraw();
+                    }
+                    }
+                    else if (m.x<p[P_id].x * 48 + 48 - b_m[b_mid].ox && m.x > p[P_id].x * 48 - b_m[b_mid].ox && m.y<p[P_id].y * 48 - b_m[b_mid].oy + 48 && m.y>p[P_id].y * 48 - b_m[b_mid].oy && m.x < 960 && m.y < 720&&box_id==1) {
+                        box_id = 0;
+                        box[0] = 0;
+                        mx = p[P_id].x * 48, my = p[P_id].y * 48;
+                        p_move = p[P_id].move;
+                        q.push({ mx / 48,my / 48 });
+                        for (i = 0; i < b_m[b_mid].x; i++) {
+                            for (j = 0; j < b_m[b_mid].y; j++) {
+                                dr[i][j] = 0;
+                                cost[i][j] = 10000;
+                            }
+                        }
+                        X = q.front().first;
+                        Y = q.front().second;
+                        cost[X][Y] = 0;
+                        while (1) {
+                            if (q.empty()) {
+                                break;
+                            }
+                            X = q.front().first;
+                            Y = q.front().second;
+                            if (cost[X + 1][Y] > cost[X][Y] + te[X + 1][Y].mA && te[X + 1][Y].type != 1 && X + 1 < b_m[b_mid].x) {
+                                cost[X + 1][Y] = cost[X][Y] + te[X + 1][Y].mA;
+                                q.push({ X + 1,Y });
+                            }
+                            if (cost[X - 1][Y] > cost[X][Y] + te[X - 1][Y].mA && te[X - 1][Y].type != 1 && X - 1 >= 0) {
+                                cost[X - 1][Y] = cost[X][Y] + te[X - 1][Y].mA;
+                                q.push({ X - 1,Y });
+                            }
+                            if (cost[X][Y + 1] > cost[X][Y] + te[X][Y + 1].mA && te[X][Y + 1].type != 1 && Y + 1 < b_m[b_mid].y) {
+                                cost[X][Y + 1] = cost[X][Y] + te[X][Y + 1].mA;
+                                q.push({ X ,Y + 1 });
+                            }
+                            if (cost[X][Y - 1] > cost[X][Y] + te[X][Y - 1].mA && te[X][Y - 1].type != 1 && Y - 1 >= 0) {
+                                cost[X][Y - 1] = cost[X][Y] + te[X][Y - 1].mA;
+                                q.push({ X ,Y - 1 });
+                            }
+                            if (dr[X][Y] == 0 && te[X][Y].enemy == 0 && te[X][Y].npc == 0 && te[X][Y].player == 0 && cost[X][Y] <= p_move) {
+                                dr[X][Y] = 1;
+                            }
+                            q.pop();
+                        }
+                        maps(p, P_id, e, b_m, ar, te, b_mid);
+                        for (i = 0; i < b_m[b_mid].x; i++) {
+                            for (j = 0; j < b_m[b_mid].y; j++) {
+                                if (dr[i][j] == 1) {
+                                    transparentimage(NULL, 48 * i - b_m[b_mid].ox, 48 * j - b_m[b_mid].oy, &mb);
+                                }
+                            }
+                        }
+                        e_put(e, b_m, esize, b_mid);
+                        b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
+                        p_put(p, b_m, psize, b_mid);
+                        ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
+                        FlushBatchDraw();
+                    }
                 }
             }
         }
@@ -7727,9 +8292,9 @@ void Load(player* p, enemy* e, arms* ar, item* it, stone* st, flag* f, int &i_id
     }
 
 }
-int battle_check(player *p,enemy *e,b_map *b_m,int b_mid) {
+int battle_check(player *p,enemy *e,b_map *b_m,b_flag *b_f,int b_mid) {
     if (b_mid == 4) {
-        if (e[2].hp < 5) {
+        if (b_f[2].check==0) {
             return 1;
         }
     }
@@ -8193,7 +8758,7 @@ void event(flag *f,b_flag *b_f,player *p,npc *n,m_flag *m_f,Map *m,BOX *Box,Exit
         }
     }
      if (f[5].check == 1) {
-             b_mid = 0;
+             b_mid = 1;
              f[5].check = 1;
      }
      /*測試戰鬥*/
@@ -8274,7 +8839,7 @@ void event(flag *f,b_flag *b_f,player *p,npc *n,m_flag *m_f,Map *m,BOX *Box,Exit
      if (f[16].check == 0) {
          if (m_id == 8 && p[0].x <= 2 && p[0].y == 0) {
              string filename;
-             filename = "./Game/story/event" + to_string(19) + string(".json");
+             filename = "./Game/story/event" + to_string(11) + string(".json");
              readeventjson(p, n, f, m, Box, tk, m_f, it, st, filename.c_str(), m_id, b_id);
              f[16].check = 1;
          }   
@@ -8332,6 +8897,38 @@ void event(flag *f,b_flag *b_f,player *p,npc *n,m_flag *m_f,Map *m,BOX *Box,Exit
          b_mid = 4;
          f[18].check = 0;          
          }
+     if (f[19].check ==1) {
+         string filename;
+         filename = "./Game/story/event" + to_string(21) + string(".json");
+         readeventjson(p, n, f, m, Box, tk, m_f, it, st, filename.c_str(), m_id, b_id);
+         f[19].check = 0;
+         f[20].check = 1;
+     }
+     if (f[20].check == 1) {
+         string filename;
+         filename = "./Game/story/event" + to_string(22) + string(".json");
+         readeventjson(p, n, f, m, Box, tk, m_f, it, st, filename.c_str(), m_id, b_id);
+         m_id = 2;
+         p[0].x = 22;
+         p[0].y = 18;
+         f[20].check = 0;
+         m[2].nsize = 0;
+         tk[5].state = 1;
+         EX[1].state = 0;
+         m_set(m, n, p, e_n, Box, m_id, b_id);
+         f[21].check = 1;
+     }
+     if (f[21].check == 1) {
+         if (m_id == 2 && p[0].x == 19 && p[0].y == 11) {
+             string filename;
+             filename = "./Game/story/event" + to_string(23) + string(".json");
+             readeventjson(p, n, f, m, Box, tk, m_f, it, st, filename.c_str(), m_id, b_id);
+             filename = "./Game/story/event" + to_string(24) + string(".json");
+             readeventjson(p, n, f, m, Box, tk, m_f, it, st, filename.c_str(), m_id, b_id);
+             b_mid = 1;
+             f[21].check = 0;
+         }
+     }
      if (m_f[1].check == 1) {
          EX[2].state = true;
      }
@@ -11379,7 +11976,7 @@ int b_check(player *p,e_npc *e_n,Map *m,int m_id) {
     }
     return -1;
 }
-void show(Map* m, player* p, enemy *e,e_npc *e_n,BOX *Box,int &m_id,int b_id, npc* n,string g) {
+void show(Map* m, player* p, enemy *e,e_npc *e_n,BOX *Box,int &m_id,int b_id, npc* n,flag *f,string g) {
     BeginBatchDraw();
     m_map(p,m, Box, m_id, b_id, n,g);
     if (g == "w") {
@@ -11389,6 +11986,11 @@ void show(Map* m, player* p, enemy *e,e_npc *e_n,BOX *Box,int &m_id,int b_id, np
        m_put(p,m,m_id); 
     } 
     m_e_ai(e, p, m, e_n, m_id);
+    if (f[21].check == 1) {
+        IMAGE siy;
+        loadimage(&siy, L"./Game/picture/siy.png", 0, 0, false);
+        transparentimage(NULL, 0, 0, &siy);
+    }
     FlushBatchDraw();
     /*       */
     tb = clock();
@@ -11958,6 +12560,13 @@ void b_event(flag *f,b_flag *b_f,player *p,npc *n,b_map *b_m,enemy_type *e_t,ene
                 if (I == b_m[b_mid].esize) {
                     b_f[fk].check = 0;
                 }
+            }
+            if (b_f[fk].id == 5) {
+                string filename;
+                filename = "./Game/story/b_event" + to_string(4) + string(".json");
+                const char* path = filename.c_str();
+                readeventjson(p, n, f, m, Box, tk, m_f, it, st, path, m_id, b_id);
+                b_f[fk].check = 0;
             }
         }
     }
@@ -14332,7 +14941,7 @@ int main() {
     SetClassLongPtr(hwnd, GCLP_HCURSOR, (long)hcur);
     SetWindowText(hwnd, L"隕星傳奇");
     bc_l = FindWindow(NULL,L"隕星傳奇");
-    int  variable = 1, id = 0, P_id = 0, m_id = 1, psize = 1, load = 0, n_id = 1, i_id = 17, ar_id = 9, Ar_id = 2, st_id = 2, f_id = 19, b_mid, ex_id = 14, b_id = 9, sk_id = 20, buff_id = 32, m_fid = 11, b_nid = 0, t_Eid = 2, sp_id = -1,tk_id=5;
+    int  variable = 1, id = 0, P_id = 0, m_id = 1, psize = 1, load = 0, n_id = 1, i_id = 17, ar_id = 9, Ar_id = 2, st_id = 2, f_id = 22, b_mid, ex_id = 14, b_id = 9, sk_id = 20, buff_id = 32, m_fid = 11, b_nid = 0, t_Eid = 2, sp_id = -1,tk_id=6;
     /*變數數量*/    
     wofstream wofs;
     player p[3];
@@ -14381,7 +14990,7 @@ int main() {
     b_m[1].esize = 8; b_m[1].e_set = "e1x0y26e1x0y28e1x0y27e1x0y44e1x49y44e1x5y0e1x49y15e1x26y44"; b_m[1].p_set = "x12y25x16y25"; b_m[1].cx = 12; b_m[1].cy = 25; b_m[1].fsize = 2; b_m[1].f_set = "0n1n";
     b_m[2].esize = 2; b_m[2].e_set = "e0x5y4e0x6y3"; b_m[2].p_set = "x18y13x19y13"; b_m[2].cx = 0; b_m[2].cy = 0; b_m[2].fsize = 1; b_m[2].f_set = "2n"; b_m[2].nsize = 1; b_m[2].n_set = "n0x16y10";
     b_m[3].esize = 1; b_m[3].e_set = "e2x3y1"; b_m[3].p_set = "x3y12x4y12"; b_m[3].cx = 0; b_m[3].cy = 0; b_m[3].fsize = 0; b_m[3].nsize = 0;
-    b_m[4].esize = 3; b_m[4].e_set = "e4x6y11e4x13y12e3x10y7"; b_m[4].p_set = "x9y14x10y14"; b_m[4].cx = 0; b_m[4].cy = 0; b_m[4].fsize = 2;  b_m[4].f_set = "3n4n"; b_m[4].nsize = 1; b_m[4].n_set = "n1x9y5"; b_m[4].lc = L"1.我方全員被擊敗\n2.愛麗絲被擊敗"; b_m[4].vc = L"1.擊敗狼王";
+    b_m[4].esize = 3; b_m[4].e_set = "e4x6y11e4x13y12e3x10y7"; b_m[4].p_set = "x9y14x10y14"; b_m[4].cx = 0; b_m[4].cy = 0; b_m[4].fsize = 3;  b_m[4].f_set = "3n4n5n"; b_m[4].nsize = 1; b_m[4].n_set = "n1x9y5"; b_m[4].lc = L"1.我方全員被擊敗\n2.愛麗絲被擊敗"; b_m[4].vc = L"1.狼王HP低於30%";
     p[0].name = L"艾倫"; p[0].story = L"見習醫生"; p[0].lv = 1; p[0].mhp = 12; p[0].hp = 12; p[0].dex = 10; p[0].Move = 6; p[0].isize = 1; p[0].asize = 1; p[0].x = 10; p[0].y = 10; p[0].speed = 10; p[0].turn = 0; p[0].abox = 0; p[0].pose = 1; p[0].str = 10; p[0].INT = 10; p[0].con = 10; p[0].cha = 10; p[0].wis = 10; p[0].arms_id_1 = 4; p[0].arms_id_2 = -1; p[0].armor_id = 1; p[0].stone_id = -1; p[0].s_check[4] = 1; p[0].state = 1; p[0].exp = 0; p[0].dexUp = 50; p[0].strExp = 40; p[0].intUp = 60; p[0].conUp = 20; p[0].chaUp = 60; p[0].wisUp = 20; p[0].act = 1; p[0].Act = 1; p[0].arms_b_1 = 1; p[0].arms_b_2 = 0; p[0].b_id_1 = -1; p[0].b_id_2 = -1;
     p[1].name = L"夏洛特"; p[1].story = L"獵人"; p[1].lv = 1; p[1].mhp = 12; p[1].hp = 12; p[1].dex = 10; p[1].Move = 6; p[1].isize = 1; p[1].asize = 1; p[1].x = 10; p[1].y = 10; p[1].speed = 10; p[1].turn = 0; p[1].abox = 0; p[1].pose = 1; p[1].str = 10; p[1].INT = 10; p[1].con = 10; p[1].cha = 10; p[1].wis = 10; p[1].arms_id_1 = 0; p[1].arms_id_2 = 6; p[1].armor_id = 0; p[1].stone_id = -1; p[1].s_check[3] = 1; p[1].exp = 0; p[1].dexUp = 60; p[1].strExp = 30; p[1].intUp = 20; p[1].conUp = 20; p[1].chaUp = 60; p[1].wisUp = 60; p[1].act = 1; p[1].Act = 1; p[1].t_id = 1; p[1].arms_b_1 = 5; p[1].arms_b_2 = 1; p[1].b_id_1 = 0; p[1].b_id_2 = -1;
     p[2].name = L"愛麗絲"; p[2].story = L"騎士"; p[2].lv = 1; p[2].mhp = 10; p[2].hp = 10; p[2].dex = 10; p[2].move = 6; p[2].isize = 1; p[2].asize = 1; p[2].x = 10; p[2].y = 10; p[2].speed = 12; p[2].turn = 0; p[2].abox = 0; p[2].pose = 1; p[2].str = 11; p[2].INT = 10; p[2].con = 11; p[2].cha = 10; p[2].wis = 10; p[2].arms_id_1 = 2; p[2].stone_id = 1;
@@ -14441,6 +15050,7 @@ int main() {
     n[14].name = L"米切爾";
     n[15].name = L"帝國傳令兵";
     n[16].name = L"帝國炮兵";
+    n[17].name = L"狼王";
     EX[0].x = 14; EX[0].y = 13; EX[0].gx = 6; EX[0].gy = 13; EX[0].Mid = 2; EX[0].state = true;  EX[0].cx = 14; EX[0].cy = 13;
     EX[1].x = 19; EX[1].y = 11; EX[1].gx = 13; EX[1].gy = 12; EX[1].Mid = 3; EX[1].state = true; EX[1].cx = 19; EX[1].cy = 11;
     EX[2].x = 19; EX[2].y = 19; EX[2].gx = 12; EX[2].gy = 25; EX[2].Mid = 4; EX[2].state = false;  EX[2].cx = 19; EX[2].cy = 19;
@@ -14537,6 +15147,7 @@ int main() {
     tk[2].name = L"序章-主線-與戴恩會合"; tk[2].story = L"出村前往夏洛特家，先與夏洛特的父親-戴恩會合"; tk[2].state = 0; tk[2].type = 0;
     tk[3].name = L"序章-主線-前往大河鎮"; tk[3].story = L"沿著林中小徑，穿越森林前往大河鎮，要小心沿途的野獸"; tk[3].state = 0; tk[3].type = 0;
     tk[4].name = L"序章-支線-狩獵狼群"; tk[4].story = L"森林中的狼群嚴重危害到星落村居民的安全，村長為尋求能人清除狼群，願意給出賞金來獎勵，可以用狼牙作為證明來兌換賞金"; tk[4].state = 0; tk[4].type = 1;
+    tk[5].name = L"序章-主線-聚餐"; tk[5].story = L"前往飯廳與夏洛特一家一起享用晚餐"; tk[5].state = 0; tk[5].type = 0;
 }
 /*開始畫面*/
     while (1) {
@@ -14682,7 +15293,7 @@ int main() {
                         mciSendString(vos.c_str(), NULL, 0, NULL);
                     }
                 }
-                show(m, p, e, e_n,Box, m_id,b_id, n, g);
+                show(m, p, e, e_n,Box, m_id,b_id, n,f, g);
                 getimage(&save_image, 0, 0, 1296, 960);
             }
 /*戰鬥模式*/
@@ -14691,7 +15302,7 @@ int main() {
         mciSendString(L"open ./Game/Sound/SE/決定ボタンを押す9.mp3 alias click", NULL, 0, NULL);
         while (1) {
             FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE));
-            if (battle_check(p, e, b_m, b_mid) == 1) {           
+            if (battle_check(p, e, b_m, b_f,b_mid) == 1) {           
                 for (i = 0; i < b_m[b_mid].psize; i++) {
                     p[i].buff_Size = 0;
                     if (p[i].buff_check[17] >= 1) {
