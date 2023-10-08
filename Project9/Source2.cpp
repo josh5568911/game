@@ -194,7 +194,7 @@ class player{
 public: 
     wstring name, story;
     int lv ,mhp,hp,dex,move,isize,asize,x,y,turn,speed,abox,act,pose,str,INT,con,wis,cha,arms_id_1,arms_id_2,armor_id,stone_id,exp,Move,Act,t_id=-1;
-    int dexExp=50, strExp=50, intExp=50, conExp=50, wisExp=50, chaExp=50;
+    int dexExp=0, strExp=0, intExp=0, conExp=0, wisExp=0, chaExp=0;
     int dexUp,strUp, intUp, conUp, wisUp, chaUp;
     int s_check[100] = { 0 };
     int buff_check[100] = {0};
@@ -373,7 +373,7 @@ public:
 };
 class terrain {
 public:
-    int type, mA, mB,npc=0,player=0,enemy=0,fire=0,trap=0;
+    int type, mA, mB,npc=0,player=0,enemy=0,fire=0,trap=0,dark=0;
     int fire_time = 0;
 };
 class t_equip {
@@ -397,7 +397,7 @@ public:
 void ui(player* p, enemy* e, b_map* b_m, int P_id, int esize, int psize, int b_mid, int bu_id);
 void p_put(player* p, b_map* b_m, int psize, int b_mid);
 void b_nput(b_npc* b_n, b_map* b_m, int b_nid, int nsize, int b_mid);
-void e_put(enemy* e, b_map* b_m, int esize, int b_mid);
+void e_put(enemy* e, b_map* b_m,terrain(*te)[50], int esize, int b_mid);
 void maps(player* p, int P_id, enemy* e, b_map* b_m,arms *ar, terrain(*te)[50], int b_mid);
 int rollcountA(string hit,wstring b19,int h,enemy *e,int id) {
     int k,kt,g=0,s=0,t=0,sumA=0,sumB=0,a,b,num=0;
@@ -2938,6 +2938,11 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
                 it[root["item"]["id"][uc].asInt()].number += root["item"]["number"][uc].asInt();
             }
         }
+        if (root.isMember("team_state")) {
+            p[root["team_state"].asInt()].state = 1;
+            m[m_id].team_state[m[m_id].psize] = root["team_state"].asInt();
+            m[m_id].psize++;
+        }
     }
     in.close();
 }
@@ -3315,11 +3320,11 @@ void p_bput(player* p, b_map* b_m, int psize, int b_mid,int P_id) {
         }
     }
 }
-void e_put(enemy *e,b_map *b_m,int esize,int b_mid) {
+void e_put(enemy *e,b_map *b_m, terrain(*te)[50],int esize,int b_mid) {
     IMAGE b1,b2,b3,b4,hpB;
     wstring mm;
     for (int I = 0; I < esize; I++) {
-        if (e[I].x * 48 - b_m[b_mid].ox < 960 && e[I].y * 48 - b_m[b_mid].oy - 16 - 16 < 720) {
+        if (e[I].x * 48 - b_m[b_mid].ox < 960 && e[I].y * 48 - b_m[b_mid].oy - 16 - 16 < 720&&te[e[I].x][e[I].y].dark==0) {
             mm = std::to_wstring(e[I].type);
             mm = L"./Game/picture/enemy" + mm + L".png";
             LPCTSTR path = mm.c_str();
@@ -3344,12 +3349,12 @@ void e_put(enemy *e,b_map *b_m,int esize,int b_mid) {
         }
         }
     }
-void e_bput(enemy *e,b_map *b_m, int id, int esize,int b_mid) {
+void e_bput(enemy *e,b_map *b_m, terrain(*te)[50], int id, int esize,int b_mid) {
     IMAGE b1, b2, b3, b4;
     wstring mm;
     for (int I = 0; I < esize; I++) {
         if (I != id) {
-            if (e[I].x * 48 - b_m[b_mid].ox < 960 && e[I].y * 48 - b_m[b_mid].oy - 16 - 16 < 720) {
+            if (e[I].x * 48 - b_m[b_mid].ox < 960 && e[I].y * 48 - b_m[b_mid].oy - 16 - 16 < 720 && te[e[I].x][e[I].y].dark == 0) {
                 mm = std::to_wstring(e[I].type);
                 mm = L"./Game/picture/enemy" + mm + L".png";
                 LPCTSTR path = mm.c_str();
@@ -3436,9 +3441,10 @@ void maps(player *p, int P_id,enemy *e,b_map *b_m, arms *ar,terrain(*te)[50],int
     b_m[b_mid].ox = (b_m[b_mid].cx-11)* (b_m[b_mid].cx > 11) * 48   - (9 - (b_m[b_mid].x - b_m[b_mid].cx)) * (b_m[b_mid].cx + 9 > b_m[b_mid].x) * 48;
     b_m[b_mid].oy = (b_m[b_mid].cy -7) * (b_m[b_mid].cy > 7) * 48 - (8 - (b_m[b_mid].y - b_m[b_mid].cy)) * (b_m[b_mid].cy + 8 > b_m[b_mid].y) * 48;
     putimage(0, 0, 960, 720, &mapP, b_m[b_mid].ox, b_m[b_mid].oy);
-    IMAGE te2,io,te3,io1;         
+    IMAGE te2,io,te3,io1,te4;         
     loadimage(&te2, L"./Game/picture/fire.png", 0, 0, false);
     loadimage(&te3, L"./Game/picture/trap.png", 0, 0, false);
+    loadimage(&te4, L"./Game/picture/dark.png", 0, 0, false);
     for (int I = 0; I < b_m[b_mid].esize; I++) {
         if (e[I].buff_check[13] == 1) {
             loadimage(&io, L"./Game/picture/io.png", 0, 0, false);
@@ -3533,13 +3539,16 @@ void maps(player *p, int P_id,enemy *e,b_map *b_m, arms *ar,terrain(*te)[50],int
             }
         }
     }
-    for (int I = 0; I < b_m[b_mid].x; I++) {
-        for (int J = 0; J < b_m[b_mid].y; J++) {
+    for (int I = b_m[b_mid].ox/48; I < b_m[b_mid].ox / 48+20; I++) {
+        for (int J = b_m[b_mid].oy / 48; J < b_m[b_mid].oy / 48+15; J++) {
             if (te[I][J].fire == 1) {
-                transparentimage(NULL,48*I,48*J,&te2);
+                transparentimage(NULL,48*I- b_m[b_mid].ox,48*J- b_m[b_mid].ox,&te2);
             }      
             if (te[I][J].trap == 2) {
-                transparentimage(NULL, 48 * I, 48 * J, &te3);
+                transparentimage(NULL, 48 * I -b_m[b_mid].ox, 48 * J b_m[b_mid].oy, &te3);
+            }
+            if (te[I][J].dark == 1||te[I][J].dark==2) {
+                transparentimage(NULL, 48 * I- b_m[b_mid].ox, 48 * J-b_m[b_mid].oy, &te4);
             }
         }
     }
@@ -4105,7 +4114,7 @@ void p_attack(wofstream* wofs, player *p,enemy *e,enemy_type *e_t,b_npc *b_n,arm
                     }
                     q.pop();
                 }               
-                e_put(e, b_m, esize, b_mid);
+                e_put(e, b_m, te, esize, b_mid);
                 b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                 p_put(p,b_m, psize,b_mid);
                 ui(p, e, b_m,P_id, esize, psize,b_mid,bu_id);
@@ -4334,7 +4343,7 @@ void p_attack(wofstream* wofs, player *p,enemy *e,enemy_type *e_t,b_npc *b_n,arm
                             for (i = 0; i < 3; i++) {
                                 BeginBatchDraw();
                                 maps(p, P_id, e, b_m, ar, te, b_mid);/*地圖繪製*/
-                                e_put(e, b_m, esize, b_mid);
+                                e_put(e, b_m, te, esize, b_mid);
                                 b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                                 p_put(p, b_m, psize, b_mid); 
                                 transparentimageA(NULL, e[id].x * 48 - b_m[b_mid].ox-30, e[id].y * 48 - b_m[b_mid].oy-160, &ae, i * 120, j * 300, 120, 300);
@@ -4355,7 +4364,7 @@ void p_attack(wofstream* wofs, player *p,enemy *e,enemy_type *e_t,b_npc *b_n,arm
                             for (i = 0; i < 3; i++) {
                                 BeginBatchDraw();
                                 maps(p, P_id, e, b_m, ar, te, b_mid);/*地圖繪製*/
-                                e_put(e, b_m, esize, b_mid);
+                                e_put(e, b_m, te, esize, b_mid);
                                 b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                                 p_put(p, b_m, psize, b_mid);
                                 transparentimageA(NULL, e[id].x * 48 - b_m[b_mid].ox-110, e[id].y * 48 - b_m[b_mid].oy-47, &ae, i * 320, j * 120, 320, 120);
@@ -4368,7 +4377,7 @@ void p_attack(wofstream* wofs, player *p,enemy *e,enemy_type *e_t,b_npc *b_n,arm
                     else if (ar_id == 8) {
                         BeginBatchDraw();
                         maps(p, P_id, e, b_m, ar, te, b_mid);/*地圖繪製*/
-                        e_put(e, b_m, esize, b_mid);
+                        e_put(e, b_m, te, esize, b_mid);
                         b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                         p_put(p, b_m, psize, b_mid);
                         ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
@@ -4392,7 +4401,7 @@ void p_attack(wofstream* wofs, player *p,enemy *e,enemy_type *e_t,b_npc *b_n,arm
                     if (ATK > AC) {
                          BeginBatchDraw();
                         maps(p, P_id, e,b_m, ar, te,b_mid);/*地圖繪製*/
-                        e_put(e,b_m, esize,b_mid);
+                        e_put(e,b_m, te, esize,b_mid);
                         b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                         p_put(p, b_m, psize, b_mid);
                         dmg = roll(ar[ar_id].dmg, 1);
@@ -4481,7 +4490,7 @@ void p_attack(wofstream* wofs, player *p,enemy *e,enemy_type *e_t,b_npc *b_n,arm
                     else {
                         BeginBatchDraw();
                         maps(p, P_id, e,b_m, ar, te,b_mid);/*地圖繪製*/
-                        e_put(e, b_m, esize, b_mid);
+                        e_put(e, b_m, te, esize, b_mid);
                         b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                         p_put(p, b_m, psize, b_mid);
                         *wofs << L"(T" << b_m[b_mid].time << L")" << p[P_id].name << L"用" << ar[ar_id].name << L"攻擊" << e[id].name << L"未能命中(" << ATK << "<=" << AC << ")" << endl;
@@ -4562,7 +4571,7 @@ void p_attack(wofstream* wofs, player *p,enemy *e,enemy_type *e_t,b_npc *b_n,arm
                                             for (int ej = 0; ej < 5; ej++) {
                                                 for (int ei = 0; ei < 3; ei++) {
                                                     maps(p, P_id, e, b_m, ar, te, b_mid);/*地圖繪製*/
-                                                    e_put(e, b_m, esize, b_mid);
+                                                    e_put(e, b_m, te, esize, b_mid);
                                                     b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                                                     p_put(p, b_m, psize, b_mid);
                                                     transparentimageA(NULL, e[id].x * 48 - b_m[b_mid].ox - 30, e[id].y * 48 - b_m[b_mid].oy - 160, &ae, ei * 120, ej * 300, 120, 300);
@@ -4775,7 +4784,7 @@ void p_item(player *p,enemy *e,b_npc *b_n,arms *ar, item *it, t_equip *t_E,b_map
                             }
                             q.pop();
                         }
-                        e_put(e, b_m, b_m[b_mid].esize, b_mid);
+                        e_put(e, b_m, te, b_m[b_mid].esize, b_mid);
                         b_nput(b_n, b_m, b_m[b_mid].nsize, b_m[b_mid].nsize, b_mid);
                         p_put(p, b_m, b_m[b_mid].psize, b_mid);
                         ui(p, e, b_m, P_id, b_m[b_mid].esize, b_m[b_mid].psize, b_mid, bu_id);
@@ -5193,7 +5202,7 @@ void p_walk(wofstream *wofs,player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar, t
             mm = L"./Game/picture/p" + mm + L".png";
             path = mm.c_str();
             loadimage(&p1, path, 0, 0, false);
-            e_put(e, b_m, esize, b_mid);
+            e_put(e, b_m, te, esize, b_mid);
             b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
             p_put(p, b_m, psize, b_mid);
             ui(p, e, b_m, P_id, esize, psize, b_mid,bu_id);
@@ -5267,7 +5276,7 @@ void p_walk(wofstream *wofs,player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar, t
                                             for (k = 0; k <= 48; k += 16) {
                                                 BeginBatchDraw();
                                                 maps(p, P_id, e, b_m, ar, te, b_mid);
-                                                e_put(e, b_m, esize, b_mid);
+                                                e_put(e, b_m, te, esize, b_mid);
                                                 b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                                                 p_bput(p, b_m, b_m[b_mid].psize, b_mid,P_id);
                                                 if (xbox * 48 - b_m[b_mid].ox < 960 && ybox * 48 - 16 + k - b_m[b_mid].oy < 720) {
@@ -5285,7 +5294,7 @@ void p_walk(wofstream *wofs,player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar, t
 
                                                 BeginBatchDraw();
                                                 maps(p, P_id, e, b_m, ar, te, b_mid);
-                                                e_put(e, b_m, esize, b_mid);                        
+                                                e_put(e, b_m, te, esize, b_mid);
                                                 b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                                                 p_bput(p, b_m, b_m[b_mid].psize, b_mid, P_id);
                                                 if (xbox * 48 - k - b_m[b_mid].ox < 960-k && ybox * 48 - 16 - b_m[b_mid].oy < 720) {
@@ -5304,7 +5313,7 @@ void p_walk(wofstream *wofs,player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar, t
 
                                                 BeginBatchDraw();
                                                 maps(p, P_id, e, b_m, ar, te,b_mid);
-                                                e_put(e, b_m, esize, b_mid);                  
+                                                e_put(e, b_m, te, esize, b_mid);
                                                 b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                                                 p_bput(p, b_m, b_m[b_mid].psize, b_mid, P_id);
                                                 if (xbox * 48 + k - b_m[b_mid].ox < 960 && ybox * 48 - 16 - b_m[b_mid].oy < 720) {
@@ -5322,7 +5331,7 @@ void p_walk(wofstream *wofs,player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar, t
 
                                                 BeginBatchDraw();
                                                 maps(p, P_id, e, b_m, ar, te, b_mid);
-                                                e_put(e, b_m, esize, b_mid);                        
+                                                e_put(e, b_m, te, esize, b_mid);
                                                 b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                                                 p_bput(p, b_m, b_m[b_mid].psize, b_mid, P_id);
                                                 if (xbox * 48 - b_m[b_mid].ox < 960 && ybox * 48 - 16 - k - b_m[b_mid].oy < 720) {
@@ -5333,7 +5342,6 @@ void p_walk(wofstream *wofs,player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar, t
                                                 Sleep(30);
                                                 p[P_id].pose = 4;
                                             }
-
                                             ybox--;
                                         }
                                         if (te[xbox][ybox].trap == 2) {
@@ -5356,6 +5364,7 @@ void p_walk(wofstream *wofs,player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar, t
                                                 p[P_id].buff_Size++;
                                             }
                                         }
+                                        for(int I=-2;)
                                     }
                                     int x = p[P_id].x, y = p[P_id].y;
                                     if (x + 1 < b_m[b_mid].x && te[x + 1][y].type == 0) {
@@ -5490,7 +5499,7 @@ void p_walk(wofstream *wofs,player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar, t
                                 solidpolygon(pts3, 3);
                             }
                         }
-                        e_put(e, b_m, esize, b_mid);
+                        e_put(e, b_m, te, esize, b_mid);
                         b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                         p_put(p, b_m, psize, b_mid);
                         ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
@@ -5584,7 +5593,7 @@ void p_walk(wofstream *wofs,player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar, t
                                 solidpolygon(pts3, 3);
                             }
                         }
-                        e_put(e, b_m, esize, b_mid);
+                        e_put(e, b_m, te, esize, b_mid);
                         b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                         p_put(p, b_m, psize, b_mid);
                         ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
@@ -5678,7 +5687,7 @@ void p_walk(wofstream *wofs,player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar, t
                                 solidpolygon(pts3, 3);
                             }
                         }
-                        e_put(e, b_m, esize, b_mid);
+                        e_put(e, b_m, te, esize, b_mid);
                         b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                         p_put(p, b_m, psize, b_mid);
                         ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
@@ -5772,7 +5781,7 @@ void p_walk(wofstream *wofs,player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar, t
                                 solidpolygon(pts3, 3);
                             }
                         }
-                        e_put(e, b_m, esize, b_mid);
+                        e_put(e, b_m, te, esize, b_mid);
                         b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                         p_put(p, b_m, psize, b_mid);
                         ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
@@ -5829,7 +5838,7 @@ void p_walk(wofstream *wofs,player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar, t
                                 }
                             }
                         }
-                        e_put(e, b_m, esize, b_mid);
+                        e_put(e, b_m, te, esize, b_mid);
                         b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                         p_put(p, b_m, psize, b_mid);
                         ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
@@ -5925,7 +5934,7 @@ void e_attack(wofstream *wofs,arms *ar,armor *Ar,player *p,enemy *e,b_npc *b_n,b
                             for (j = 0; j < 5; j++) {
                                 for (i = 0; i < 3; i++) {
                                     maps(p, P_id, e, b_m, ar, te, b_mid);/*地圖繪製*/
-                                    e_put(e, b_m, esize, b_mid);
+                                    e_put(e, b_m, te, esize, b_mid);
                                     b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                                     p_put(p, b_m, psize, b_mid);
                                     transparentimageA(NULL, e[id].x * 48 - b_m[b_mid].ox - 30, e[id].y * 48 - b_m[b_mid].oy - 160, &ae, i * 120, j * 300, 120, 300);
@@ -5947,7 +5956,7 @@ void e_attack(wofstream *wofs,arms *ar,armor *Ar,player *p,enemy *e,b_npc *b_n,b
                             for (j = 0; j < 5; j++) {
                                 for (i = 0; i < 3; i++) {
                                     maps(p, P_id, e, b_m, ar, te, b_mid);/*地圖繪製*/
-                                    e_put(e, b_m, esize, b_mid);
+                                    e_put(e, b_m, te, esize, b_mid);
                                     b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                                     p_put(p, b_m, psize, b_mid);
                                     transparentimageA(NULL, e[id].x * 48 - b_m[b_mid].ox - 110, e[id].y * 48 - b_m[b_mid].oy - 47, &ae, i * 320, j * 120, 320, 120);
@@ -5961,7 +5970,7 @@ void e_attack(wofstream *wofs,arms *ar,armor *Ar,player *p,enemy *e,b_npc *b_n,b
                         else if (ar_id == 8) {
                             BeginBatchDraw();
                             maps(p, P_id, e, b_m, ar, te, b_mid);/*地圖繪製*/
-                            e_put(e, b_m, esize, b_mid);
+                            e_put(e, b_m, te,esize, b_mid);
                             b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                             p_put(p, b_m, psize, b_mid);
                             ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
@@ -6241,7 +6250,7 @@ void e_attack(wofstream *wofs,arms *ar,armor *Ar,player *p,enemy *e,b_npc *b_n,b
                     for (i = 0; i < 3; i++) {
                         BeginBatchDraw();
                         maps(p, P_id, e, b_m, ar, te,b_mid);/*地圖繪製*/
-                        e_put(e, b_m, esize, b_mid);
+                        e_put(e, b_m, te, esize, b_mid);
                         b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                         p_put(p, b_m, psize, b_mid); 
                         transparentimageA(NULL, p[P_id].x * 48 - b_m[b_mid].ox - 25, p[P_id].y * 48 - 16 - b_m[b_mid].oy - 20, &ae, i * 120, j * 120, 120, 120);
@@ -6254,7 +6263,7 @@ void e_attack(wofstream *wofs,arms *ar,armor *Ar,player *p,enemy *e,b_npc *b_n,b
             if (ATK > AC) {
                 BeginBatchDraw();
                 maps(p, P_id, e,b_m, ar, te,b_mid);/*地圖繪製*/
-                e_put(e, b_m, esize, b_mid);
+                e_put(e, b_m, te, esize, b_mid);
                 b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                 p_put(p, b_m, psize, b_mid);
                 ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
@@ -6336,7 +6345,7 @@ void e_attack(wofstream *wofs,arms *ar,armor *Ar,player *p,enemy *e,b_npc *b_n,b
             else {         
                 BeginBatchDraw();
                 maps(p, P_id, e, b_m, ar, te,b_mid);/*地圖繪製*/
-                e_put(e, b_m, esize, b_mid);
+                e_put(e, b_m, te, esize, b_mid);
                 b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                 p_put(p, b_m, psize, b_mid);
                 ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
@@ -6409,7 +6418,7 @@ void e_attack(wofstream *wofs,arms *ar,armor *Ar,player *p,enemy *e,b_npc *b_n,b
                     for (i = 0; i < 3; i++) {
                         BeginBatchDraw();
                         maps(p, P_id, e, b_m, ar, te,b_mid);/*地圖繪製*/
-                        e_put(e, b_m, esize, b_mid);
+                        e_put(e, b_m, te, esize, b_mid);
                         b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                         p_put(p, b_m, psize, b_mid);
                         transparentimageA(NULL, b_n[b_nid].x * 48 - b_m[b_mid].ox - 25, b_n[b_nid].y * 48 - 16 - b_m[b_mid].oy - 20, &ae, i * 120, j * 120, 120, 120);
@@ -6422,7 +6431,7 @@ void e_attack(wofstream *wofs,arms *ar,armor *Ar,player *p,enemy *e,b_npc *b_n,b
             if (ATK > AC) {
                 BeginBatchDraw();
                 maps(p, P_id, e, b_m, ar, te,b_mid);/*地圖繪製*/
-                e_put(e, b_m, esize, b_mid);
+                e_put(e, b_m, te, esize, b_mid);
                 b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                 p_put(p, b_m, psize, b_mid);
                 ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
@@ -6487,7 +6496,7 @@ void e_attack(wofstream *wofs,arms *ar,armor *Ar,player *p,enemy *e,b_npc *b_n,b
             else {
                 BeginBatchDraw();
                 maps(p, P_id, e, b_m, ar, te, b_mid);/*地圖繪製*/
-                e_put(e, b_m, esize, b_mid);
+                e_put(e, b_m, te, esize, b_mid);
                 b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                 p_put(p, b_m, psize, b_mid);
                 ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
@@ -6666,7 +6675,7 @@ void e_walk(wofstream *wofs,enemy* e, player* p,b_npc *b_n, b_map* b_m,arms *ar,
                     for (j = 0; j < 5; j++) {
                         for (i = 0; i < 3; i++) {
                             maps(p, P_id, e, b_m, ar, te, b_mid);/*地圖繪製*/
-                            e_put(e, b_m, esize, b_mid);
+                            e_put(e, b_m, te, esize, b_mid);
                             b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                             p_put(p, b_m, psize, b_mid);
                             transparentimageA(NULL, e[id].x * 48 - b_m[b_mid].ox - 30, e[id].y * 48 - b_m[b_mid].oy - 160, &ae, i * 120, j * 300, 120, 300);
@@ -6688,7 +6697,7 @@ void e_walk(wofstream *wofs,enemy* e, player* p,b_npc *b_n, b_map* b_m,arms *ar,
                     for (j = 0; j < 5; j++) {
                         for (i = 0; i < 3; i++) {
                             maps(p, P_id, e, b_m, ar, te, b_mid);/*地圖繪製*/
-                            e_put(e, b_m, esize, b_mid);
+                            e_put(e, b_m, te, esize, b_mid);
                             b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                             p_put(p, b_m, psize, b_mid);
                             transparentimageA(NULL, e[id].x * 48 - b_m[b_mid].ox - 110, e[id].y * 48 - b_m[b_mid].oy - 47, &ae, i * 320, j * 120, 320, 120);
@@ -6702,7 +6711,7 @@ void e_walk(wofstream *wofs,enemy* e, player* p,b_npc *b_n, b_map* b_m,arms *ar,
                 else if (ar_id == 8) {
                     BeginBatchDraw();
                     maps(p, P_id, e, b_m, ar, te, b_mid);/*地圖繪製*/
-                    e_put(e, b_m, esize, b_mid);
+                    e_put(e, b_m, te, esize, b_mid);
                     b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                     p_put(p, b_m, psize, b_mid);
                     ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
@@ -6890,7 +6899,7 @@ void e_walk(wofstream *wofs,enemy* e, player* p,b_npc *b_n, b_map* b_m,arms *ar,
 
                 BeginBatchDraw();
                 maps(p, P_id, e, b_m, ar, te,b_mid);
-                e_bput(e, b_m, id, esize, b_mid);
+                e_bput(e, b_m,te, id, esize, b_mid);
                 b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                 p_put(p, b_m, psize, b_mid);
                 if (xbox * 48 - b_m[b_mid].ox < 960 && ((ybox) * 48 + k) - b_m[b_mid].oy - 16 < 720) {
@@ -6908,7 +6917,7 @@ void e_walk(wofstream *wofs,enemy* e, player* p,b_npc *b_n, b_map* b_m,arms *ar,
 
                 BeginBatchDraw();
                 maps(p, P_id, e, b_m, ar, te, b_mid);
-                e_bput(e, b_m, id, esize, b_mid);
+                e_bput(e, b_m, te, id, esize, b_mid);
                 b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                 p_put(p, b_m, psize, b_mid);
                 if (xbox * 48 - k - b_m[b_mid].ox < 960 && ybox * 48 - b_m[b_mid].oy - 16) {
@@ -6927,7 +6936,7 @@ void e_walk(wofstream *wofs,enemy* e, player* p,b_npc *b_n, b_map* b_m,arms *ar,
 
                 BeginBatchDraw();
                 maps(p, P_id, e, b_m, ar, te,b_mid);
-                e_bput(e, b_m, id, esize, b_mid);
+                e_bput(e, b_m, te, id, esize, b_mid);
                 b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                 p_put(p, b_m, psize, b_mid);
                 if (xbox * 48 + k - b_m[b_mid].ox < 960 && ybox * 48 - b_m[b_mid].oy - 16 < 720) {
@@ -6944,7 +6953,7 @@ void e_walk(wofstream *wofs,enemy* e, player* p,b_npc *b_n, b_map* b_m,arms *ar,
             for (k = 0; k <= 48; k += 16) {
                 BeginBatchDraw();
                 maps(p, P_id, e, b_m, ar, te,b_mid);
-                e_bput(e, b_m, id, esize, b_mid);
+                e_bput(e, b_m, te, id, esize, b_mid);
                 b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                 p_put(p, b_m, psize, b_mid);
                 if (xbox * 48 - b_m[b_mid].ox < 960 && (ybox * 48) - k - b_m[b_mid].oy - 16 < 720) {
@@ -7037,7 +7046,7 @@ void e_walk(wofstream *wofs,enemy* e, player* p,b_npc *b_n, b_map* b_m,arms *ar,
                     else if (ar_id == 8) {
                         BeginBatchDraw();
                         maps(p, P_id, e, b_m, ar, te, b_mid);/*地圖繪製*/
-                        e_put(e, b_m, esize, b_mid);
+                        e_put(e, b_m, te, esize, b_mid);
                         b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                         p_put(p, b_m, psize, b_mid);
                         ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
@@ -7280,7 +7289,6 @@ void acts( player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar,buff *bu, terrain(*
     while (sss != 0)
     {
         back_listen();
-        Sleep(10);
         if (GetAsyncKeyState(VK_UP) & 0x8000) {
             if (b_m[b_mid].cy > 7) {
                 b_m[b_mid].cy--;
@@ -7445,7 +7453,7 @@ void acts( player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar,buff *bu, terrain(*
                             road[6][10] = road[6][10];
                             cost[6][10] = cost[6][10];
                             move[6][10] = move[6][10];
-                            e_put(e, b_m, b_m[b_mid].esize, b_mid);
+                            e_put(e, b_m, te, b_m[b_mid].esize, b_mid);
                             b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                             p_put(p, b_m, psize, b_mid);
                             ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
@@ -7581,7 +7589,7 @@ void acts( player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar,buff *bu, terrain(*
                                     }
                                 }
                             }
-                            e_put(e, b_m, b_m[b_mid].esize, b_mid);
+                            e_put(e, b_m, te, b_m[b_mid].esize, b_mid);
                             b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                             p_put(p, b_m, psize, b_mid);
                             ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
@@ -7616,7 +7624,7 @@ void acts( player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar,buff *bu, terrain(*
                             IMAGE tri;
                             BeginBatchDraw();
                             maps(p, P_id, e, b_m, ar, te, b_mid);/*地圖繪製*/
-                            e_put(e, b_m, b_m[b_mid].esize, b_mid);
+                            e_put(e, b_m, te, b_m[b_mid].esize, b_mid);
                             b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                             p_put(p, b_m, psize, b_mid);
                             ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
@@ -7761,6 +7769,11 @@ void acts( player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar,buff *bu, terrain(*
                             outtextxy(970, 570 + ti * 40, tew.c_str());
                             ti++;
                         }
+                        if (te[b_m[b_mid].mx][b_m[b_mid].my].dark == 1) {
+                            tew = L"黑暗";
+                            outtextxy(970, 570 + ti * 40, tew.c_str());
+                            ti++;
+                        }
                         FlushBatchDraw();
                     }
                 }
@@ -7798,9 +7811,7 @@ void acts( player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar,buff *bu, terrain(*
                     int delta = m.wheel;
                     int lines = delta / WHEEL_DELTA;
                     b_log(b_m, b_mid, lines);
-                }
-            
-
+                }   
         }
         }
         
@@ -8921,10 +8932,18 @@ void event(flag *f,b_flag *b_f,player *p,npc *n,m_flag *m_f,Map *m,BOX *Box,Exit
      if (f[21].check == 1) {
          if (m_id == 2 && p[0].x == 19 && p[0].y == 11) {
              string filename;
-             filename = "./Game/story/event" + to_string(23) + string(".json");
+             /*             filename = "./Game/story/event" + to_string(23) + string(".json");
              readeventjson(p, n, f, m, Box, tk, m_f, it, st, filename.c_str(), m_id, b_id);
              filename = "./Game/story/event" + to_string(24) + string(".json");
+             readeventjson(p, n, f, m, Box, tk, m_f, it, st, filename.c_str(), m_id, b_id);*/
+             filename = "./Game/story/event" + to_string(99) + string(".json");
              readeventjson(p, n, f, m, Box, tk, m_f, it, st, filename.c_str(), m_id, b_id);
+             p[2].box_id[0] =5;
+             p[2].box_size[0] = 1;
+             p[2].box_id[1] = 5;
+             p[2].box_size[1] = 1;
+             p[2].box_id[2] = 17;
+             p[2].box_size[2] = 2;
              b_mid = 1;
              f[21].check = 0;
          }
@@ -12031,6 +12050,13 @@ void readBmapjson(b_map *b_m,terrain (*te)[50], const char* filename,int b_mid) 
                     }
                 }
             }
+            if (root["layers"][k]["properties"][1]["value"].asBool() == true) {
+                for (unsigned int w = 0; w < root["layers"][k]["data"].size(); w++) {
+                    if (root["layers"][k]["data"][w].asInt64() != 0) {
+                        te[w % b_m[b_mid].x][w / b_m[b_mid].x].dark = 1;
+                    }
+                }
+            }
         }
         if (root.isMember("bgm")) {
             b_m[b_mid].bgm = root["bgm"].asInt();
@@ -12505,7 +12531,7 @@ void b_event(flag *f,b_flag *b_f,player *p,npc *n,b_map *b_m,enemy_type *e_t,ene
                     b_m[b_mid].esize++;
                     BeginBatchDraw();
                     maps(p, P_id, e, b_m, ar, te,b_mid);/*地圖繪製*/
-                    e_put(e, b_m, b_m[b_mid].esize, b_mid);
+                    e_put(e, b_m, te, b_m[b_mid].esize, b_mid);
                     b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                     p_put(p, b_m, psize, b_mid);
                     ui(p, e, b_m, P_id, b_m[b_mid].esize, psize, b_mid, bu_id);
@@ -12541,7 +12567,7 @@ void b_event(flag *f,b_flag *b_f,player *p,npc *n,b_map *b_m,enemy_type *e_t,ene
                 readeventjson(p, n, f, m, Box, tk, m_f, it, st, path, m_id, b_id);     
                 BeginBatchDraw();
                 maps(p, P_id, e, b_m, ar, te,b_mid);/*地圖繪製*/
-                e_put(e, b_m, b_m[b_mid].esize, b_mid);
+                e_put(e, b_m, te, b_m[b_mid].esize, b_mid);
                 b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                 p_put(p, b_m, b_m[b_mid].psize, b_mid);
                 ui(p, e, b_m, P_id, b_m[b_mid].esize, b_m[b_mid].psize, b_mid, buff_id);
@@ -12799,7 +12825,7 @@ void p_skill(wofstream* wofs, string &chose,player *p,enemy *e,b_npc *b_n,skill 
                     p[P_id].buff_check[1]++;
                 }
                 maps(p, P_id, e, b_m, ar, te, b_mid);/*地圖繪製*/
-                e_put(e, b_m, esize, b_mid);
+                e_put(e, b_m, te, esize, b_mid);
                 b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                 p_put(p, b_m, psize, b_mid);
                 ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
@@ -12840,7 +12866,7 @@ void p_skill(wofstream* wofs, string &chose,player *p,enemy *e,b_npc *b_n,skill 
                             }
                         }
                     }
-                    e_put(e, b_m, esize, b_mid);
+                    e_put(e, b_m, te, esize, b_mid);
                     b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                     p_put(p, b_m, psize, b_mid);
                     ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
@@ -13160,7 +13186,7 @@ void p_skill(wofstream* wofs, string &chose,player *p,enemy *e,b_npc *b_n,skill 
                     }
                 }
             }
-            e_put(e, b_m, esize, b_mid);
+            e_put(e, b_m, te, esize, b_mid);
             b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
             p_put(p, b_m, psize, b_mid);
             ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
@@ -13300,7 +13326,7 @@ void p_skill(wofstream* wofs, string &chose,player *p,enemy *e,b_npc *b_n,skill 
                       }
                   }
               }
-              e_put(e, b_m, esize, b_mid);
+              e_put(e, b_m, te, esize, b_mid);
               b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
               p_put(p, b_m, psize, b_mid);
               ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
@@ -13385,7 +13411,7 @@ void p_skill(wofstream* wofs, string &chose,player *p,enemy *e,b_npc *b_n,skill 
                         }
                     }
                 }
-                e_put(e, b_m, esize, b_mid);
+                e_put(e, b_m, te, esize, b_mid);
                 b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                 p_put(p, b_m, psize, b_mid);
                 ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
@@ -13437,7 +13463,7 @@ void p_skill(wofstream* wofs, string &chose,player *p,enemy *e,b_npc *b_n,skill 
                 }
             }
         }
-        e_put(e, b_m, esize, b_mid);
+        e_put(e, b_m, te, esize, b_mid);
         b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
         p_put(p, b_m, psize, b_mid);
         ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
@@ -13494,7 +13520,7 @@ void p_skill(wofstream* wofs, string &chose,player *p,enemy *e,b_npc *b_n,skill 
                     }
                 }
             }
-            e_put(e, b_m, esize, b_mid);
+            e_put(e, b_m, te, esize, b_mid);
             b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
             p_put(p, b_m, psize, b_mid);
             ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
@@ -13559,7 +13585,7 @@ void p_skill(wofstream* wofs, string &chose,player *p,enemy *e,b_npc *b_n,skill 
                 }
             }
         }
-        e_put(e, b_m, esize, b_mid);
+        e_put(e, b_m, te, esize, b_mid);
         b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
         p_put(p, b_m, psize, b_mid);
         ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
@@ -13662,6 +13688,7 @@ void b_end_menu(player* p, enemy* e, enemy_type* e_t, item* it, b_map* b_m, int 
             }
             if (p[i].conExp >= 100) {
                 p[i].con += p[i].conExp / 100;
+                p[i].mhp += (p[i].conExp / 100) * 2;
                 p[i].conExp -= p[i].conExp / 100 * 100;
                 outtextxy(320, 110 + 180 * i, L"^");
             }
@@ -13681,6 +13708,7 @@ void b_end_menu(player* p, enemy* e, enemy_type* e_t, item* it, b_map* b_m, int 
                 outtextxy(320, 140 + 180 * i, L"^");
             }
             p[i].sp++;
+
             outtextxy(320, 155 + 180 * i, L"^");
         }
         path = L"STR " + to_wstring(p[i].str);
@@ -13819,7 +13847,7 @@ void n_walk(wofstream* wofs, b_npc* b_n, b_map* b_m, enemy* e,player *p,arms *ar
 
                 BeginBatchDraw();
                 maps(p, P_id, e, b_m, ar, te, b_mid);
-                e_put(e, b_m, esize, b_mid);
+                e_put(e, b_m, te, esize, b_mid);
                 b_bnput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                 p_put(p, b_m, psize, b_mid);
                 if (xbox * 48 - b_m[b_mid].ox < 960 && ((ybox) * 48 + k) - b_m[b_mid].oy - 16 < 720) {
@@ -13837,7 +13865,7 @@ void n_walk(wofstream* wofs, b_npc* b_n, b_map* b_m, enemy* e,player *p,arms *ar
 
                 BeginBatchDraw();
                 maps(p, P_id, e, b_m, ar, te, b_mid);
-                e_put(e, b_m, esize, b_mid);
+                e_put(e, b_m, te, esize, b_mid);
                 b_bnput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                 p_put(p, b_m, psize, b_mid);
                 if (xbox * 48 - k - b_m[b_mid].ox < 960 && ybox * 48 - b_m[b_mid].oy - 16) {
@@ -13856,7 +13884,7 @@ void n_walk(wofstream* wofs, b_npc* b_n, b_map* b_m, enemy* e,player *p,arms *ar
 
                 BeginBatchDraw();
                 maps(p, P_id, e, b_m, ar, te,b_mid);
-                e_put(e, b_m, esize, b_mid);
+                e_put(e, b_m, te, esize, b_mid);
                 b_bnput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                 p_put(p, b_m, psize, b_mid);
                 if (xbox * 48 + k - b_m[b_mid].ox < 960 && ybox * 48 - b_m[b_mid].oy - 16 < 720) {
@@ -13873,7 +13901,7 @@ void n_walk(wofstream* wofs, b_npc* b_n, b_map* b_m, enemy* e,player *p,arms *ar
             for (k = 0; k <= 48; k += 16) {
                 BeginBatchDraw();
                 maps(p, P_id, e, b_m, ar, te, b_mid);
-                e_put(e, b_m, esize, b_mid);
+                e_put(e, b_m, te, esize, b_mid);
                 b_bnput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                 p_put(p, b_m, psize, b_mid);
                 if (xbox * 48 - b_m[b_mid].ox < 960 && (ybox * 48) - k - b_m[b_mid].oy - 16 < 720) {
@@ -14006,7 +14034,7 @@ void n_attack(wofstream* wofs, b_npc* b_n, b_map* b_m, enemy* e, player* p, arms
                 for (i = 0; i < 3; i++) {
                     BeginBatchDraw();
                     maps(p, P_id, e, b_m, ar, te, b_mid);/*地圖繪製*/
-                    e_put(e, b_m, esize, b_mid);
+                    e_put(e, b_m, te, esize, b_mid);
                     b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                     p_put(p, b_m, psize, b_mid);
                     transparentimageA(NULL, e[id].x * 48 - b_m[b_mid].ox - 30, e[id].y * 48 - b_m[b_mid].oy - 160, &ae, i * 120, j * 300, 120, 300);
@@ -14034,7 +14062,7 @@ void n_attack(wofstream* wofs, b_npc* b_n, b_map* b_m, enemy* e, player* p, arms
                 for (i = 0; i < 3; i++) {
                     BeginBatchDraw();
                     maps(p, P_id, e, b_m, ar, te, b_mid);/*地圖繪製*/
-                    e_put(e, b_m, esize, b_mid);
+                    e_put(e, b_m, te, esize, b_mid);
                     b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                     p_put(p, b_m, psize, b_mid);
                     transparentimageA(NULL, e[id].x * 48 - b_m[b_mid].ox - 25, e[id].y * 48 - 16 - b_m[b_mid].oy - 20, &ae, i * 120, j * 120, 120, 120);
@@ -14047,7 +14075,7 @@ void n_attack(wofstream* wofs, b_npc* b_n, b_map* b_m, enemy* e, player* p, arms
         if (ATK > AC) {
             BeginBatchDraw();
             maps(p, P_id, e, b_m, ar, te,b_mid);/*地圖繪製*/
-            e_put(e, b_m, esize, b_mid);
+            e_put(e, b_m, te, esize, b_mid);
             b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
             p_put(p, b_m, psize, b_mid);
             ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
@@ -14101,7 +14129,7 @@ void n_attack(wofstream* wofs, b_npc* b_n, b_map* b_m, enemy* e, player* p, arms
         else {
             BeginBatchDraw();
             maps(p, P_id, e, b_m, ar, te, b_mid);/*地圖繪製*/
-            e_put(e, b_m, esize, b_mid);
+            e_put(e, b_m, te, esize, b_mid);
             b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
             p_put(p, b_m, psize, b_mid);
             ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
@@ -14176,7 +14204,7 @@ void n_attack(wofstream* wofs, b_npc* b_n, b_map* b_m, enemy* e, player* p, arms
                             for (j = 0; j < 5; j++) {
                                 for (i = 0; i < 3; i++) {
                                     maps(p, P_id, e, b_m, ar, te, b_mid);/*地圖繪製*/
-                                    e_put(e, b_m, esize, b_mid);
+                                    e_put(e, b_m, te, esize, b_mid);
                                     b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                                     p_put(p, b_m, psize, b_mid);
                                     transparentimageA(NULL, e[id].x * 48 - b_m[b_mid].ox - 30, e[id].y * 48 - b_m[b_mid].oy - 160, &ae, i * 120, j * 300, 120, 300);
@@ -14843,7 +14871,7 @@ void e_battle_ai(wofstream* wofs, enemy *e,player *p,e_npc *e_n,b_npc *b_n,b_map
             wstring vos = L"setaudio woo1 volume to " + to_wstring(soundSize);
             mciSendString(vos.c_str(), NULL, 0, NULL);
             mciSendString(L"play woo1 from 0", NULL, 0, NULL);
-            e_put(e, b_m, b_m[b_mid].esize, b_mid);
+            e_put(e, b_m, te, b_m[b_mid].esize, b_mid);
             *wofs << L"(T" << b_m[b_mid].time << L")" << e[id].name << L"呼喚了" << e[b_m[b_mid].esize - 1].name << endl;
             IMAGE sb;
             loadimage(&sb, L"./Game/picture/b_skill_block.png", 0, 0, false);
@@ -14864,7 +14892,7 @@ void e_battle_ai(wofstream* wofs, enemy *e,player *p,e_npc *e_n,b_npc *b_n,b_map
                 wstring vos = L"setaudio woo2 volume to " + to_wstring(soundSize);
                 mciSendString(vos.c_str(), NULL, 0, NULL);
                 mciSendString(L"play woo2 from 0", NULL, 0, NULL);
-                e_put(e, b_m, b_m[b_mid].esize, b_mid);
+                e_put(e, b_m, te, b_m[b_mid].esize, b_mid);
                 *wofs << L"(T" << b_m[b_mid].time << L")" << e[id].name << L"呼喚了" << e[b_m[b_mid].esize - 1].name << endl;
                 IMAGE sb;
                 loadimage(&sb, L"./Game/picture/b_skill_block.png", 0, 0, false);
@@ -14941,7 +14969,7 @@ int main() {
     SetClassLongPtr(hwnd, GCLP_HCURSOR, (long)hcur);
     SetWindowText(hwnd, L"隕星傳奇");
     bc_l = FindWindow(NULL,L"隕星傳奇");
-    int  variable = 1, id = 0, P_id = 0, m_id = 1, psize = 1, load = 0, n_id = 1, i_id = 17, ar_id = 9, Ar_id = 2, st_id = 2, f_id = 22, b_mid, ex_id = 14, b_id = 9, sk_id = 20, buff_id = 32, m_fid = 11, b_nid = 0, t_Eid = 2, sp_id = -1,tk_id=6;
+    int  variable = 1, id = 0, P_id = 0, m_id = 1, psize = 1, load = 0, n_id = 1, i_id = 18, ar_id = 9, Ar_id = 2, st_id = 3, f_id = 22, b_mid, ex_id = 14, b_id = 9, sk_id = 20, buff_id = 32, m_fid = 11, b_nid = 0, t_Eid = 3, sp_id = -1,tk_id=6;
     /*變數數量*/    
     wofstream wofs;
     player p[3];
@@ -14949,10 +14977,10 @@ int main() {
     enemy e[10];
     arms  ar[9];
     armor Ar[2];
-    item  it[17];
+    item  it[18];
     Map   m[10];
     npc  n[100];
-    stone st[2];
+    stone st[3];
     flag f[100];
     e_npc e_n[100];
     b_map b_m[5];
@@ -14965,7 +14993,7 @@ int main() {
     b_npc b_n[10];
     b_npc_type b_nt[10];
     terrain te[50][50];
-    t_equip t_E[2];
+    t_equip t_E[3];
     shop sp[2];
     task tk[10];
     int ix, iy, abox1[1];
@@ -14987,13 +15015,13 @@ int main() {
     m[8].nsize = 0; m[8].esize = 4; m[8].b_set = "b3zb3zb3zb3z"; m[8].e_set = "x41y42k2x25y26k0x14y10k2x52y10k0"; m[8].exitsize = 1; m[8].exit_set = "11_"; m[8].mevent_size = 2; m[8].mevent_set = "5_6_"; m[8].box_set = "2n3n4n5n6n7n8n"; m[8].name = L"南部森林外圍";
     m[9].nsize = 1; m[9].npcid = "8-"; m[9].esize = 0; m[9].exitsize = 1; m[9].exit_set = "13_"; m[9].mevent_size = 3; m[9].mevent_set = "7_8_9_"; m[9].name = L"星落村村長家";
     b_m[0].esize = 1; b_m[0].e_set = "e0x6y4"; b_m[0].p_set = "x18y14x19y14"; b_m[0].cx = 0; b_m[0].cy = 0; b_m[0].fsize = 0; b_m[0].nsize = 0;
-    b_m[1].esize = 8; b_m[1].e_set = "e1x0y26e1x0y28e1x0y27e1x0y44e1x49y44e1x5y0e1x49y15e1x26y44"; b_m[1].p_set = "x12y25x16y25"; b_m[1].cx = 12; b_m[1].cy = 25; b_m[1].fsize = 2; b_m[1].f_set = "0n1n";
+    b_m[1].esize = 8; b_m[1].e_set = "e1x0y26e1x0y28e1x0y27e1x0y44e1x49y44e1x5y0e1x49y15e1x26y44"; b_m[1].p_set = "x27y27x26y27x27y26"; b_m[1].cx = 12; b_m[1].cy = 25; b_m[1].fsize = 2; b_m[1].f_set = "0n1n";
     b_m[2].esize = 2; b_m[2].e_set = "e0x5y4e0x6y3"; b_m[2].p_set = "x18y13x19y13"; b_m[2].cx = 0; b_m[2].cy = 0; b_m[2].fsize = 1; b_m[2].f_set = "2n"; b_m[2].nsize = 1; b_m[2].n_set = "n0x16y10";
     b_m[3].esize = 1; b_m[3].e_set = "e2x3y1"; b_m[3].p_set = "x3y12x4y12"; b_m[3].cx = 0; b_m[3].cy = 0; b_m[3].fsize = 0; b_m[3].nsize = 0;
     b_m[4].esize = 3; b_m[4].e_set = "e4x6y11e4x13y12e3x10y7"; b_m[4].p_set = "x9y14x10y14"; b_m[4].cx = 0; b_m[4].cy = 0; b_m[4].fsize = 3;  b_m[4].f_set = "3n4n5n"; b_m[4].nsize = 1; b_m[4].n_set = "n1x9y5"; b_m[4].lc = L"1.我方全員被擊敗\n2.愛麗絲被擊敗"; b_m[4].vc = L"1.狼王HP低於30%";
-    p[0].name = L"艾倫"; p[0].story = L"見習醫生"; p[0].lv = 1; p[0].mhp = 12; p[0].hp = 12; p[0].dex = 10; p[0].Move = 6; p[0].isize = 1; p[0].asize = 1; p[0].x = 10; p[0].y = 10; p[0].speed = 10; p[0].turn = 0; p[0].abox = 0; p[0].pose = 1; p[0].str = 10; p[0].INT = 10; p[0].con = 10; p[0].cha = 10; p[0].wis = 10; p[0].arms_id_1 = 4; p[0].arms_id_2 = -1; p[0].armor_id = 1; p[0].stone_id = -1; p[0].s_check[4] = 1; p[0].state = 1; p[0].exp = 0; p[0].dexUp = 50; p[0].strExp = 40; p[0].intUp = 60; p[0].conUp = 20; p[0].chaUp = 60; p[0].wisUp = 20; p[0].act = 1; p[0].Act = 1; p[0].arms_b_1 = 1; p[0].arms_b_2 = 0; p[0].b_id_1 = -1; p[0].b_id_2 = -1;
-    p[1].name = L"夏洛特"; p[1].story = L"獵人"; p[1].lv = 1; p[1].mhp = 12; p[1].hp = 12; p[1].dex = 10; p[1].Move = 6; p[1].isize = 1; p[1].asize = 1; p[1].x = 10; p[1].y = 10; p[1].speed = 10; p[1].turn = 0; p[1].abox = 0; p[1].pose = 1; p[1].str = 10; p[1].INT = 10; p[1].con = 10; p[1].cha = 10; p[1].wis = 10; p[1].arms_id_1 = 0; p[1].arms_id_2 = 6; p[1].armor_id = 0; p[1].stone_id = -1; p[1].s_check[3] = 1; p[1].exp = 0; p[1].dexUp = 60; p[1].strExp = 30; p[1].intUp = 20; p[1].conUp = 20; p[1].chaUp = 60; p[1].wisUp = 60; p[1].act = 1; p[1].Act = 1; p[1].t_id = 1; p[1].arms_b_1 = 5; p[1].arms_b_2 = 1; p[1].b_id_1 = 0; p[1].b_id_2 = -1;
-    p[2].name = L"愛麗絲"; p[2].story = L"騎士"; p[2].lv = 1; p[2].mhp = 10; p[2].hp = 10; p[2].dex = 10; p[2].move = 6; p[2].isize = 1; p[2].asize = 1; p[2].x = 10; p[2].y = 10; p[2].speed = 12; p[2].turn = 0; p[2].abox = 0; p[2].pose = 1; p[2].str = 11; p[2].INT = 10; p[2].con = 11; p[2].cha = 10; p[2].wis = 10; p[2].arms_id_1 = 2; p[2].stone_id = 1;
+    p[0].name = L"艾倫"; p[0].story = L"見習醫生"; p[0].lv = 1; p[0].mhp = 10; p[0].hp = 10; p[0].dex = 10; p[0].Move = 6; p[0].isize = 1; p[0].asize = 1; p[0].x = 10; p[0].y = 10; p[0].speed = 10; p[0].turn = 0; p[0].abox = 0; p[0].pose = 1; p[0].str = 10; p[0].INT = 10; p[0].con = 10; p[0].cha = 10; p[0].wis = 10; p[0].arms_id_1 = 4; p[0].arms_id_2 = -1; p[0].armor_id = 1; p[0].stone_id = -1; p[0].s_check[4] = 1; p[0].state = 1; p[0].exp = 0; p[0].dexUp = 50; p[0].strUp = 40; p[0].intUp = 60; p[0].conUp = 20; p[0].chaUp = 60; p[0].wisUp = 20; p[0].act = 1; p[0].Act = 1; p[0].arms_b_1 = 1; p[0].arms_b_2 = 0; p[0].b_id_1 = -1; p[0].b_id_2 = -1;
+    p[1].name = L"夏洛特"; p[1].story = L"獵人"; p[1].lv = 1; p[1].mhp = 10; p[1].hp = 10; p[1].dex = 10; p[1].Move = 6; p[1].isize = 1; p[1].asize = 1; p[1].x = 10; p[1].y = 10; p[1].speed = 10; p[1].turn = 0; p[1].abox = 0; p[1].pose = 1; p[1].str = 10; p[1].INT = 10; p[1].con = 10; p[1].cha = 10; p[1].wis = 10; p[1].arms_id_1 = 0; p[1].arms_id_2 = 6; p[1].armor_id = 0; p[1].stone_id = -1; p[1].s_check[3] = 1; p[1].exp = 0; p[1].dexUp = 60; p[1].strUp = 30; p[1].intUp = 20; p[1].conUp = 20; p[1].chaUp = 60; p[1].wisUp = 60; p[1].act = 1; p[1].Act = 1; p[1].t_id = 1; p[1].arms_b_1 = 5; p[1].arms_b_2 = 1; p[1].b_id_1 = 0; p[1].b_id_2 = -1;
+    p[2].name = L"愛麗絲"; p[2].story = L"騎士冠軍"; p[2].lv = 5; p[2].mhp = 20; p[2].hp = 20; p[2].dex = 13; p[2].Move = 6; p[2].isize = 1; p[2].asize = 1; p[2].x = 10; p[2].y = 10; p[2].speed = 12; p[2].turn = 0; p[2].abox = 0; p[2].pose = 1; p[2].str = 15; p[2].INT = 14; p[2].con = 14; p[2].cha = 13; p[2].wis = 12; p[2].arms_id_1 = 2; p[2].arms_id_2 = -1; p[2].stone_id = 2; p[2].exp = 0; p[2].dexUp = 30; p[2].strUp = 80; p[2].intUp = 50; p[2].conUp = 70; p[2].chaUp = 30; p[2].wisUp = 20; p[2].act = 1; p[2].Act = 1; p[2].t_id = 1; p[2].arms_b_1 = 1; p[2].arms_b_2 = 1; p[2].b_id_1 = -1; p[2].b_id_2 = -1;
     e_t[0].name = L"野狼"; e_t[0].story = L"團體行動的動物 隨著數量增加危險性也會大幅上升"; e_t[0].baid = 1; e_t[0].str = 12; e_t[0].dex = 13; e_t[0].con = 12; e_t[0].INT = 3; e_t[0].wis = 14; e_t[0].cha = 7; e_t[0].lv = 1; e_t[0].mhp = 11; e_t[0].hp = 11; e_t[0].Move = 7; e_t[0].speed = 12; e_t[0].exp = 105; e_t[0].drop = "100%15i"; e_t[0].species = "a";
     e_t[1].name = L"帝國動員兵"; e_t[1].story = L"帝國戰時動員的士兵 只接受過基礎的軍事訓練"; e_t[1].baid = 0; e_t[1].str = 11; e_t[1].dex = 10; e_t[1].con = 11; e_t[1].INT = 10; e_t[1].wis = 10; e_t[1].cha = 10; e_t[1].lv = 1; e_t[1].mhp = 10; e_t[1].hp = 10; e_t[1].Move = 5; e_t[1].speed = 11; e_t[1].exp = 150; e_t[1].drop = "50%0i"; e_t[1].species = "h";
     e_t[2].name = L"野蜂"; e_t[2].story = L"領地意識極強，一但靠近就會使用帶有毒液的尾針攻擊"; e_t[2].baid = 7; e_t[2].str = 3; e_t[2].dex = 15; e_t[2].con = 10; e_t[2].INT = 1; e_t[1].wis = 7; e_t[2].cha = 1; e_t[2].lv = 1; e_t[2].mhp = 5; e_t[2].hp = 5; e_t[2].Move = 5; e_t[2].speed = 15; e_t[2].exp = 50; e_t[2].drop = "20%16i"; e_t[2].species = "a";
@@ -15029,10 +15057,13 @@ int main() {
     it[14].Name = L"小紅莓"; it[14].name = "小紅莓"; it[14].number = 0; it[14].type = 'e'; it[14].story = L"自然給予旅人的恩賜，郊外總能發現其存在\n食物 為單體回復10%HP\n儲存上限:25"; it[14].value = 5;
     it[15].Name = L"狼牙"; it[15].name = "狼牙"; it[15].number = 0; it[15].type = 'm'; it[15].story = L"通常會加工成飾品，此外也能作為神眷使儀式用的材料"; it[15].value = 50;
     it[16].Name = L"蜂蜜"; it[16].name = "蜂蜜"; it[16].number = 0; it[16].type = 'h'; it[16].story = L"具有藥用價值，能促進傷口癒合\n使用1秒後回復25%hp且獲得1AP"; it[16].value = 500; it[16].range = 0; it[16].time = 1;
+    it[17].Name = L"燃燒瓶"; it[17].name = "燃燒瓶"; it[17].number = 0; it[17].type = 'a'; it[17].story = L"裝有易燃液體的玻璃瓶，製作簡單且對抗裝甲單位有奇效\n投擲物 對目標範圍內的單位造成2d3點傷害以及3層燃燒，同時點燃地面"; it[17].value = 200;
     st[0].name = L"長青石"; st[0].number = 0; st[0].story = L"從星隕礦採掘出的伴生礦 沾染了生命的氣息\nHP+2"; st[0].type = "H+2"; st[0].lv = 1;
     st[1].name = L"烈風石"; st[1].number = 0; st[1].story = L"從星隕礦採掘出的伴生礦 沾染了狂風的氣息\n速度+2"; st[1].type = "S+2"; st[1].lv = 1;
+    st[2].name = L"大地之心"; st[2].number = 0; st[2].story = L"巴蘭斯的鎮國之寶，由頂級的星隕石製成，只有契合的神眷使才能使用\n限定愛麗絲使用\n全屬性+2"; st[2].type="A+2"; st[2].lv = 2;
     t_E[0].name = L"簡易醫療箱"; t_E[0].story = L"父親為艾倫準備的醫療箱，能很好的存放藥物與器材\n戰鬥中能攜帶的藥物數量增加 進行治療時所需的時間減少20%"; t_E[0].size = 3; t_E[0].number = 0;
     t_E[1].name = L"彈藥袋"; t_E[1].story = L"便於攜帶彈藥與裝填的布袋\n減少裝填時間1秒"; t_E[1].size = 3; t_E[1].number = 0;
+    t_E[2].name = L""; t_E[2].story = L""; t_E[2].size = 3; t_E[2].number = 0;
     n[0].name = L"";
     n[1].name = L"朱利安"; n[1].x = 3; n[1].y = 6; n[1].avatar = 1;
     n[2].name = L"???";
@@ -15217,7 +15248,7 @@ int main() {
                     loadimage(&s_l , L"./Game/picture/win_lose.png", 0, 0, false);
                     BeginBatchDraw();
                     maps(p, P_id, e, b_m, ar, te, b_mid);/*地圖繪製*/
-                    e_put(e, b_m, b_m[b_mid].esize, b_mid);
+                    e_put(e, b_m, te, b_m[b_mid].esize, b_mid);
                     b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                     p_put(p, b_m, b_m[b_mid].psize, b_mid);
                     ui(p, e, b_m, P_id, b_m[b_mid].esize, b_m[b_mid].psize, b_mid, buff_id);                    
@@ -15367,13 +15398,13 @@ int main() {
                 while (chose=="") {
                 BeginBatchDraw();                
                 maps(p, P_id, e,b_m, ar, te,b_mid);/*地圖繪製*/
-                e_put(e, b_m, b_m[b_mid].esize, b_mid);
+                e_put(e, b_m, te, b_m[b_mid].esize, b_mid);
                 b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                 p_put(p, b_m, b_m[b_mid].psize, b_mid);
                 ui(p, e, b_m, P_id, b_m[b_mid].esize, b_m[b_mid].psize, b_mid, buff_id);
                 FlushBatchDraw();
                 start_time = clock();
-                for (; (clock() - start_time) < 500;);
+                for (; (clock() - start_time) < 50;);
                 flushmessage(-1);
                 acts(p, e,b_n, b_m, ar,bu,te,chose, b_mid, P_id, b_m[b_mid].esize, id, b_m[b_mid].psize,buff_id,b_nid);/*選項*/                
                 }
