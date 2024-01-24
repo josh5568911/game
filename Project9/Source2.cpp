@@ -30,7 +30,7 @@
 #include<thread>
 #include<csignal>
 #include <mutex>
-#include<condition_variable>;
+#include<condition_variable>
 using namespace std;
 int i, j, ss[200][150], Z = 0; int gg = 0; int voiceSize = 500; int soundSize = 500; int oms;/*F=時間計數器*/
 long long int FP = 0;
@@ -47,6 +47,7 @@ bool isReady = true;
 bool iskle = true;
 bool wmc = true;
 wchar_t vo[50];
+LOGFONT lft;
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {    
     if (uMsg == WM_CLOSE) {
@@ -100,7 +101,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             if (GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
                 if (point.x > 40 && point.x < 110 && point.y>60 && point.y < 90) {
                     SystemParametersInfo(SPI_SETMOUSESPEED, 0, (LPVOID)oms, SPIF_SENDCHANGE);
-                    exit(0);
+                    ExitProcess(0);
                     break;
                 }
                 else if (point.x > 130 && point.x < 200 && point.y>60 && point.y < 90) {
@@ -323,6 +324,7 @@ public:
     string drop, species;
     int lv, mhp, hp, dex, str, x, y, INT, con, wis, cha, speed, move, baid,exp,Move,s_range=0,e_range=0;
     int EDV = 0, DEF = 0;
+    int w=1, h=1;
 };
 class enemy {
 public:
@@ -345,6 +347,7 @@ public:
     int lasty=-1;
     int b_num_1=0,b_num_2=0;
     int EDV = 0,DEF=0;
+    int w , h;
 };
 class b_npc_type {
 public:
@@ -1103,8 +1106,15 @@ int EKTVS(player* p, enemy* e, b_map* b_m, arms* ar, enemy_type* e_t, armor *Ar,
 int retrye(wofstream* wofs, player *p,enemy *e,arms *ar,armor *Ar,int P_id,int id,int hcv,int type) {
     /*type0:普攻*/
     int ATK,AC;
-    int ak[100], ac[100];
-    int K = 0,C=0;
+    int ak[100];
+    int K = 0;
+        AC = roll("", 2) + (p[P_id].dex - 10) / 2 + Ar[p[P_id].armor_id].EDV;
+        if (p[P_id].buff_check[27] == 1) {
+            AC /= 2;
+        }
+        if (p[P_id].buff_check[14] == 1 || p[P_id].buff_check[20] == 1) {
+            AC = 0;
+        }
     while (1) {
         if (type == 0) {
         if (ar[e[id].baid].type[0] == 'r') {
@@ -1117,64 +1127,63 @@ int retrye(wofstream* wofs, player *p,enemy *e,arms *ar,armor *Ar,int P_id,int i
         else if (type == 1) {
             ATK = roll("", 2)  + (e[id].str - 10) / 2;
         }
-        AC = roll("", 2) + (p[P_id].dex - 10) / 2 + Ar[p[P_id].armor_id].EDV;
-        if (p[P_id].buff_check[27] == 1) {
-            AC /= 2;
-        }
-        if (p[P_id].buff_check[14] == 1 || p[P_id].buff_check[20] == 1) {
-            AC = 0;
-        }
         if (hcv == 0) {
             if (ATK > AC) {
                 *wofs << L",命中(" ;
                 for (int I = 0; I < K; I++) {
-                    *wofs << ak[K];
-                    if (I != K - 1) {
-                        *wofs << L"->";
-                    }
+                    *wofs << ak[I]<<L"->";
                 }
-                *wofs <<L">"<<AC << L")" << endl;
+                *wofs <<ATK << L">" << AC << L")" << endl;
                 return 1;
             }
             else {
+                *wofs << L",未命中(";
+                for (int I = 0; I < K; I++) {
+                    *wofs << ak[I]<<L"->";
+                }
+                *wofs << ATK << L"<=" << AC << L")" << endl;
                 return 0;
             }
         }
-        if (hcv < 0) {
+        if (hcv > 0) {
+            if (ATK <= AC) {
+                *wofs << L",未命中(";
+                for (int I = 0; I < K; I++) {
+                    *wofs << ak[I] << L"->";
+                }
+                *wofs << ATK << L"<="<<AC<<L")" << endl;
+                return 0;
+            }
+
+            hcv--;
+        }
+        else if (hcv < 0) {
             if (ATK > AC) {
                 *wofs << L",命中(";
                 for (int I = 0; I < K; I++) {
-                    *wofs << ak[K];
-                    if (I != K - 1) {
-                        *wofs << L"->";
-                    }
+                    *wofs << ak[I] << L"->";
                 }
-                *wofs << L">" << AC << L")" << endl;
+                *wofs << ATK << L">" << AC << L")" << endl;
                 return 1;
             }
             hcv++;
         }
-        if (hcv > 0) {
-            if (ATK <= AC) {
-                *wofs << L",未能命中(";
-                for (int I = 0; I < K; I++) {
-                    *wofs << ak[K];
-                    if (I != K - 1) {
-                        *wofs << L",";
-                    }
-                }
-                *wofs << L"<="<<AC<<L")" << endl;
-                return 0;
-            }
-            hcv--;
-        }
+        ak[K] = ATK;
+        K++;
     }
 }
-int retryn(wofstream* wofs, b_npc* b_n, enemy* e, arms* ar, armor* Ar, int P_id, int id, int hcv, int type) {
+int retryn(wofstream* wofs, b_npc* b_n, enemy* e, arms* ar, armor* Ar, int b_nid, int id, int hcv, int type) {
     /*type0:普攻*/
     int ATK, AC;
     int ak[100], ac[100];
-    int K = 0, C = 0;
+    int K = 0, C = 0;        
+        AC = roll("", 2) + (b_n[b_nid].dex - 10) / 2 ;
+        if (b_n[b_nid].buff_check[27] == 1) {
+            AC /= 2;
+        }
+        if (b_n[b_nid].buff_check[14] == 1 || b_n[b_nid].buff_check[20] == 1) {
+            AC = 0;
+        }
     while (1) {
         if (type == 0) {
             if (ar[e[id].baid].type[0] == 'r') {
@@ -1187,23 +1196,14 @@ int retryn(wofstream* wofs, b_npc* b_n, enemy* e, arms* ar, armor* Ar, int P_id,
         else if (type == 1) {
             ATK = roll("", 2) + (e[id].str - 10) / 2;
         }
-        AC = roll("", 2) + (p[P_id].dex - 10) / 2 + Ar[p[P_id].armor_id].EDV;
-        if (p[P_id].buff_check[27] == 1) {
-            AC /= 2;
-        }
-        if (p[P_id].buff_check[14] == 1 || p[P_id].buff_check[20] == 1) {
-            AC = 0;
-        }
+
         if (hcv == 0) {
             if (ATK > AC) {
                 *wofs << L",命中(";
                 for (int I = 0; I < K; I++) {
-                    *wofs << ak[K];
-                    if (I != K - 1) {
-                        *wofs << L"->";
-                    }
+                    *wofs << ak[I]<<L"->";
                 }
-                *wofs << L">" << AC << L")" << endl;
+                *wofs <<ATK<< L">" << AC << L")" << endl;
                 return 1;
             }
             else {
@@ -1214,12 +1214,9 @@ int retryn(wofstream* wofs, b_npc* b_n, enemy* e, arms* ar, armor* Ar, int P_id,
             if (ATK > AC) {
                 *wofs << L",命中(";
                 for (int I = 0; I < K; I++) {
-                    *wofs << ak[K];
-                    if (I != K - 1) {
-                        *wofs << L"->";
-                    }
+                    *wofs << ak[I]<<L"->";
                 }
-                *wofs << L">" << AC << L")" << endl;
+                *wofs<<ATK<< L">" << AC << L")" << endl;
                 return 1;
             }
             hcv++;
@@ -1228,16 +1225,101 @@ int retryn(wofstream* wofs, b_npc* b_n, enemy* e, arms* ar, armor* Ar, int P_id,
             if (ATK <= AC) {
                 *wofs << L",未能命中(";
                 for (int I = 0; I < K; I++) {
-                    *wofs << ak[K];
-                    if (I != K - 1) {
-                        *wofs << L",";
-                    }
+                    *wofs << ak[I] << "->";
                 }
-                *wofs << L"<=" << AC << L")" << endl;
+                *wofs<<ATK << L"<=" << AC << L")" << endl;
                 return 0;
             }
             hcv--;
         }
+    }
+}
+int retryp(wofstream* wofs, player* p, enemy* e, arms* ar, armor* Ar, int P_id, int id,int ar_id, int hcv, int type) {
+    int ATK, AC;
+    int ak[100];
+    int K = 0;
+    string mark;
+    AC = roll("", 2) + (e[id].dex - 10) / 2;
+    if (e[id].buff_check[27] == 1) {
+        AC /= 2;
+    }
+    if (e[id].buff_check[20] == 1) {
+        AC = 0;
+    }
+        if (ar[ar_id].type[0] == 'r' && p[P_id].buff_check[25] == 1) {
+            AC = 0;
+            p[P_id].buff_check[25] = 0;
+            p[P_id].buff_check[24] = 1;
+            p[P_id].buff_time[p[P_id].buff_Size] = 30 - p[P_id].dex / 2;
+            p[P_id].buff_id[p[P_id].buff_Size] = 24;
+            p[P_id].buff_Size++;
+        }
+        else if (p[P_id].buff_check[24] > 0) {
+            for (int I = 0; I < p[P_id].buff_Size; I++) {
+                if (p[P_id].buff_id[I] == 24) {
+                    p[P_id].buff_time[I] = 30 - p[P_id].dex / 2;
+                }
+            }
+        }
+    while (1) {
+        if (type == 0) {
+        if (ar[ar_id].type[0] == 'r') {
+            ATK = roll("", 2) + (p[P_id].dex - 10) / 2 + roll(ar[ar_id].hit, 1);
+        }
+        else if (ar[ar_id].type[0] == 'm') {
+            ATK = roll("", 2) + (p[P_id].str - 10) / 2 + roll(ar[ar_id].hit, 1);;
+        }
+        }
+        else if (type == 2) {
+            ATK = roll("", 2) + (p[P_id].str - 10) / 2 + (p[P_id].dex - 10) / 2;
+        }
+        if (e[id].buff_check[19] > 0) {
+            mark = "1d" + to_string(p[P_id].cha / 2);
+            ATK += roll(mark, 1);
+        }
+        if (hcv == 0) {
+            if (ATK > AC) {
+                *wofs << L",命中(";
+                for (int I = 0; I < K; I++) {
+                    *wofs << ak[I] << L"->";
+                }
+                *wofs << ATK << L">" << AC << L")" << endl;
+                return 1;
+            }
+            else {
+                *wofs << L",未命中(";
+                for (int I = 0; I < K; I++) {
+                    *wofs << ak[I] << L"->";
+                }
+                *wofs << ATK << L"<=" << AC << L")" << endl;
+                return 0;
+            }
+        }
+        if (hcv > 0) {
+            if (ATK <= AC) {
+                *wofs << L",未命中(";
+                for (int I = 0; I < K; I++) {
+                    *wofs << ak[I] << L"->";
+                }
+                *wofs << ATK << L"<=" << AC << L")" << endl;
+                return 0;
+            }
+
+            hcv--;
+        }
+        else if (hcv < 0) {
+            if (ATK > AC) {
+                *wofs << L",命中(";
+                for (int I = 0; I < K; I++) {
+                    *wofs << ak[I] << L"->";
+                }
+                *wofs << ATK << L">" << AC << L")" << endl;
+                return 1;
+            }
+            hcv++;
+        }
+        ak[K] = ATK;
+        K++;
     }
 }
 void skill_show(wstring name) {
@@ -3824,12 +3906,13 @@ void p_bput(player* p, b_map* b_m, int psize, int b_mid,int P_id) {
     }
 }
 void e_put(enemy *e,b_map *b_m, terrain(*te)[50],int esize,int b_mid) {
-    IMAGE b1,b2,b3,b4,hpB;
+    IMAGE b1,b2,hpB;
+    int tur = 0;
     wstring mm;
     for (int I = 0; I < esize; I++) {
-        if (e[I].x * 48 - b_m[b_mid].ox < 960 && e[I].y * 48 - b_m[b_mid].oy - 16 - 16 < 720&&(te[e[I].x][e[I].y].dark==0|| te[e[I].x][e[I].y].dark == 2 || te[e[I].x][e[I].y].dark == 3)) {
-            mm = std::to_wstring(e[I].type);
-            mm = L"./Game/picture/enemy" + mm + L".png";
+        if (e[I].h == 1&&e[I].w==1) {
+            if (e[I].x * 48 - b_m[b_mid].ox < 960 && e[I].y * 48 - b_m[b_mid].oy - 16 - 16 < 720&&(te[e[I].x][e[I].y].dark==0|| te[e[I].x][e[I].y].dark == 2 || te[e[I].x][e[I].y].dark == 3)) {
+            mm = L"./Game/picture/enemy" + to_wstring(e[I].type) + L".png";
             LPCTSTR path = mm.c_str();
             loadimage(&b1, path, 0, 0, false);
             loadimage(&hpB, L"./Game/picture/hp.png", 0, 0, false);
@@ -3849,6 +3932,40 @@ void e_put(enemy *e,b_map *b_m, terrain(*te)[50],int esize,int b_mid) {
 
             }
             transparentimage(NULL, e[I].x * 48 - b_m[b_mid].ox, e[I].y * 48 - b_m[b_mid].oy + (48 - ((e[I].hp * 48) / e[I].mhp)), &hpB, 0xFF55FF, 0, 48 - ((e[I].hp * 48) / e[I].mhp), 48, ((e[I].hp * 48) / e[I].mhp));
+        }
+        }
+        else {
+                        mm = L"./Game/picture/enemy" + to_wstring(e[I].type) + L"_1.png";
+                        loadimage(&b1, mm.c_str(), 0, 0, false);
+                        mm = L"./Game/picture/enemy" + to_wstring(e[I].type) + L"_2.png";
+                        loadimage(&b2, mm.c_str(), 0, 0, false);
+                        loadimage(&hpB, L"./Game/picture/hp.png", 0, 0, false);
+            for (int W = 0; W < e[I].w; W++) {
+                for (int H = 0; H < e[I].h; H++) {
+                    if ((e[I].x+W) * 48 - b_m[b_mid].ox < 960 && (e[I].y+H) * 48 - b_m[b_mid].oy - 16 - 16 < 720 && (te[e[I].x+W][e[I].y+H].dark == 0 || te[e[I].x+W][e[I].y+H].dark == 2 || te[e[I].x+W][e[I].y+H].dark == 3)) {
+                        tur = 1;                       
+                    }
+                }
+            }
+            if (tur == 1) {
+                for (int W = 0; W < e[I].w; W++) {
+                    for (int H = 0; H < e[I].h; H++) {
+                        if (e[I].pose == 1) {
+                            transparentimage(NULL, (e[I].x + W) * 48 - b_m[b_mid].ox, (e[I].y + H) * 48 - b_m[b_mid].oy - 16, &b2, 0xFF55FF, e[I].w * 48 + W * 48, 0 + H * 48, 48, 48);
+                        }
+                        else if (e[I].pose == 2) {
+                            transparentimage(NULL, (e[I].x + W) * 48 - b_m[b_mid].ox, (e[I].y + H) * 48 - b_m[b_mid].oy - 16, &b1, 0xFF55FF, e[I].w * 48 + W * 48, 0 + H * 48, 48, 48);
+                        }
+                        else if (e[I].pose == 3) {
+                            transparentimage(NULL, (e[I].x + W) * 48 - b_m[b_mid].ox, (e[I].y + H) * 48 - b_m[b_mid].oy - 16, &b1, 0xFF55FF, e[I].w * 48 + W * 48, e[I].h * 48 + H * 48, 48, 48);
+                        }
+                        else if (e[I].pose == 4) {
+                            transparentimage(NULL, (e[I].x + W) * 48 - b_m[b_mid].ox, (e[I].y + H) * 48 - b_m[b_mid].oy - 16, &b2, 0xFF55FF, e[I].w * 48 + W * 48, e[I].h * 48 + H * 48, 48, 48);
+                        }
+                    }
+                }
+            transparentimage(NULL, e[I].x * 48 - b_m[b_mid].ox, e[I].y * 48 - b_m[b_mid].oy + (48 - ((e[I].hp * 48) / e[I].mhp)), &hpB, 0xFF55FF, 0, 48 - ((e[I].hp * 48) / e[I].mhp), 48, ((e[I].hp * 48) / e[I].mhp));
+            }
         }
         }
     }
@@ -4147,7 +4264,7 @@ void ui(player *p,enemy *e,b_map *b_m,int P_id,int esize,int psize,int b_mid,int
 void clearQpair(std::queue<pair<int, int>>& q)
 {
     queue<pair<int, int>> empty;
-    std::swap(q, empty);
+    swap(q, empty);
 }
 /*戰鬥近戰AI*/
 void Bbfs(b_map *b_m, terrain(*te)[50], int sx, int sy, int x, int y, int* box,int b_mid,int MOVE) {
@@ -7820,7 +7937,8 @@ void acts( player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar,buff *bu, terrain(*
                 m = getmessage(-1);
                 if (m.message == WM_MOUSEMOVE) {                    
                     for (i = 0; i < esize; i++) {
-                        if (m.x >= e[i].x * 48 - b_m[b_mid].ox && m.x <= e[i].x * 48 + 48 - b_m[b_mid].ox && m.y >= e[i].y * 48 - b_m[b_mid].oy && m.y <= e[i].y * 48 + 48 - b_m[b_mid].oy && Flag != i && m.x < 960 && m.y < 720) {
+                        if (e[i].w == 1 && e[i].h == 1) {
+                            if (m.x >= e[i].x * 48 - b_m[b_mid].ox && m.x <= e[i].x * 48 + 48 - b_m[b_mid].ox && m.y >= e[i].y * 48 - b_m[b_mid].oy && m.y <= e[i].y * 48 + 48 - b_m[b_mid].oy && Flag != i && m.x < 960 && m.y < 720) {
                             BeginBatchDraw();
                             maps(p, P_id, e, b_m, ar, te, b_mid);/*地圖繪製*/
                             IMAGE tri,ab,mb;
@@ -7829,9 +7947,9 @@ void acts( player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar,buff *bu, terrain(*
                             int MR=e[i].Move + ar[e[i].baid].range;
                             int X = e[i].x,Y=e[i].y;
                             int x = e[i].x,y=e[i].y;
-                            int road[50][50],dr[50][50];
-                            for (int I = 0; I < 50; I++) {
-                                for (int J = 0; J < 50; J++) {
+                            int road[100][100],dr[100][100];
+                            for (int I = 0; I < b_m[b_mid].x; I++) {
+                                for (int J = 0; J < b_m[b_mid].y; J++) {
                                     road[I][J] = 0;
                                     dr[I][J] = 0;
                                     move[I][J] = 0;
@@ -7924,9 +8042,6 @@ void acts( player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar,buff *bu, terrain(*
                                     }
                                 }
                             }
-                            road[6][10] = road[6][10];
-                            cost[6][10] = cost[6][10];
-                            move[6][10] = move[6][10];
                             e_put(e, b_m, te, b_m[b_mid].esize, b_mid);
                             b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
                             p_put(p, b_m, psize, b_mid);
@@ -7956,7 +8071,155 @@ void acts( player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar,buff *bu, terrain(*
                             flag2 = -1;
                             break;
                         }
+                        }
+                        else {
+                            for (int W = 0; W < e[i].w; W++) {
+                                for (int H = 0; H < e[i].h; H++) {
+                                    if (m.x >= (e[i].x+W) * 48 - b_m[b_mid].ox && m.x <= (e[i].x+W) * 48 + 48 - b_m[b_mid].ox && m.y >= (e[i].y+H) * 48 - b_m[b_mid].oy && m.y <= (e[i].y+H) * 48 + 48 - b_m[b_mid].oy && Flag != i && m.x < 960 && m.y < 720) {
+                                        BeginBatchDraw();
+                                        maps(p, P_id, e, b_m, ar, te, b_mid);/*地圖繪製*/
+                                        IMAGE tri, ab, mb;
+                                        loadimage(&ab, L"./Game/picture/ab.png", 0, 0, false);
+                                        loadimage(&mb, L"./Game/picture/mb.png", 0, 0, false);
+                                        int road[100][100], dr[100][100];
+                                        for (int I = 0; I < b_m[b_mid].x; I++) {
+                                            for (int J = 0; J < b_m[b_mid].y; J++) {
+                                                road[I][J] = 0;
+                                                dr[I][J] = 0;
+                                                move[I][J] = 0;
+                                                cost[I][J] = 100000;
+                                            }
+                                        }
+                                        class da {
+                                        public:
+                                            int x;
+                                            int y;
+                                            int po;
+                                            int w;
+                                            int h;
+                                            int mo;
+                                        };
+                                        queue<da> q;
+                                        da data;
+                                        data.x=e[i].x;
+                                        data.y = e[i].y;
+                                        data.po = e[i].pose;
+                                        data.w = e[i].w;
+                                        data.h = e[i].h;
+                                        data.mo = e[i].Move;
+                                        q.push(data);
+                                        while (q.size() > 0) {
+                                            if (q.front().po == 1 || q.front().po == 4) {
+                                                int ubp1=0,ubp2=0, ubp3 = 0, ubp4 = 0,mo1=0,mo2=0,mo3=0,mo4=0;
+                                                for (int I = 0; I < q.front().w; I++) {
+                                                    if (te[q.front().x + I][q.front().y+q.front().h].player == 1 || te[q.front().x + I][q.front().y + q.front().h].enemy== 1|| te[q.front().x + I][q.front().y + q.front().h].npc == 1|| te[q.front().x + I][q.front().y + q.front().h].type == 1|| te[q.front().x + I][q.front().y + q.front().h].mB >= q.front().mo) {
+                                                        ubp1 = 1;
+                                                    }
+                                                    if (mo1 < te[q.front().x + I][q.front().y + q.front().h].mB) {
+                                                        mo1 = te[q.front().x + I][q.front().y + q.front().h].mB;
+                                                    }
+                                                }
+                                                int rx = q.front().x-((q.front().h- q.front().w)/2+ (q.front().h - q.front().w)%2);
+                                                int ry = q.front().y + ((q.front().h - q.front().w) / 2 + (q.front().h - q.front().w) % 2);
+                                                for (int I = 0; I < q.front().h; I++) {
+                                                    for (int J = 0; J < q.front().w; J++) {
+                                                        if (I<q.front().x && I>=q.front().x+ q.front().w) {
+                                                        if (te[rx + I][ry + J].player == 1 || te[rx + I][ry + J].enemy == 1 || te[rx + I][ry + J].npc == 1 || te[rx + I][ry +J].type == 1 || te[rx + I][ry + J].mB >= q.front().mo) {
+                                                            ubp2 = 1;
+                                                            ubp3 = 1;
+                                                        }
+                                                        }
+                                                    }
+                                                }
+                                                for (int J = 0; J < q.front().w; J++) {
+                                                    if (te[rx - 1][ry +J].player == 1 || te[rx - 1][ry +J].enemy == 1 || te[rx -1 ][ry +J].npc == 1 || te[rx -1][ry +J].type == 1 || te[rx -1][ry +J].mB >= q.front().mo) {
+                                                        ubp2 = 1;
+                                                    }
+                                                    if (mo2 < te[rx -1][ry +J].mB) {
+                                                        mo2 = te[rx -1][ry +J].mB;
+                                                    }
+                                                }
+                                                for (int J = 0; J < q.front().w; J++) {
+                                                    if (te[rx + 1][ry + J].player == 1 || te[rx + 1][ry + J].enemy == 1 || te[rx + 1][ry + J].npc == 1 || te[rx + 1][ry + J].type == 1 || te[rx + 1][ry + J].mB >= q.front().mo) {
+                                                        ubp3 = 1;
+                                                    }
+                                                    if (mo3 < te[rx + 1][ry + J].mB) {
+                                                        mo3 = te[rx + 1][ry + J].mB;
+                                                    }
+                                                }
+                                                for (int I = 0; I < q.front().w;I++) {
+                                                    if (te[q.front().x + I][q.front().y - 1].player == 1 || te[q.front().x + I][q.front().y -1].enemy == 1 || te[q.front().x + I][q.front().y -1].npc == 1 || te[q.front().x + I][q.front().y-1].type == 1 || te[q.front().x + I][q.front().y -1].mB >= q.front().mo) {
+                                                        ubp4 = 1;
+                                                    }
+                                                    if (mo4 < te[q.front().x + I][q.front().y - 1].mB) {
+                                                        mo4 = te[q.front().x + I][q.front().y - 1].mB;
+                                                    }
+                                                }
+                                                if (ubp1 == 0) {                                                    
+                                                    data.x = q.front().x;
+                                                    data.y = q.front().y+1;
+                                                    data.po = 1;
+                                                    data.w = q.front().w;
+                                                    data.h = q.front().h;
+                                                    data.mo = q.front().mo - mo1;
+                                                    q.push(data);
+                                                    for (int I = 0; I < data.w; I++) {
+                                                        move[data.x + I][data.y - data.h - 1] = 1;
+                                                    }
+                                                }
+                                                if (ubp2 == 0) {
+                                                    data.x = rx-1;
+                                                    data.y =ry;
+                                                    data.po = 2;
+                                                    data.w = q.front().h;
+                                                    data.h = q.front().w;
+                                                    data.mo = q.front().mo - mo2;
+                                                    q.push(data);
+                                                    for (int J = 0; J < data.h; J++) {
+                                                        move[data.x][data.y + J]=1;
+                                                    }
+                                                }
+                                                if (ubp3 == 0) {
+                                                    data.x = rx+1;
+                                                    data.y = ry;
+                                                    data.po = 3;
+                                                    data.w = q.front().h;
+                                                    data.h = q.front().w;
+                                                    data.mo = q.front().mo - mo3;
+                                                    q.push(data);
+                                                    for (int J = 0; J < data.h; J++) {
+                                                        move[data.x+data.w-1][data.y + J]=1;
+                                                    }
+                                                }
+                                                if (ubp4 == 0) {
+                                                    data.x = q.front().x;
+                                                    data.y = q.front().y-1;
+                                                    data.po = 4;
+                                                    data.w = q.front().w;
+                                                    data.h = q.front().h;
+                                                    data.mo = q.front().mo - mo4;
+                                                    q.push(data);
+                                                    for (int I = 0; I < data.w; I++) {
+                                                        move[data.x + I][data.y] = 1;
+                                                    }
+                                                }
+                                            }
+                                            else if(q.front().po == 2 || q.front().po == 3) {
 
+                                            }
+                                            q.pop();
+                                        }
+                                        for (int I = 0; I < b_m[b_mid].x; I++) {
+                                            for (int J = 0; J < b_m[b_mid].y; J++) {
+                                                if (move[I][J]==1) {
+                                                    transparentimage(NULL, 48 * I - b_m[b_mid].ox, 48 * J - b_m[b_mid].oy, &ab);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                     for (i = 0; i <b_m[b_mid].nsize; i++) {
                         if (m.x >= b_n[i].x * 48 - b_m[b_mid].ox && m.x <= b_n[i].x * 48 + 48 - b_m[b_mid].ox && m.y >= b_n[i].y * 48 - b_m[b_mid].oy && m.y <= b_n[i].y * 48 + 48 - b_m[b_mid].oy && flag1 != i && m.x < 960 && m.y < 720) {
@@ -7968,9 +8231,9 @@ void acts( player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar,buff *bu, terrain(*
                             int MR = b_n[i].Move + ar[b_n[i].baid].range;
                             int X = b_n[i].x, Y = b_n[i].y;
                             int x = b_n[i].x, y = b_n[i].y;
-                            int road[50][50], dr[50][50];
-                            for (int I = 0; I < 50; I++) {
-                                for (int J = 0; J < 50; J++) {
+                            int road[100][100], dr[100][100];
+                            for (int I = 0; I < b_m[b_mid].x; I++) {
+                                for (int J = 0; J <b_m[b_mid].y; J++) {
                                     road[I][J] = 0;
                                     dr[I][J] = 0;
                                     move[I][J] = 0;
@@ -12651,7 +12914,7 @@ void battle_set(wofstream* wofs,enemy *e,enemy_type *e_t,player *p,b_map *b_m,b_
                     e[k].baid = e_t[id].baid; e[k].str = e_t[id].str; e[k].dex = e_t[id].dex; e[k].con = e_t[id].con; e[k].INT = e_t[id].INT;
                     e[k].wis = e_t[id].wis; e[k].cha = e_t[id].cha; e[k].lv = e_t[id].lv; e[k].mhp = e_t[id].mhp; e[k].hp = e_t[id].hp; 
                     e[k].Move = e_t[id].Move; e[k].speed = e_t[id].speed; e[k].turn = 0; e[k].type = id; e[k].exp = e_t[id].exp;
-                    e[k].s_range = e_t[id].s_range; e[k].e_range = e_t[id].e_range;
+                    e[k].s_range = e_t[id].s_range; e[k].e_range = e_t[id].e_range; e[k].h = e_t[id].h; e[k].w = e_t[id].w;
                     if (e[k].baid == 10) {
                         e[k].b_num_1 = 1;
                         e[k].b_num_2 = 1;
@@ -13007,13 +13270,14 @@ void enemy_type_get(enemy *e,enemy_type *e_t, terrain(*te)[50],b_map *b_m,int b_
     e[k].baid = e_t[id].baid; e[k].str = e_t[id].str; e[k].dex = e_t[id].dex; e[k].con = e_t[id].con; e[k].INT = e_t[id].INT;
     e[k].wis = e_t[id].wis; e[k].cha = e_t[id].cha; e[k].lv = e_t[id].lv; e[k].mhp = e_t[id].mhp; e[k].hp = e_t[id].hp;
     e[k].Move = e_t[id].Move; e[k].speed = e_t[id].speed; e[k].turn = 0; e[k].type = id; e[k].exp = e_t[id].exp;
-    e[k].s_range = e_t[id].s_range; e[k].e_range = e_t[id].e_range;
+    e[k].s_range = e_t[id].s_range; e[k].e_range = e_t[id].e_range; e[k].h = e_t[id].h; e[k].w = e_t[id].w;
     e[k].pose = pose;
     if (e[k].baid == 10) {
         e[k].b_num_1 = 1;
         e[k].b_num_2 = 1;
     }
     b = b + k; mbtowc(&a, &b, 1); e[k].name = e_t[id].name + a;
+    if (e[k].h == 1 && e[k].w == 1) {
     te[x][y].mA += 10000;
     te[x][y].mB+= 10000;
     te[x][y].enemy = 1;
@@ -13029,6 +13293,28 @@ void enemy_type_get(enemy *e,enemy_type *e_t, terrain(*te)[50],b_map *b_m,int b_
     if (y - 1 >= 0 && te[x][y - 1].type == 0) {
         te[x][y - 1].mA += 1;
     }
+    }
+    else {
+        for (int W = 0; W < e[k].w; W++) {
+            for (int H = 0; H < e[k].h; H++) {
+                te[x+W][y+H].mA += 10000;
+                te[x+W][y+H].mB += 10000;
+                te[x+W][y+H].enemy = 1;
+                if (x+W + 1 < b_m[b_mid].x && te[x+W + 1][y+H].type == 0) {
+                    te[x+W + 1][y+H].mA += 1;
+                }
+                if (x+W - 1 >= 0 && te[x+W - 1][y+H].type == 0) {
+                    te[x+W - 1][y+H].mA += 1;
+                }
+                if (y+H + 1 < b_m[b_mid].y && te[x+W][y+H + 1].type == 0) {
+                    te[x+W][y +H+ 1].mA += 1;
+                }
+                if (y+H - 1 >= 0 && te[x+W][y+H - 1].type == 0) {
+                    te[x+W][y +H- 1].mA += 1;
+                }
+            }
+        }
+    }
     b_m[b_mid].esize++;
 }
 void b_event(flag *f,b_flag *b_f,player *p,npc *n,b_map *b_m,enemy_type *e_t,enemy *e,Map *m,BOX *Box,b_npc *b_n,task *tk,m_flag *m_f,item *it,stone *st,arms *ar, terrain(*te)[50],int b_mid,int P_id,int psize,int bu_id,int b_id,int b_nid,int buff_id) {
@@ -13042,7 +13328,7 @@ void b_event(flag *f,b_flag *b_f,player *p,npc *n,b_map *b_m,enemy_type *e_t,ene
                 readeventjson(p, n, f, m, Box, tk, m_f, it, st, path, m_id, b_id);
                 b_f[fk].check = 0;
             }
-            if (b_f[fk].id == 1) {
+            else if (b_f[fk].id == 1) {
                 if (b_m[b_mid].time >= 12) {
                     string filename;
                     filename = "./Game/story/b_event" + to_string(1) + string(".json");
@@ -13060,7 +13346,7 @@ void b_event(flag *f,b_flag *b_f,player *p,npc *n,b_map *b_m,enemy_type *e_t,ene
                     b_f[fk].check = 0;
                 }
             }
-            if (b_f[fk].id == 2) {
+            else if (b_f[fk].id == 2) {
                 if (P_id == 0) {
                     string filename;
                     filename = "./Game/story/b_event" + to_string(2) + string(".json");
@@ -13070,7 +13356,7 @@ void b_event(flag *f,b_flag *b_f,player *p,npc *n,b_map *b_m,enemy_type *e_t,ene
                     b_n[0].hp = 15;
                 }
             }
-            if (b_f[fk].id == 3) {
+            else if (b_f[fk].id == 3) {
                 if (b_m[b_mid].time <9) {
                     b_n[0].buff_check[9] = 1;
                     b_n[0].buff_check[10] = 5;
@@ -13095,7 +13381,7 @@ void b_event(flag *f,b_flag *b_f,player *p,npc *n,b_map *b_m,enemy_type *e_t,ene
                 b_f[fk].check = 0;
                 }
             }
-            if (b_f[fk].id == 4) {
+            else if (b_f[fk].id == 4) {
                 for (I = 0; I < b_m[b_mid].esize; I++) {
                     if (I != 2) {
                         if (e[I].hp > 0) {
@@ -13111,13 +13397,28 @@ void b_event(flag *f,b_flag *b_f,player *p,npc *n,b_map *b_m,enemy_type *e_t,ene
                     b_f[fk].check = 0;
                 }
             }
-            if (b_f[fk].id == 5) {
+            else if (b_f[fk].id == 5) {
                 b_f[fk].check = 0;
             }
-            if (b_f[fk].id == 6) {
+            else if (b_f[fk].id == 6) {
                 for (int I = 0; I < b_m[b_mid].esize; I++) {
                     e[I].buff_check[32] = 1;
                 }
+                b_f[fk].check = 0;
+            }
+            else if (b_f[fk].id == 7) {
+                string filename;
+                filename = "./Game/story/b_event" + to_string(5) + string(".json");
+                b_camera(b_m, 21, 25, b_mid);
+                enemy_type_get(e, e_t, te, b_m, b_mid, 6, 21, 25, 1);
+                BeginBatchDraw();
+                maps(p, P_id, e, b_m, ar, te, b_mid);/*地圖繪製*/
+                e_put(e, b_m, te, b_m[b_mid].esize, b_mid);
+                b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
+                p_put(p, b_m, psize, b_mid);
+                ui(p, e, b_m, P_id, b_m[b_mid].esize, psize, b_mid, bu_id);
+                EndBatchDraw();
+                readeventjson(p, n, f, m, Box, tk, m_f, it, st, filename.c_str(), m_id, b_id);
                 b_f[fk].check = 0;
             }
         }
@@ -13279,7 +13580,7 @@ void END(wofstream *wofs,player* p, enemy* e,b_npc *b_n, string chose, b_map* b_
 void buff_skill(player *p,enemy *e,skill *sk,int sk_id,int P_id) {
     
 }
-void p_skill(wofstream* wofs, string &chose,player *p,enemy *e,b_npc *b_n,skill *sk,arms *ar, t_equip* t_E,item *it,b_map *b_m, terrain(*te)[50], int sk_id,int P_id,int esize,int b_mid,int psize,int bu_id,int b_nid) {
+void p_skill(wofstream* wofs, string &chose,player *p,enemy *e,enemy_type *e_t,b_npc *b_n,skill *sk,arms *ar,armor *Ar, t_equip* t_E,item *it,b_map *b_m, terrain(*te)[50], int sk_id,int P_id,int esize,int b_mid,int psize,int bu_id,int b_nid) {
     wstring vos;
     if (chose == "k") {
         int a[100];
@@ -13407,32 +13708,25 @@ void p_skill(wofstream* wofs, string &chose,player *p,enemy *e,b_npc *b_n,skill 
                                     if (em.x > (p[P_id].x + i) * 48-b_m[b_mid].ox && em.x < (p[P_id].x + i) * 48 + 48 - b_m[b_mid].ox && em.y >(p[P_id].y + j) * 48 - b_m[b_mid].oy && em.y< (p[P_id].y + j) * 48 + 48 - b_m[b_mid].oy&&em.x<960&&em.y<720) {
                                         for (int I = 0; I < b_m[b_mid].esize; I++) {
                                             if (e[I].x == p[P_id].x + i && e[I].y == p[P_id].y + j&&em.lbutton) {
-                                                int ATK = roll("", 2)+(p[P_id].str-10)/2+(p[P_id].dex-10)/2;
-                                                int AC = roll("", 2)+(e[I].dex-10)/2;
-                                                if (e[I].buff_check[27] == 1) {
-                                                    AC /= 2;
-                                                }
-                                                if (e[I].buff_check[20] == 1) {
-                                                    AC =0;
-                                                }
+                                                wstring Dmg=L"1d4+"+to_wstring((p[P_id].str+p[P_id].dex)/2);
                                                 int dmg;
-                                                if (ATK > AC) {
-                                                     dmg = roll("1d4", 1) + (p[P_id].str + p[P_id].dex) / 5;
-                                                     eHP(e, b_m, I, b_mid, 0, dmg);
+                                                int hcv=PKTVS(p, e, b_m, ar, e_t, P_id, I, b_mid, -1, 2,Dmg);
+                                                *wofs << L"(T" << b_m[b_mid].time << L")" << p[P_id].name << L"使用了" << sk[uk].name ;
+                                                if (retryp(wofs,p,e,ar,Ar,P_id,I,-1,hcv,2)>0) {
+                                                    dmg = roll("1d4", 1) + (p[P_id].str + p[P_id].dex) / 5;
+                                                    eHP(e, b_m, I, b_mid, 0, dmg);
                                                     e[I].buff_check[3]++;
                                                     e[I].buff_time[e[I].buff_Size] = 15;
                                                     e[I].buff_id[e[I].buff_Size] = 3;
-                                                    e[I].buff_Size++;
-                                                    *wofs <<L"(T"<<b_m[b_mid].time <<L")" << p[P_id].name << L"使用了" << sk[uk].name <<L"對"<<e[I].name << L"造成"<<dmg<<L"點傷害("<<ATK<<L">" <<AC<<L")" << endl;
+                                                    e[I].buff_Size++;                                                   
                                                 }
                                                 else {
-                                                    mm = L"miss";
-                                                    settextcolor(RGB(255, 0, 0));
-                                                    settextstyle(25, 0, _T("Taipei Sans TC Beta"));
+                                                    mm = L"miss"; 
+                                                    gettextstyle(&lft);
+                                                    settextcolor(RGB(255, 0, 0));                                                   
                                                     outtextxy(e[I].x * 48 - b_m[b_mid].ox, e[I].y * 48 - b_m[b_mid].oy - 40, mm.c_str());
-                                                    settextstyle(18, 0, _T("Taipei Sans TC Beta"));
+                                                    settextstyle(&lft);
                                                     settextcolor(RGB(0, 0, 0));
-                                                    *wofs << L"(T" << b_m[b_mid].time << L")" << p[P_id].name << L"使用了" << sk[uk].name << L"未能命中" << e[I].name << L"(" << ATK << L"<=" << AC << L")"<<endl;
                                                 }
                                                 p[P_id].act--;
                                                 FlushBatchDraw();
@@ -13451,7 +13745,6 @@ void p_skill(wofstream* wofs, string &chose,player *p,enemy *e,b_npc *b_n,skill 
                                                     Sleep(40);
                                                 }
                                                 }
-
                                                 return;
                                             }
                                         }
@@ -14149,7 +14442,14 @@ void p_skill(wofstream* wofs, string &chose,player *p,enemy *e,b_npc *b_n,skill 
             }
         }
         else if (uk == 21) {
-            if (p[P_id].move > 0) {
+            if (p[P_id].move > 0&&(ar[p[P_id].arms_id_1].type[0]=='m'||ar[p[P_id].arms_id_2].type[0]=='m')) {
+                int ar_id;
+                if (ar[p[P_id].arms_id_1].type[0] == 'm') {
+                    ar_id = p[P_id].arms_id_1;
+                }
+                else {
+                    ar_id = p[P_id].arms_id_2;
+                }
                 IMAGE p1, mb;
                 queue<pair<int, int>> q;               
                 wstring mm;
@@ -14221,15 +14521,17 @@ void p_skill(wofstream* wofs, string &chose,player *p,enemy *e,b_npc *b_n,skill 
                 p_put(p, b_m, psize, b_mid);
                 ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
                 FlushBatchDraw();
+
                 while (1) {
                     ExMessage m;
                     m = getmessage(EM_MOUSE);
                     if (m.lbutton) {
+                        *wofs <<L"(T"<<b_m[b_mid].time<<L")" << p[P_id].name << L"開始衝鋒" << endl;
                         for (j = 0; j < 20; j++) {
                             for (i = 0; i < 15; i++) {
                                 if (m.x <= j * 48 + 48 && m.x >= j * 48 && m.y <= i * 48 + 48 && m.y >= i * 48 && dr[j + b_m[b_mid].ox / 48][i + b_m[b_mid].oy / 48] == 1 && m.x < 960 && m.y < 720) {
                                     int k, w = 0;
-                                    int xbox = p[P_id].x, ybox = p[P_id].y;
+                                    int xbox = p[P_id].x, ybox = p[P_id].y,lm=1;
                                     for (w = 0; w < box_id; w++) {
                                         if (box[w] == 2) {
                                             if (p[P_id].move >= te[xbox][ybox + 1].mA) {
@@ -14279,6 +14581,29 @@ void p_skill(wofstream* wofs, string &chose,player *p,enemy *e,b_npc *b_n,skill 
                                             for (int J = -2; J <= 2; J++) {
                                                 if (te[xbox + I][ybox + J].dark == 2) {
                                                     te[xbox + I][ybox + J].dark = 1;
+                                                }
+                                                if (abs(I )+abs( J) == 1) {
+                                                    for (int K = 0; K < b_m[b_mid].esize;K++) {       
+                                                        if (xbox +I== e[K].x &&ybox + J == e[K].y) {
+                                                        int hcv=PKTVS(p, e, b_m, ar, e_t, P_id, K, b_mid, ar_id, 0,ar[ar_id].Dmg+L"+"+to_wstring(lm/2));
+                                                        *wofs << L"對"<<e[K].name<<L"攻擊";
+                                                        if (retryp(wofs,p,e,ar,Ar,P_id,K,ar_id,hcv,0)>0) {
+                                                            int dmg=roll(ar[ar_id].dmg,1)+lm/2;
+                                                            eHP(e, b_m, K, b_mid, 0, dmg);
+                                                            *wofs << L"造成" << to_wstring(dmg) << L"點傷害" << endl;
+                                                        }
+                                                        else {
+                                                            gettextstyle(&lft);
+                                                            settextstyle(25, 0, _T("Taipei Sans TC Beta"));
+                                                            settextcolor(RGB(255, 0, 0));
+                                                            mm = L"miss";
+                                                            outtextxy(e[K].x * 48 - b_m[b_mid].ox, e[K].y * 48 - b_m[b_mid].oy - 40, mm.c_str());
+                                                            settextstyle(&lft);
+                                                            settextcolor(RGB(0, 0, 0));
+                                                            *wofs << endl;
+                                                        }
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
@@ -14395,6 +14720,7 @@ void p_skill(wofstream* wofs, string &chose,player *p,enemy *e,b_npc *b_n,skill 
                                                 p[P_id].buff_Size++;
                                             }
                                         }
+                                        lm++;
                                     }
                                     int x = p[P_id].x, y = p[P_id].y;
                                     if (x + 1 < b_m[b_mid].x && te[x + 1][y].type == 0) {
@@ -14892,7 +15218,7 @@ void p_skill(wofstream* wofs, string &chose,player *p,enemy *e,b_npc *b_n,skill 
                 loadimage(&hi, L"./Game/picture/b_hint.png", 0, 0, false);
                 putimage(400, 300, &hi);
                 RECT t = { 400,300,650,400 };
-                mm = L"MP不足";
+                mm = L"MP不足或未攜帶近戰武器";
                 drawtext(mm.c_str(), &t, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
                 FlushBatchDraw();
                 Sleep(1000);
@@ -16222,11 +16548,10 @@ void e_battle_ai(wofstream* wofs, enemy *e,player *p,e_npc *e_n,b_npc *b_n,b_map
                     pHP(p, b_m, P_id, b_mid, 0, dmg);
                     }
                     else {
-                        LOGFONT f;
                         settextstyle(25, 0, _T("Taipei Sans TC Beta"));
                         settextcolor(RGB(255, 0, 0));
                         mm = L"miss";
-                        outtextxy(e[id].x * 48 - b_m[b_mid].ox, e[id].y * 48 - b_m[b_mid].oy - 40, mm.c_str());
+                        outtextxy(p[P_id].x * 48 - b_m[b_mid].ox, p[P_id].y * 48 - b_m[b_mid].oy - 40, mm.c_str());
                         settextstyle(18, 0, _T("Taipei Sans TC Beta"));
                         settextcolor(RGB(0, 0, 0));
                     }
@@ -16235,8 +16560,22 @@ void e_battle_ai(wofstream* wofs, enemy *e,player *p,e_npc *e_n,b_npc *b_n,b_map
                 else if (e[id].target == 1) {
                     if (abs(e[id].x - b_n[b_nid].x) + abs(e[id].y - b_n[b_nid].y) == 1) {
                         skill_show(L"刺刀突擊");               
-                        int dmg = roll("1d4", 1);
-                        nHP(b_n, b_m, b_nid, b_mid, 0, dmg);
+                        *wofs << L"(T" << b_m[b_mid].time << L")" << e[id].name << L"對" << b_n[b_nid].name << L"發起刺刀突擊";
+                        if (b_n[b_nid].buff_check[2] > 0) {
+                           /*NPC優劣勢處理 暫定*/
+                        }
+                        if (retryn(wofs, b_n, e, ar, Ar, b_nid, id, 0, 1) > 0) {
+                            int dmg = roll("1d4", 1);
+                            nHP(b_n, b_m, b_nid, b_mid, 0, dmg);
+                        }
+                        else {
+                            settextstyle(25, 0, _T("Taipei Sans TC Beta"));
+                            settextcolor(RGB(255, 0, 0));
+                            mm = L"miss";
+                            outtextxy(b_n[b_nid].x * 48 - b_m[b_mid].ox, b_n[b_nid].y * 48 - b_m[b_mid].oy - 40, mm.c_str());
+                            settextstyle(18, 0, _T("Taipei Sans TC Beta"));
+                            settextcolor(RGB(0, 0, 0));
+                        }
                     }
                 }
                 else {
@@ -16355,6 +16694,9 @@ void e_battle_ai(wofstream* wofs, enemy *e,player *p,e_npc *e_n,b_npc *b_n,b_map
             e_attack(wofs, ar, Ar, p, e, b_n, b_m,te, e_t, b_mid, id, P_id, b_m[b_mid].esize, b_m[b_mid].psize, buff_id, b_nid);
         }
     }
+    else if (e[id].type == 6) {
+
+    }
 }
 int lose_check(wofstream* wofs, enemy* e, player* p, e_npc* e_n, b_npc* b_n, b_map* b_m, enemy_type* e_t, terrain(*te)[50], b_flag* b_f,int b_mid ) {
     if (b_mid == 4) {
@@ -16449,7 +16791,7 @@ int main() {
     m[8].nsize = 0; m[8].esize = 4; m[8].b_set = "b3zb3zb3zb3z"; m[8].e_set = "x41y42k2x25y26k0x14y10k2x52y10k0"; m[8].exitsize = 1; m[8].exit_set = "11_"; m[8].mevent_size = 2; m[8].mevent_set = "5_6_"; m[8].box_set = "2n3n4n5n6n7n8n"; m[8].name = L"南部森林外圍";
     m[9].nsize = 1; m[9].npcid = "8-"; m[9].esize = 0; m[9].exitsize = 1; m[9].exit_set = "13_"; m[9].mevent_size = 3; m[9].mevent_set = "7_8_9_"; m[9].name = L"星落村村長家";
     b_m[0].esize = 1; b_m[0].e_set = "e0x6y4p1"; b_m[0].p_set = "x18y14x19y14"; b_m[0].cx = 0; b_m[0].cy = 0; b_m[0].fsize = 0; b_m[0].nsize = 0;
-    b_m[1].esize = 1; b_m[1].e_set = "e1x20y24p4"; b_m[1].p_set = "x27y27x26y27x27y26"; b_m[1].cx = 27; b_m[1].cy = 26; b_m[1].fsize = 3; b_m[1].f_set = "0n1n6n"; b_m[1].type = 1;
+    b_m[1].esize = 1; b_m[1].e_set = "e1x20y24p4"; b_m[1].p_set = "x27y27x26y27x27y26"; b_m[1].cx = 27; b_m[1].cy = 26; b_m[1].fsize = 4; b_m[1].f_set = "0n1n6n7n"; b_m[1].type = 1;
     b_m[2].esize = 2; b_m[2].e_set = "e0x5y4p1e0x6y3p1"; b_m[2].p_set = "x18y13x19y13"; b_m[2].cx = 0; b_m[2].cy = 0; b_m[2].fsize = 1; b_m[2].f_set = "2n"; b_m[2].nsize = 1; b_m[2].n_set = "n0x16y10";
     b_m[3].esize = 1; b_m[3].e_set = "e2x3y1p1"; b_m[3].p_set = "x3y12x4y12"; b_m[3].cx = 0; b_m[3].cy = 0; b_m[3].fsize = 0; b_m[3].nsize = 0;
     b_m[4].esize = 3; b_m[4].e_set = "e4x6y11p1e4x13y12p1e3x10y7p1"; b_m[4].p_set = "x9y14x10y14"; b_m[4].cx = 0; b_m[4].cy = 0; b_m[4].fsize = 2;  b_m[4].f_set = "3n4n"; b_m[4].nsize = 1; b_m[4].n_set = "n1x9y5"; b_m[4].lc = L"1.我方全員被擊敗\n2.愛麗絲被擊敗"; b_m[4].vc = L"1.狼王HP低於30%";
@@ -16462,7 +16804,7 @@ int main() {
     e_t[3].name = L"狼王"; e_t[3].story = L"統御南部森林的王者，過去誤食星隕礦而覺醒了操控火焰的能力，也獲得了普通野狼所沒有的智力"; e_t[3].baid = 1; e_t[3].str = 13; e_t[3].dex = 14; e_t[3].con = 13; e_t[3].INT = 15; e_t[3].wis = 13; e_t[3].cha = 11; e_t[3].lv = 1; e_t[3].mhp = 50; e_t[3].hp = 50; e_t[3].Move = 8; e_t[3].speed = 13; e_t[3].exp = 500; e_t[3].drop = ""; e_t[3].s_range = 4; e_t[3].species = "a";
     e_t[4].name = L"老狼"; e_t[4].story = L"經歷自然的選擇存活下來的野狼，體力雖然衰退卻也獲得了生存的智慧"; e_t[4].baid = 1; e_t[4].str = 10; e_t[4].dex = 11; e_t[4].con = 10; e_t[4].INT = 6; e_t[4].wis = 14; e_t[4].cha = 7; e_t[4].lv = 1; e_t[4].mhp = 15; e_t[4].hp = 15; e_t[4].Move = 6; e_t[4].speed = 11; e_t[4].exp = 150; e_t[4].drop = "100%15i"; e_t[4].species = "a";
     e_t[5].name = L"帝國軍隊長";
-    e_t[6].name = L"帝國裝甲車\"阿斯提\""; e_t[6].story = L"帝國大戰後開發的新式裝甲車，運用了星隕石作為動力來源，必要時能夠激活星隕護盾";
+    e_t[6].name = L"帝國裝甲車\"阿斯提\""; e_t[6].story = L"帝國大戰後開發的新式裝甲車，運用了星隕石作為動力來源，必要時能夠激活星隕護盾"; e_t[6].h = 4; e_t[6].w = 2; e_t[6].str = 24; e_t[6].dex = 15; e_t[6].con = 20; e_t[6].INT = 1; e_t[6].wis = 8; e_t[6].cha = 1; e_t[6].lv = 1; e_t[6].mhp = 120; e_t[6].hp = 120; e_t[6].Move = 10; e_t[6].speed = 8; e_t[6].s_range = 8;
     b_nt[0].name = L"戴恩"; b_nt[0].story = L"夏洛特的父親，是位老練的獵手，曾在巴蘭斯獨立戰爭中擔任狙擊手"; b_nt[0].lv = 15; b_nt[0].hp = 15; b_nt[0].mhp = 20; b_nt[0].Move = 5; b_nt[0].speed = 15; b_nt[0].pose = 2; b_nt[0].str = 15; b_nt[0].dex = 20; b_nt[0].con = 15; b_nt[0].INT = 10; b_nt[0].wis = 12; b_nt[0].cha = 9; b_nt[0].baid = 0;
     b_nt[1].name = L"昏迷的愛麗絲"; b_nt[1].story = L"因為超載使用大地之心而昏迷的愛麗絲"; b_nt[1].lv = 5; b_nt[1].hp = 15; b_nt[1].mhp = 15; b_nt[1].Move = 0; b_nt[1].speed = 0; b_nt[1].pose = 1; b_nt[1].str = 12; b_nt[1].dex = 10; b_nt[1].con = 12; b_nt[1].INT = 10; b_nt[1].wis = 11; b_nt[1].cha = 12; b_nt[1].baid = 2;
     ar[0].name = L"巡林者"; ar[0].dmg = "1d12"; ar[0].Dmg = L"1d12"; ar[0].range = 5; ar[0].story = L"巴蘭斯獵戶所喜愛的獵槍，能精準射殺大型獵物，是帝國在大戰後遺留的產物\n傷害:1d12\n裝填時間:1S"; ar[0].number = 0; ar[0].bullet = 1; ar[0].mbullet = 1; ar[0].type = "rr"; ar[0].time = 1;
@@ -16866,7 +17208,7 @@ int main() {
                 p_attack(&wofs,p, e,e_t,b_n, ar, b_m,bu,te,b_mid,P_id, id, chose, b_m[b_mid].esize, b_m[b_mid].psize, buff_id,b_nid);/*攻擊*/
                 p_item(&wofs,p,e,b_n, ar, it, t_E,b_m,te,chose, P_id,i_id,t_Eid,b_mid,buff_id);/*物品*/
                 p_walk(&wofs,p, e,b_n,b_m, ar, te, chose, P_id, id, b_m[b_mid].psize, b_m[b_mid].esize,b_mid, buff_id,b_nid);/*移動*/
-                p_skill(&wofs,chose,p,e,b_n,sk,ar,t_E,it,b_m,te,sk_id,P_id,b_m[b_mid].esize,b_mid,b_m[b_mid].psize,buff_id,b_nid);
+                p_skill(&wofs,chose,p,e,e_t,b_n,sk,ar,Ar,t_E,it,b_m,te,sk_id,P_id,b_m[b_mid].esize,b_mid,b_m[b_mid].psize,buff_id,b_nid);
                 END(&wofs, p, e,b_n, chose, b_m, b_f, f, n, e_t, bu, ar,Ar,m, Box, tk, m_f, it, st,te, b_mid, P_id, id, roundp, roundb, roundn, b_m[b_mid].psize, buff_id, b_id,b_nid, buff_id, sk_id);/*結束行動*/
                 chose = "";
                 /*存檔*/
