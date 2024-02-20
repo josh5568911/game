@@ -8212,10 +8212,36 @@ void acts( player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar,buff *bu, terrain(*
                                         for (int I = 0; I < b_m[b_mid].x; I++) {
                                             for (int J = 0; J < b_m[b_mid].y; J++) {
                                                 if (move[I][J]==1) {
-                                                    transparentimage(NULL, 48 * I - b_m[b_mid].ox, 48 * J - b_m[b_mid].oy, &ab);
+                                                    transparentimage(NULL, 48 * I - b_m[b_mid].ox, 48 * J - b_m[b_mid].oy, &mb);
                                                 }
                                             }
                                         }
+                                        e_put(e, b_m, te, b_m[b_mid].esize, b_mid);
+                                        b_nput(b_n, b_m, b_nid, b_m[b_mid].nsize, b_mid);
+                                        p_put(p, b_m, psize, b_mid);
+                                        ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
+                                        outtextxy(960, 0, e[i].name.c_str());
+                                        wstring mm = L"HP[" + to_wstring(e[i].hp) + L"/" + to_wstring(e[i].mhp) + L"]";
+                                        outtextxy(960, 30, mm.c_str());
+                                        ue = 0;
+                                        for (int I = 0; I < bu_id; I++) {
+                                            if (e[i].buff_check[I] >= 1) {
+                                                mm = L"./Game/picture/buff" + to_wstring(I) + L".png";
+                                                loadimage(&g, mm.c_str(), 0, 0, false);
+                                                putimage(960 + 30 * ue, 100, &g);
+                                                _stprintf(t, _T("%d"), e[i].buff_check[I]);
+                                                outtextxy(960 + 30 * ue, 130, t);
+                                                ke[ue] = I;
+                                                ue++;
+                                            }
+                                        }
+                                        FlushBatchDraw();
+                                        getimage(&get, 0, 0, 1296, 960);
+                                        j = i;
+                                        Flag = i;
+                                        flag1 = -1;
+                                        flag2 = -1;
+                                        break;
                                     }
                                 }
                             }
