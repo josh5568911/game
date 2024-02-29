@@ -8108,9 +8108,32 @@ void acts( player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar,buff *bu, terrain(*
                                         data.h = e[i].h;
                                         data.mo = e[i].Move;
                                         q.push(data);
-                                        while (q.size() > 0) {
-                                            if (q.front().po == 1 || q.front().po == 4) {
-                                                int ubp1=0,ubp2=0, ubp3 = 0, ubp4 = 0,mo1=0,mo2=0,mo3=0,mo4=0;
+                                        while (q.size() > 0) {  
+                                            int ubp1=0,ubp2=0, ubp3 = 0, ubp4 = 0,mo1=0,mo2=0,mo3=0,mo4=0;
+                                            for (int I = 0; I < q.front().w; I++) {
+                                                for (int J = 0; J < q.front().h; J++) {
+                                                    move[q.front().x+I][q.front().y+J] = 1;
+                                                }
+                                            }
+                                            if (q.front().po == 1) {
+                                                    for (int I = 0; I < ar[e[i].baid].range;I++) {
+                                                        for (int J = -I; J < I + q.front().w; J++) {
+                                                            if (move[q.front().x + J][q.front().y +q.front().h+ I] == 0) {
+                                                                dr[q.front().x + J][q.front().y + q.front().h + I] = 1;
+                                                            }                                                
+                                                        }
+                                                    }
+                                            }
+                                            else {
+                                                    for (int I = 0; I < ar[e[i].baid].range; I++) {
+                                                        for (int J = -I; J < I + q.front().w; J++) {
+                                                            if (move[q.front().x + J][q.front().y - I-1] == 0) {
+                                                                dr[q.front().x + J][q.front().y - I-1] = 1;
+                                                            }
+                                                        }
+                                                    }
+                                            }
+                                            if (q.front().po == 1 || q.front().po == 4) {                                              
                                                 for (int I = 0; I < q.front().w; I++) {
                                                     if (te[q.front().x + I][q.front().y+q.front().h].player == 1 || te[q.front().x + I][q.front().y + q.front().h].enemy== 1|| te[q.front().x + I][q.front().y + q.front().h].npc == 1|| te[q.front().x + I][q.front().y + q.front().h].type == 1|| te[q.front().x + I][q.front().y + q.front().h].mB >= q.front().mo) {
                                                         ubp1 = 1;
@@ -8123,11 +8146,18 @@ void acts( player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar,buff *bu, terrain(*
                                                 int ry = q.front().y + ((q.front().h - q.front().w) / 2 + (q.front().h - q.front().w) % 2);
                                                 for (int I = 0; I < q.front().h; I++) {
                                                     for (int J = 0; J < q.front().w; J++) {
-                                                        if (I<q.front().x && I>=q.front().x+ q.front().w) {
-                                                        if (te[rx + I][ry + J].player == 1 || te[rx + I][ry + J].enemy == 1 || te[rx + I][ry + J].npc == 1 || te[rx + I][ry +J].type == 1 || te[rx + I][ry + J].mB >= q.front().mo) {
+                                                        if (rx+I<q.front().x || rx+I>=q.front().x+ q.front().w) {
+                                                        if (te[rx + I][ry + J].player == 1 || te[rx + I][ry + J].enemy == 1 || te[rx + I][ry + J].npc == 1 || te[rx + I][ry +J].type == 1 ) {
                                                             ubp2 = 1;
                                                             ubp3 = 1;
                                                         }
+                                                        }
+                                                    }
+                                                }
+                                                if (ubp2 == 0 && ubp3 == 0) {
+                                                    for (int I = 0; I < q.front().h; I++) {
+                                                        for (int J = 0; J < q.front().w; J++) {
+                                                            move[rx + I][ry + J] = 1;
                                                         }
                                                     }
                                                 }
@@ -8140,11 +8170,11 @@ void acts( player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar,buff *bu, terrain(*
                                                     }
                                                 }
                                                 for (int J = 0; J < q.front().w; J++) {
-                                                    if (te[rx + 1][ry + J].player == 1 || te[rx + 1][ry + J].enemy == 1 || te[rx + 1][ry + J].npc == 1 || te[rx + 1][ry + J].type == 1 || te[rx + 1][ry + J].mB >= q.front().mo) {
+                                                    if (te[rx +q.front().h][ry + J].player == 1 || te[rx + q.front().h][ry + J].enemy == 1 || te[rx + q.front().h][ry + J].npc == 1 || te[rx + q.front().h][ry + J].type == 1 || te[rx + q.front().h][ry + J].mB >= q.front().mo) {
                                                         ubp3 = 1;
                                                     }
-                                                    if (mo3 < te[rx + 1][ry + J].mB) {
-                                                        mo3 = te[rx + 1][ry + J].mB;
+                                                    if (mo3 < te[rx + q.front().h][ry + J].mB) {
+                                                        mo3 = te[rx + q.front().h][ry + J].mB;
                                                     }
                                                 }
                                                 for (int I = 0; I < q.front().w;I++) {
@@ -8163,9 +8193,6 @@ void acts( player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar,buff *bu, terrain(*
                                                     data.h = q.front().h;
                                                     data.mo = q.front().mo - mo1;
                                                     q.push(data);
-                                                    for (int I = 0; I < data.w; I++) {
-                                                        move[data.x + I][data.y - data.h - 1] = 1;
-                                                    }
                                                 }
                                                 if (ubp2 == 0) {
                                                     data.x = rx-1;
@@ -8175,9 +8202,6 @@ void acts( player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar,buff *bu, terrain(*
                                                     data.h = q.front().w;
                                                     data.mo = q.front().mo - mo2;
                                                     q.push(data);
-                                                    for (int J = 0; J < data.h; J++) {
-                                                        move[data.x][data.y + J]=1;
-                                                    }
                                                 }
                                                 if (ubp3 == 0) {
                                                     data.x = rx+1;
@@ -8187,9 +8211,6 @@ void acts( player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar,buff *bu, terrain(*
                                                     data.h = q.front().w;
                                                     data.mo = q.front().mo - mo3;
                                                     q.push(data);
-                                                    for (int J = 0; J < data.h; J++) {
-                                                        move[data.x+data.w-1][data.y + J]=1;
-                                                    }
                                                 }
                                                 if (ubp4 == 0) {
                                                     data.x = q.front().x;
@@ -8199,13 +8220,114 @@ void acts( player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar,buff *bu, terrain(*
                                                     data.h = q.front().h;
                                                     data.mo = q.front().mo - mo4;
                                                     q.push(data);
-                                                    for (int I = 0; I < data.w; I++) {
-                                                        move[data.x + I][data.y] = 1;
-                                                    }
-                                                }
+                                                }                             
                                             }
                                             else if(q.front().po == 2 || q.front().po == 3) {
-
+                                                int rx = q.front().x + ((q.front().w - q.front().h) / 2 + (q.front().w - q.front().h) % 2);
+                                                int ry = q.front().y - ((q.front().w - q.front().h) / 2 + (q.front().w - q.front().h) % 2);
+                                                for (int I = 0; I < q.front().h; I++) {
+                                                    for (int J = 0; J < q.front().w; J++) {
+                                                        if (ry + J < q.front().y || ry + J >= q.front().y + q.front().h) {
+                                                            if (te[rx + I][ry + J].player == 1 || te[rx + I][ry + J].enemy == 1 || te[rx + I][ry + J].npc == 1 || te[rx + I][ry + J].type == 1) {
+                                                                ubp1 = 1;
+                                                                ubp4 = 1;
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                if (q.front().po == 2) {
+                                                    for (int I = 0; I < ar[e[i].baid].range; I++) {
+                                                        for (int J = -I; J < I + q.front().h; J++) {
+                                                            if (move[q.front().x -I-1][q.front().y + J] == 0) {
+                                                                dr[q.front().x-I-1][q.front().y  + J] = 1;
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                else {
+                                                    for (int I = 0; I < ar[e[i].baid].range; I++) {
+                                                        for (int J = -I; J < I + q.front().h; J++) {
+                                                            if (move[q.front().x +q.front().w + I][q.front().y + J] == 0) {
+                                                                dr[q.front().x+q.front().w + I][q.front().y + J] = 1;
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                if (ubp1 == 0 && ubp4 == 0) {
+                                                    for (int I = 0; I < q.front().h; I++) {
+                                                        for (int J = 0; J < q.front().w; J++) {
+                                                            move[rx + I][ry + J] = 1;
+                                                        }
+                                                    }
+                                                }
+                                                for (int I = 0; I < q.front().h; I++) {
+                                                    if (te[rx+ I][ry + q.front().w].player == 1 || te[rx + I][ry + q.front().w].enemy == 1 || te[rx + I][ry + q.front().w].npc == 1 || te[rx + I][ry + q.front().w].type == 1 || te[rx + I][ry + q.front().w].mB >= q.front().mo) {
+                                                        ubp1 = 1;
+                                                    }
+                                                    if (mo1 < te[rx + I][ry + q.front().w].mB) {
+                                                        mo1 = te[rx + I][ry + q.front().w].mB;
+                                                    }
+                                                }
+                                                for (int J = 0; J < q.front().h; J++) {
+                                                    if (te[q.front().x - 1][q.front().y + J].player == 1 || te[q.front().x - 1][q.front().y + J].enemy == 1 || te[q.front().x - 1][q.front().y + J].npc == 1 || te[q.front().x - 1][q.front().y + J].type == 1 || te[q.front().x - 1][q.front().y + J].mB >= q.front().mo) {
+                                                        ubp2 = 1;
+                                                    }
+                                                    if (mo2 < te[q.front().x - 1][q.front().y + J].mB) {
+                                                        mo2 = te[q.front().x - 1][q.front().y + J].mB;
+                                                    }
+                                                }
+                                                for (int J = 0; J < q.front().h; J++) {
+                                                    if (te[q.front().x + q.front().w][q.front().y + J].player == 1 || te[q.front().x + q.front().w][q.front().y + J].enemy == 1 || te[q.front().x + q.front().w][q.front().y + J].npc == 1 || te[q.front().x + q.front().w][q.front().y + J].type == 1 || te[q.front().x + q.front().w][q.front().y + J].mB >= q.front().mo) {
+                                                        ubp3 = 1;
+                                                    }
+                                                    if (mo3 < te[q.front().x + q.front().w][q.front().y + J].mB) {
+                                                        mo3 = te[q.front().x + q.front().w][q.front().y + J].mB;
+                                                    }
+                                                }
+                                                for (int I = 0; I < q.front().h; I++) {
+                                                    if (te[rx + I][ry -1].player == 1 || te[rx + I][ry -1].enemy == 1 || te[rx + I][ry -1].npc == 1 || te[rx + I][ry-1].type == 1 || te[rx + I][ry -1].mB >= q.front().mo) {
+                                                        ubp4 = 1;
+                                                    }
+                                                    if (mo4 < te[rx + I][ry -1].mB) {
+                                                        mo4 = te[rx + I][ry -1].mB;
+                                                    }
+                                                }
+                                                if (ubp1 == 0) {
+                                                    data.x = rx;
+                                                    data.y = ry + 1;
+                                                    data.po = 1;
+                                                    data.w = q.front().h;
+                                                    data.h = q.front().w;
+                                                    data.mo = q.front().mo - mo1;
+                                                    q.push(data);
+                                                }
+                                                if (ubp2 == 0) {
+                                                    data.x = q.front().x - 1;
+                                                    data.y = q.front().y;
+                                                    data.po = 2;
+                                                    data.w = q.front().w;
+                                                    data.h = q.front().h;
+                                                    data.mo = q.front().mo - mo2;
+                                                    q.push(data);
+                                                }
+                                                if (ubp3 == 0) {
+                                                    data.x = q.front().x + 1;
+                                                    data.y = q.front().y;
+                                                    data.po = 3;
+                                                    data.w = q.front().w;
+                                                    data.h = q.front().h;
+                                                    data.mo = q.front().mo - mo3;
+                                                    q.push(data);
+                                                }
+                                                if (ubp4 == 0) {
+                                                    data.x = rx;
+                                                    data.y = ry - 1;
+                                                    data.po = 4;
+                                                    data.w = q.front().h;
+                                                    data.h = q.front().w;
+                                                    data.mo = q.front().mo - mo4;
+                                                    q.push(data);
+                                                }
                                             }
                                             q.pop();
                                         }
@@ -8213,6 +8335,9 @@ void acts( player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar,buff *bu, terrain(*
                                             for (int J = 0; J < b_m[b_mid].y; J++) {
                                                 if (move[I][J]==1) {
                                                     transparentimage(NULL, 48 * I - b_m[b_mid].ox, 48 * J - b_m[b_mid].oy, &mb);
+                                                }
+                                                else if (dr[I][J] == 1&&te[I][J].enemy==0) {
+                                                    transparentimage(NULL, 48 * I - b_m[b_mid].ox, 48 * J - b_m[b_mid].oy, &ab);
                                                 }
                                             }
                                         }
@@ -16771,13 +16896,13 @@ int main() {
     bc_l = FindWindow(NULL,L"隕星傳奇");
     SystemParametersInfo(SPI_GETMOUSESPEED, 0, &oms, 0);
     thread Back_l(back_listen);
-    int  variable = 1, id = 0, P_id = 0, m_id = 1, psize = 1, load = 0, n_id = 1, i_id = 18, ar_id = 11, Ar_id = 3, st_id = 3, f_id = 22, b_mid, ex_id = 14, b_id = 9, sk_id = 22, buff_id = 34, m_fid = 11, b_nid = 0, t_Eid = 3, sp_id = -1,tk_id=6;
+    int  variable = 1, id = 0, P_id = 0, m_id = 1, psize = 1, load = 0, n_id = 1, i_id = 18, ar_id = 12, Ar_id = 3, st_id = 3, f_id = 22, b_mid, ex_id = 14, b_id = 9, sk_id = 22, buff_id = 34, m_fid = 11, b_nid = 0, t_Eid = 3, sp_id = -1,tk_id=6;
     /*變數數量*/    
     wofstream wofs;
     player p[3];
     enemy_type e_t[7];
     enemy e[10];
-    arms  ar[11];
+    arms  ar[12];
     armor Ar[3];
     item  it[18];
     Map   m[10];
@@ -16830,7 +16955,7 @@ int main() {
     e_t[3].name = L"狼王"; e_t[3].story = L"統御南部森林的王者，過去誤食星隕礦而覺醒了操控火焰的能力，也獲得了普通野狼所沒有的智力"; e_t[3].baid = 1; e_t[3].str = 13; e_t[3].dex = 14; e_t[3].con = 13; e_t[3].INT = 15; e_t[3].wis = 13; e_t[3].cha = 11; e_t[3].lv = 1; e_t[3].mhp = 50; e_t[3].hp = 50; e_t[3].Move = 8; e_t[3].speed = 13; e_t[3].exp = 500; e_t[3].drop = ""; e_t[3].s_range = 4; e_t[3].species = "a";
     e_t[4].name = L"老狼"; e_t[4].story = L"經歷自然的選擇存活下來的野狼，體力雖然衰退卻也獲得了生存的智慧"; e_t[4].baid = 1; e_t[4].str = 10; e_t[4].dex = 11; e_t[4].con = 10; e_t[4].INT = 6; e_t[4].wis = 14; e_t[4].cha = 7; e_t[4].lv = 1; e_t[4].mhp = 15; e_t[4].hp = 15; e_t[4].Move = 6; e_t[4].speed = 11; e_t[4].exp = 150; e_t[4].drop = "100%15i"; e_t[4].species = "a";
     e_t[5].name = L"帝國軍隊長";
-    e_t[6].name = L"帝國裝甲車\"阿斯提\""; e_t[6].story = L"帝國大戰後開發的新式裝甲車，運用了星隕石作為動力來源，必要時能夠激活星隕護盾"; e_t[6].h = 4; e_t[6].w = 2; e_t[6].str = 24; e_t[6].dex = 15; e_t[6].con = 20; e_t[6].INT = 1; e_t[6].wis = 8; e_t[6].cha = 1; e_t[6].lv = 1; e_t[6].mhp = 120; e_t[6].hp = 120; e_t[6].Move = 10; e_t[6].speed = 8; e_t[6].s_range = 8;
+    e_t[6].name = L"帝國裝甲車\"阿斯提\""; e_t[6].story = L"帝國大戰後開發的新式裝甲車，運用了星隕石作為動力來源，必要時能夠激活星隕護盾";e_t[6].baid = 11; e_t[6].h = 4; e_t[6].w = 2; e_t[6].str = 24; e_t[6].dex = 15; e_t[6].con = 20; e_t[6].INT = 1; e_t[6].wis = 8; e_t[6].cha = 1; e_t[6].lv = 1; e_t[6].mhp = 120; e_t[6].hp = 120; e_t[6].Move = 10; e_t[6].speed = 8; e_t[6].s_range = 8; 
     b_nt[0].name = L"戴恩"; b_nt[0].story = L"夏洛特的父親，是位老練的獵手，曾在巴蘭斯獨立戰爭中擔任狙擊手"; b_nt[0].lv = 15; b_nt[0].hp = 15; b_nt[0].mhp = 20; b_nt[0].Move = 5; b_nt[0].speed = 15; b_nt[0].pose = 2; b_nt[0].str = 15; b_nt[0].dex = 20; b_nt[0].con = 15; b_nt[0].INT = 10; b_nt[0].wis = 12; b_nt[0].cha = 9; b_nt[0].baid = 0;
     b_nt[1].name = L"昏迷的愛麗絲"; b_nt[1].story = L"因為超載使用大地之心而昏迷的愛麗絲"; b_nt[1].lv = 5; b_nt[1].hp = 15; b_nt[1].mhp = 15; b_nt[1].Move = 0; b_nt[1].speed = 0; b_nt[1].pose = 1; b_nt[1].str = 12; b_nt[1].dex = 10; b_nt[1].con = 12; b_nt[1].INT = 10; b_nt[1].wis = 11; b_nt[1].cha = 12; b_nt[1].baid = 2;
     ar[0].name = L"巡林者"; ar[0].dmg = "1d12"; ar[0].Dmg = L"1d12"; ar[0].range = 5; ar[0].story = L"巴蘭斯獵戶所喜愛的獵槍，能精準射殺大型獵物，是帝國在大戰後遺留的產物\n傷害:1d12\n裝填時間:1S"; ar[0].number = 0; ar[0].bullet = 1; ar[0].mbullet = 1; ar[0].type = "rr"; ar[0].time = 1;
@@ -16842,8 +16967,9 @@ int main() {
     ar[6].name = L"獵刀"; ar[6].dmg = "1d5"; ar[6].Dmg = L"1d5"; ar[6].hit = "1d2"; ar[6].range = 1; ar[6].story = L"用來給獵物剝皮和切肉的刀具\n傷害:1d5\n命中加值:1d2"; ar[6].number = 0; ar[6].bullet = 1; ar[6].mbullet = 1; ar[6].type = "m";
     ar[7].name = L"尾針"; ar[7].dmg = "1d2+1"; ar[7].Dmg = L"1d2+1"; ar[7].range = 1; ar[7].story = L"昆蟲防衛自身的武器，帶毒"; ar[7].number = 0; ar[7].bullet = 1; ar[7].mbullet = 1; ar[7].type = "m";
     ar[8].name = L"蛇杖"; ar[8].dmg = "1d4"; ar[8].Dmg = L"1d4"; ar[8].hit = "1d2"; ar[8].range = 1; ar[8].story = L"醫者遠行常攜帶的手杖，杖身刻有著代表醫者的蛇\n傷害:1d4\n命中加值:1d2"; ar[8].number = 0; ar[8].bullet = 1; ar[8].mbullet = 1; ar[8].type = "m";
-    ar[9].name = L"短嚎"; ar[9].dmg = "3d4"; ar[9].Dmg = L"3d3"; ar[9].hit = "3d3"; ar[9].story = L"帝國士官配發的防衛手槍，能全自動射擊";
+    ar[9].name = L"短嚎"; ar[9].dmg = "3d4"; ar[9].Dmg = L"3d3"; ar[9].hit = "3d3"; ar[9].story = L"帝國士官配發的防衛手槍，能全自動射擊"; ar[9].type = "rp";
     ar[10].name = L"無畏二型"; ar[10].dmg = "1d8+2"; ar[10].Dmg = L"1d8+2"; ar[10].range = 5; ar[10].story = L"源自三十年戰爭中期帝國製械廠開始量產的新式複合槍，無畏二字來自查里三世在試射後的賜名，帝國在大戰後總結了前線的反饋，所改進的二代版本\n傷害:1d8+2(步槍);2d4(霰彈)\n裝填時間:5S"; ar[10].type = "rrs";
+    ar[11].name = L"帝國車載輕機槍"; ar[11].dmg; ar[11].Dmg; ar[11].range = 5; ar[11].story = L"帝國為載具對抗輕目標所設計的小口徑機槍，通用可卸的設計使其適用於絕大部分戰場上\n傷害:2d6(十字) 裝填時間:8S"; ar[11].type = "rr"; ar[11].mbullet = 100;
     Ar[0].name = L"獵手服"; Ar[0].story = L"與森林近似的顏色能讓獵手不容易被發現，特殊的設計使穿著者能靈巧的移動\n防禦加值:1，閃避加值:1"; Ar[0].DEF = 1; Ar[0].EDV = 1;
     Ar[1].name = L"粗布襯衫"; Ar[1].story = L"便宜實惠耐穿，一天著裝的好選擇\n防禦加值:1"; Ar[1].DEF = 1; Ar[1].EDV = 0;
     Ar[2].name = L"半身甲"; Ar[2].story = L"保護身體要害免於刀劍威脅，但在抵禦火器的防護效果不佳，且對穿戴者的體力要求較高\n防禦加值:3，閃避減值:2\n穿戴要求:13 STR以上"; Ar[2].DEF = 3; Ar[2].EDV = -2;
