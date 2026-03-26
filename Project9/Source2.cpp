@@ -326,7 +326,7 @@ class enemy_type {
 public:
     wstring name, story;
     string drop, species;
-    int lv, mhp, hp, dex, str, x, y, INT, con, wis, cha, speed, move, baid,exp,Move,s_range=0,e_range=0;
+    int lv, mhp, hp, dex, str, x, y, INT, con, wis, cha, speed, move, baid=-1,exp,Move,s_range=0,e_range=0;
     int EDV = 0, DEF = 0;
     int w=1, h=1;
     int Act=1;
@@ -1896,7 +1896,7 @@ void n_buff_check(wofstream* wofs, string chose, player* p, enemy* e, b_npc* b_n
         }
     }
 }
-void e_buff_check(wofstream* wofs,string chose,armor *Ar, player* p, enemy* e, b_npc* b_n, buff* bu, b_map* b_m, terrain(*te)[50], int P_id, int b_mid, int bu_id,int id) {
+void e_buff_check(wofstream* wofs,string chose,arms *ar,armor *Ar, player* p, enemy* e, b_npc* b_n, buff* bu, b_map* b_m, terrain(*te)[50], int P_id, int b_mid, int bu_id,int id) {
     int I;
     if (chose == "T") {
         for (I = 0; I < b_m[b_mid].esize; I++) {
@@ -1918,6 +1918,9 @@ void e_buff_check(wofstream* wofs,string chose,armor *Ar, player* p, enemy* e, b
                             te[e[I].target_x + X][e[I].target_y + Y].pit = 1;
                         }
 						b_camera(b_m, e[I].target_x + X, e[I].target_y + Y, b_mid);
+                        BeginBatchDraw();
+                        Redraw_battle(p, e, b_n, ar, te, b_m, b_mid);
+                        FlushBatchDraw();
                         IMAGE get, ef;
                         getimage(&get, 0, 0, 1296, 960);
                         loadimage(&ef, L"./Game/picture/pipo-btleffect036.png", 0, 0, false);
@@ -1963,7 +1966,6 @@ void e_buff_check(wofstream* wofs,string chose,armor *Ar, player* p, enemy* e, b
                             }
                         }
                     }
-
                     if (e[I].buff_time[q] == 0) {
                         if (e[I].buff_id[q] == 5) {
                             if (e[I].baid == 10) {
@@ -2209,6 +2211,17 @@ void e_buff_check(wofstream* wofs,string chose,armor *Ar, player* p, enemy* e, b
                             putimage(0, 0, &get);
                             FlushBatchDraw();
                             Sleep(500);
+                        }
+                        else if (e[I].buff_id[q] == 35) {
+                            for (int rx = -3; rx <= 3; rx++) {
+                                for (int ry = -3; ry <= 3; ry++) {
+                                    if (abs(rx) + abs(ry) <= 3) {
+                                        if (checkBounds(b_m, b_mid, e[I].target_x + rx, e[I].target_y + ry)) {
+                                            te[e[I].target_x + rx][e[I].target_y + ry].danger--;
+                                        }
+                                    }
+                                }
+                            }
                         }
                         e[I].buff_check[e[I].buff_id[q]]--;
                         for (int E = q; E < e[I].buff_Size - 1; E++) {
@@ -4943,13 +4956,19 @@ void bfs(b_map *b_m, terrain(*te)[50],int sx, int sy, int x, int y, int* box, in
         w++;
     }
 }
-void LBbfs(b_map* b_m, terrain(*te)[50], int sx, int sy,int pose,int w,int h, int x, int y, int* box, int b_mid, int MOVE) {
-    int X = sx, Y = sy, road[200][150], cost[200][150], ex = 1000, ey = -1000, ec = 100000, dx,dy,b[1000];
+void LBbfs(b_map* b_m, terrain(*te)[50], int sx, int sy,int pose,int w,int h, int x, int y, int* box, int b_mid) {
+    int X = sx, Y = sy,ex = 1000, ey = -1000, ec = 100000, dx, dy, b[1000],ep=-1,eh,ew;
+    float edot=-10000;
+    static int road[200][150][4];
+    static int cost[200][150][4];
     int ts = 0;
     for (int I = 0; I < b_m[b_mid].x; I++) {
         for (int J = 0; J < b_m[b_mid].y; J++) {
-            road[I][J] = 0;
-            cost[I][J] = 100000;
+
+            for (int K = 0; K < 4; K++) {
+                 road[I][J][K] = 0;
+                 cost[I][J][K] = 100000;
+            }
         }
     }
     class da {
@@ -4968,32 +4987,66 @@ void LBbfs(b_map* b_m, terrain(*te)[50], int sx, int sy,int pose,int w,int h, in
     data.w = w;
     data.h = h;
     q.push(data);
-    cost[X][Y] = 0;
-    road[X][Y] = -1;
+    cost[X][Y][pose-1] = 0;
+    road[X][Y][pose-1] = -1;
     while (q.size() > 0) {
         if (q.front().x < 0 || q.front().y < 0 || q.front().y >= b_m[b_mid].y || q.front().x >= b_m[b_mid].x) {
             q.pop();
         }
         else {
-        if (abs(x-ex)+abs(y-ey)>abs(x-q.front().x)+abs(y-q.front().y)) {
-            ec = abs(x - q.front().x) + abs(y - q.front().y);
-            ex = q.front().x;
-            ey = q.front().y;
-        }
-        else if (cost[ex][ey]>cost[q.front().x][q.front().y]) {
-            ec = abs(x - q.front().x) + abs(y - q.front().y);
-            ex = q.front().x;
-            ey = q.front().y;
-        }
-        int ubp1 = 0, ubp2 = 0, ubp3 = 0, ubp4 = 0, mo1 = 0, mo2 = 0, mo3 = 0, mo4 = 0;
+            float sumx,sumy,dx=0,dy=0;
+            if (q.front().po==1) {
+                sumx = x-(q.front().x+float(q.front().w) / 2);
+                sumy = y-(q.front().y + q.front().h-1);
+                dy = 1;
+            }
+            else if (q.front().po == 2) {
+                sumx = x-q.front().x;
+                sumy = y-(q.front().y + float(q.front().h) / 2);
+                dx = -1;
+            }
+            else if (q.front().po == 3) {
+                sumx = x-(q.front().x+q.front().w-1);
+                sumy = y-(q.front().y + float(q.front().h) / 2);
+                dx = 1;
+            }
+            else if (q.front().po == 4) {
+                sumx = x-(q.front().x + float(q.front().w) / 2);
+                sumy = y-q.front().y;
+                dy = -1;
+            }
+            float dot = sumx*dx+sumy*dy;
+            for (int M = 0; M < q.front().w; M++) {
+                for(int N = 0; N < q.front().h; N++) {
+                    if (ec > abs(x - q.front().x-M) + abs(y - q.front().y-N)) {
+                        ec = abs(x - q.front().x-M) + abs(y - q.front().y-N);
+                        ex = q.front().x;
+                        ey = q.front().y;
+                        ep = q.front().po - 1;
+                        edot = dot;
+                        eh = q.front().h;
+                        ew = q.front().w;
+                    }
+                    else if (ec == abs(x - q.front().x - M) + abs(y - q.front().y - N)&&dot>edot) {
+                        ex = q.front().x;
+                        ey = q.front().y;
+                        ep = q.front().po - 1;
+                        edot = dot;
+                        eh = q.front().h;
+                        ew = q.front().w;
+                    }
+                }
+            }
+
+        int ubp1 = 0, ubp2 = 0, ubp3 = 0, ubp4 = 0, mo1 = 0, mo2 = 0, mo3 = 0, mo4 = 0,mo5=0,mo6=0;
         if (q.front().po == 1 || q.front().po == 4) {
             int rx = q.front().x - ((q.front().h - q.front().w) / 2 + (q.front().h - q.front().w) % 2);
             int ry = q.front().y + ((q.front().h - q.front().w) / 2 + (q.front().h - q.front().w) % 2);
             for (int I = 0; I < q.front().w; I++) {
-                if (te[q.front().x + I][q.front().y + q.front().h].player == 1 || te[q.front().x + I][q.front().y + q.front().h].enemy == 1 || te[q.front().x + I][q.front().y + q.front().h].npc == 1 || te[q.front().x + I][q.front().y + q.front().h].type == 1 ||q.front().po==4) {
+                if (te[q.front().x + I][q.front().y + q.front().h].player == 1 || te[q.front().x + I][q.front().y + q.front().h].enemy == 1 || te[q.front().x + I][q.front().y + q.front().h].npc == 1 || te[q.front().x + I][q.front().y + q.front().h].type == 1 ) {
                     ubp1 = 1;
                 }
-                if (te[q.front().x + I][q.front().y -1].player == 1 || te[q.front().x + I][q.front().y - 1].enemy == 1 || te[q.front().x + I][q.front().y - 1].npc == 1 || te[q.front().x + I][q.front().y - 1].type == 1 || q.front().po == 1) {
+                if (te[q.front().x + I][q.front().y -1].player == 1 || te[q.front().x + I][q.front().y - 1].enemy == 1 || te[q.front().x + I][q.front().y - 1].npc == 1 || te[q.front().x + I][q.front().y - 1].type == 1 ) {
                     ubp4 = 1;
                 }
                 if (mo1 < te[q.front().x + I][q.front().y + q.front().h].mB) {
@@ -5003,6 +5056,8 @@ void LBbfs(b_map* b_m, terrain(*te)[50], int sx, int sy,int pose,int w,int h, in
                     mo4 = te[q.front().x + I][q.front().y -1].mB;
                 }
             }
+                    mo5 =mo4+ 2;
+                    mo6 = mo1+2;                
             for (int I = 0; I < q.front().h; I++) {
                 for (int J = 0; J < q.front().w; J++) {
                     if (rx + I < q.front().x || rx + I >= q.front().x + q.front().w) {
@@ -5018,54 +5073,74 @@ void LBbfs(b_map* b_m, terrain(*te)[50], int sx, int sy,int pose,int w,int h, in
                     }
                 }
             }
-            if (ubp1 == 0&&cost[q.front().x][q.front().y + 1]>cost[q.front().x][q.front().y] + mo1) {
-                cost[q.front().x][q.front().y+1]=cost[q.front().x][q.front().y]+mo1;
+            if (ubp1 == 0&&cost[q.front().x][q.front().y + 1][0]>cost[q.front().x][q.front().y][q.front().po - 1] + mo1 && q.front().po == 1) {
                 data.x = q.front().x;
                 data.y = q.front().y + 1;
-                data.po = 1;
                 data.w = q.front().w;
-                data.h = q.front().h;
-                road[data.x][data.y] = 2;
+                data.h = q.front().h;     
+                data.po = 1;
+                cost[q.front().x][q.front().y+1][0] = cost[q.front().x][q.front().y][q.front().po-1] + mo1;
+                road[data.x][data.y][0] = 2;
                 q.push(data);
             }
-            if (ubp2 == 0 && cost[rx][ry] >= cost[q.front().x][q.front().y] + mo2) {
-                cost[rx][ry] = cost[q.front().x][q.front().y] + mo2;
+            if (ubp1 == 0 && cost[q.front().x][q.front().y + 1][3] > cost[q.front().x][q.front().y][q.front().po - 1] + mo6) {
+                data.x = q.front().x;
+                data.y = q.front().y + 1;
+                data.w = q.front().w;
+                data.h = q.front().h;
+                data.po = 4;
+                cost[q.front().x][q.front().y + 1][3] = cost[q.front().x][q.front().y][q.front().po - 1] + mo6;
+                road[data.x][data.y][3] = 5;
+                q.push(data);
+            }
+            if (ubp2 == 0 && cost[rx][ry][1] > cost[q.front().x][q.front().y][q.front().po - 1] + mo2) {
+                cost[rx][ry][1] = cost[q.front().x][q.front().y][q.front().po-1] + mo2;
                 data.x = rx;
                 data.y = ry;
                 data.po = 2;
                 data.w = q.front().h;
                 data.h = q.front().w;
                 if (q.front().po == 1) {
-                road[data.x][data.y] = 21;
+                road[data.x][data.y][1] = 21;
                 }
                 else {
-                    road[data.x][data.y] = 87;
+                    road[data.x][data.y][1] = 87;
                 }
                 q.push(data);
             }
-            if (ubp3 == 0 && cost[rx][ry] >= cost[q.front().x][q.front().y] + mo3) {
-                cost[rx][ry] = cost[q.front().x][q.front().y] + mo3;
+            if (ubp3 == 0 && cost[rx][ry][2] >cost[q.front().x][q.front().y][q.front().po - 1] + mo3) {
+                cost[rx][ry][2] = cost[q.front().x][q.front().y][q.front().po-1] + mo3;
                 data.x = rx;
                 data.y = ry;
                 data.po = 3;
                 data.w = q.front().h;
                 data.h = q.front().w;
                 if (q.front().po == 1) {
-                road[data.x][data.y] = 23;
+                road[data.x][data.y][2] = 23;
                 }
                 else {
-                  road[data.x][data.y] = 89;
+                  road[data.x][data.y][2] = 89;
                 }
                 q.push(data);
             }
-            if (ubp4 == 0&& cost[q.front().x][q.front().y-1] > cost[q.front().x][q.front().y] + mo4) {
-                cost[q.front().x][q.front().y - 1] = cost[q.front().x][q.front().y] + mo4;
+            if (ubp4 == 0&& cost[q.front().x][q.front().y-1][3] > cost[q.front().x][q.front().y][q.front().po - 1] + mo4 && q.front().po ==4) {
                 data.x = q.front().x;
-                data.y = q.front().y - 1;
                 data.po = 4;
                 data.w = q.front().w;
                 data.h = q.front().h;
-                road[data.x][data.y] = 8;
+                cost[q.front().x][q.front().y - 1][3] = cost[q.front().x][q.front().y][q.front().po-1] + mo4;
+                data.y = q.front().y - 1;
+                road[data.x][data.y][3] = 8;
+                q.push(data);
+            }
+            if (ubp4 == 0 && cost[q.front().x][q.front().y - 1][0] > cost[q.front().x][q.front().y][q.front().po - 1] + mo5) {
+                data.x = q.front().x;
+                data.po = 1;
+                data.w = q.front().w;
+                data.h = q.front().h;
+                cost[q.front().x][q.front().y - 1][0] = cost[q.front().x][q.front().y][q.front().po - 1] + mo5;
+                data.y = q.front().y - 1;
+                road[data.x][data.y][0] = 5;
                 q.push(data);
             }
         }
@@ -5073,10 +5148,10 @@ void LBbfs(b_map* b_m, terrain(*te)[50], int sx, int sy,int pose,int w,int h, in
             int rx = q.front().x + ((q.front().w - q.front().h) / 2 + (q.front().w - q.front().h) % 2);
             int ry = q.front().y - ((q.front().w - q.front().h) / 2 + (q.front().w - q.front().h) % 2);
             for (int J = 0; J < q.front().h; J++) {
-                if (te[q.front().x - 1][q.front().y + J].player == 1 || te[q.front().x - 1][q.front().y + J].enemy == 1 || te[q.front().x - 1][q.front().y + J].npc == 1 || te[q.front().x - 1][q.front().y + J].type == 1 || q.front().po == 3) {
+                if (te[q.front().x - 1][q.front().y + J].player == 1 || te[q.front().x - 1][q.front().y + J].enemy == 1 || te[q.front().x - 1][q.front().y + J].npc == 1 || te[q.front().x - 1][q.front().y + J].type == 1 ) {
                     ubp2 = 1;
                 }
-                if (te[q.front().x + q.front().w][q.front().y + J].player == 1 || te[q.front().x + q.front().w][q.front().y + J].enemy == 1 || te[q.front().x + q.front().w][q.front().y + J].npc == 1 || te[q.front().x + q.front().w][q.front().y + J].type == 1 || q.front().po == 2) {
+                if (te[q.front().x + q.front().w][q.front().y + J].player == 1 || te[q.front().x + q.front().w][q.front().y + J].enemy == 1 || te[q.front().x + q.front().w][q.front().y + J].npc == 1 || te[q.front().x + q.front().w][q.front().y + J].type == 1) {
                     ubp3 = 1;
                 }
                 if (mo2 < te[q.front().x - 1][q.front().y + J].mB) {
@@ -5085,7 +5160,10 @@ void LBbfs(b_map* b_m, terrain(*te)[50], int sx, int sy,int pose,int w,int h, in
                 if (mo3 < te[q.front().x + q.front().w][q.front().y + J].mB) {
                     mo3 = te[q.front().x + q.front().w][q.front().y + J].mB;
                 }
+
             }
+                    mo5 =mo3+ 2;
+                    mo6 =mo2+ 2;
             for (int I = 0; I < q.front().h; I++) {
                 for (int J = 0; J < q.front().w; J++) {
                     if (ry + J < q.front().y || ry + J >= q.front().y + q.front().h) {
@@ -5100,53 +5178,73 @@ void LBbfs(b_map* b_m, terrain(*te)[50], int sx, int sy,int pose,int w,int h, in
                     }
                 }
             }
-            if (ubp1 == 0&&cost[rx][ry]>= cost[q.front().x][q.front().y] + mo1) {
-                cost[rx][ry] = cost[q.front().x][q.front().y] + mo1;
+            if (ubp1 == 0&&cost[rx][ry][0] > cost[q.front().x][q.front().y][q.front().po - 1] + mo1) {
+                cost[rx][ry][0] = cost[q.front().x][q.front().y][q.front().po - 1] + mo1;
                 data.x = rx;
                 data.y = ry;
                 data.po = 1;
                 data.w = q.front().h;
                 data.h = q.front().w;
                 if (q.front().po == 2) {
-                    road[data.x][data.y] = 41;
+                    road[data.x][data.y][0] = 41;
                 }
                 else {
-                    road[data.x][data.y] = 63;
+                    road[data.x][data.y][0] = 63;
                 }
                 q.push(data);
             }
-            if (ubp2 == 0&&cost[q.front().x-1][q.front().y] > cost[q.front().x][q.front().y] + mo2) {
-                cost[q.front().x - 1][q.front().y] = cost[q.front().x][q.front().y] + mo2;
+            if (ubp2 == 0&&cost[q.front().x-1][q.front().y][1] > cost[q.front().x][q.front().y][q.front().po - 1] + mo2 && q.front().po == 2) {
+                cost[q.front().x - 1][q.front().y][1] = cost[q.front().x][q.front().y][q.front().po - 1] + mo2;
                 data.x = q.front().x - 1;
                 data.y = q.front().y;
                 data.po = 2;
                 data.w = q.front().w;
                 data.h = q.front().h;
-                road[data.x][data.y] = 4;
+                road[data.x][data.y][1] = 4;
                 q.push(data);
             }
-            if (ubp3 == 0&&cost[q.front().x+1][q.front().y] > cost[q.front().x][q.front().y] + mo3) {
-                cost[q.front().x + 1][q.front().y] = cost[q.front().x][q.front().y] + mo3;
+            if (ubp2 == 0 && cost[q.front().x - 1][q.front().y][2] > cost[q.front().x][q.front().y][q.front().po - 1] + mo6) {
+                cost[q.front().x - 1][q.front().y][2] = cost[q.front().x][q.front().y][q.front().po - 1] + mo6;
+                data.x = q.front().x - 1;
+                data.y = q.front().y;
+                data.po = 3;
+                data.w = q.front().w;
+                data.h = q.front().h;
+                road[data.x][data.y][2] = 5;
+                q.push(data);
+            }
+            if (ubp3 == 0&&cost[q.front().x+1][q.front().y][2] > cost[q.front().x][q.front().y][q.front().po - 1] + mo3 && q.front().po == 3) {
+                cost[q.front().x + 1][q.front().y][2] = cost[q.front().x][q.front().y][q.front().po - 1] + mo3;
                 data.x = q.front().x + 1;
                 data.y = q.front().y;
                 data.po = 3;
                 data.w = q.front().w;
                 data.h = q.front().h;
-                road[data.x][data.y] = 6;
+                road[data.x][data.y][2] = 6;
                 q.push(data);
             }
-            if (ubp4 == 0 && cost[rx][ry] >= cost[q.front().x][q.front().y] + mo4) {
-                cost[rx][ry] = cost[q.front().x][q.front().y] + mo4;
+            if (ubp3 == 0 && cost[q.front().x + 1][q.front().y][1] > cost[q.front().x][q.front().y][q.front().po - 1] + mo5) {
+                cost[q.front().x + 1][q.front().y][1] = cost[q.front().x][q.front().y][q.front().po - 1] + mo5;
+                data.x = q.front().x + 1;
+                data.y = q.front().y;
+                data.po = 2;
+                data.w = q.front().w;
+                data.h = q.front().h;
+                road[data.x][data.y][1] = 5;
+                q.push(data);
+            }
+            if (ubp4 == 0 && cost[rx][ry][3] > cost[q.front().x][q.front().y][q.front().po - 1] + mo4) {
+                cost[rx][ry][3] = cost[q.front().x][q.front().y][q.front().po - 1] + mo4;
                 data.x = rx;
                 data.y = ry;
                 data.po = 4;
                 data.w = q.front().h;
                 data.h = q.front().w;
                 if (q.front().po == 2) {
-                    road[data.x][data.y] = 47;
+                    road[data.x][data.y][3] = 47;
                 }
                 else {
-                    road[data.x][data.y] = 69;
+                    road[data.x][data.y][3] = 69;
                 }
                 q.push(data);
             }
@@ -5157,16 +5255,16 @@ void LBbfs(b_map* b_m, terrain(*te)[50], int sx, int sy,int pose,int w,int h, in
     }
     int rd, rdd;
     while (1) {
-        rdd = road[ex][ey] % 10;
-        if (road[ex][ey] / 10 != 0) {
-        rd = road[ex][ey] / 10;
+        rdd = road[ex][ey][ep] % 10;
+        if (road[ex][ey][ep] / 10 != 0) {
+        rd = road[ex][ey][ep] / 10;
         if (rd == 2 || rd == 8) {
-            dx = ex - ((w - h) / 2 + (w - h) % 2);
-            dy = ey + ((w - h) / 2 + (w - h) % 2);
+            dx = ex + ((ew -eh ) / 2 + (ew - eh) % 2);
+            dy = ey - ((ew - eh) / 2 + (ew - eh) % 2);
         }
         else if (rd == 4 || rd == 6) {
-            dx = ex + ((h - w) / 2 + (h - w) % 2);
-            dy = ey - ((h - w) / 2 + (h - w) % 2);
+            dx = ex - ((eh - ew) / 2 + (eh - ew) % 2);
+            dy = ey + ((eh - ew) / 2 + (eh - ew) % 2);
         }
         }
         if (rdd == 1) {
@@ -5174,17 +5272,22 @@ void LBbfs(b_map* b_m, terrain(*te)[50], int sx, int sy,int pose,int w,int h, in
                 b[ts] = 41;
                 ex = dx;
                 ey = dy;
+                ep = 1;
+                swap(ew, eh);
                 ts++;
             }
             else {
                 b[ts] = 21;
                 ex = dx;
                 ey = dy;
+                ep = 0;
+                swap(ew, eh);
                 ts++;
             }
         }
         else if (rdd == 2) {
             b[ts] = 2;
+            ep = 0;
             ey --;
             ts++;
         }
@@ -5193,23 +5296,51 @@ void LBbfs(b_map* b_m, terrain(*te)[50], int sx, int sy,int pose,int w,int h, in
                 b[ts] = 63;
                 ex = dx;
                 ey = dy;
+                ep = 2;
+                swap(ew, eh);
                 ts++;
             }
             else {
                 b[ts] = 23;
                 ex = dx;
                 ey = dy;
+                ep = 0;
+                swap(ew, eh);
                 ts++;
             }
         }
         else if (rdd == 4) {
             b[ts] = 4;
             ex++;
+            ep = 1;
             ts++;
+        }
+        else if (rdd == 5) {
+            if (ep == 0) {
+                b[ts] = 52;
+                ey++;
+                ts++;
+            }
+            else if (ep == 1) {
+                b[ts] = 54;
+                ex--;
+                ts++;
+            }
+            else if (ep == 2) {
+                b[ts] = 56;
+                ex++;
+                ts++;
+            }
+            else if (ep == 3) {
+                b[ts] = 58;
+                ey--;
+                ts++;
+            }
         }
         else if (rdd == 6) {
             b[ts] = 6;
             ex--;
+            ep = 2;
             ts++;
         }
         else if (rdd == 7) {
@@ -5217,18 +5348,23 @@ void LBbfs(b_map* b_m, terrain(*te)[50], int sx, int sy,int pose,int w,int h, in
                 b[ts] = 47;
                 ex = dx;
                 ey = dy;
+                ep = 1;
+                swap(ew, eh);
                 ts++;
             }
             else {
                 b[ts] = 87;
                 ex = dx;
                 ey = dy;
+                ep = 3;
+                swap(ew, eh);
                 ts++;
             }
         }
         else if (rdd == 8) {
             b[ts] = 8;
             ey++;
+            ep = 3;
             ts++;
         }
         else if (rdd == 9) {
@@ -5236,20 +5372,26 @@ void LBbfs(b_map* b_m, terrain(*te)[50], int sx, int sy,int pose,int w,int h, in
                 b[ts] = 69;
                 ex = dx;
                 ey = dy;
+                ep = 2;
+                swap(ew, eh);
                 ts++;
             }
             else {
                 b[ts] = 89;
                 ex = dx;
                 ey = dy;
+                ep = 3;
+                swap(ew, eh);
                 ts++;
             }
         }
-        else if (road[ex][ey] == -1) {
+        else if (road[ex][ey][ep] == -1) {
             for (int k = 0; k < ts; k++) {
                 box[k] = b[ts - k - 1];
             }
             box[ts] = 0;
+            memset(road, 0, sizeof(road));
+            memset(cost, 0, sizeof(cost));
             break;
         }
     }
@@ -7916,7 +8058,7 @@ void e_walk(wofstream *wofs,enemy* e, player* p,b_npc *b_n, b_map* b_m,arms *ar,
                 }
             }
             if (flag == 0) {
-                LBbfs(b_m, te, e[id].x, e[id].y,e[id].pose,e[id].w,e[id].h, e[id].lastx, e[id].lasty, box, b_mid, e[id].Move);
+                LBbfs(b_m, te, e[id].x, e[id].y,e[id].pose,e[id].w,e[id].h, e[id].lastx, e[id].lasty, box, b_mid);
             }
             else {
                 return;
@@ -7940,7 +8082,27 @@ void e_walk(wofstream *wofs,enemy* e, player* p,b_npc *b_n, b_map* b_m,arms *ar,
          }
          else {
              if (target == 0) {
-                 LBbfs(b_m, te, e[id].x, e[id].y, e[id].pose, e[id].w, e[id].h,p[P_id].x, p[P_id].y, box, b_mid, e[id].Move);
+                 int x = e[id].x, y = e[id].y;
+                 for (int W = 0; W < e[id].w; W++) {
+                     for (int H = 0; H < e[id].h; H++) {
+                         te[x + W][y + H].mA -= 10000;
+                         te[x + W][y + H].mB -= 10000;
+                         te[x + W][y + H].enemy = 0;
+                         if (x + W + 1 == x + e[id].w && x + W + 1 < b_m[b_mid].x && te[x + W + 1][y + H].type == 0) {
+                             te[x + W + 1][y + H].mA -= 1;
+                         }
+                         if (x + W - 1 < x && x + W - 1 >= 0 && te[x + W - 1][y + H].type == 0) {
+                             te[x + W - 1][y + H].mA -= 1;
+                         }
+                         if (y + H + 1 == y + e[id].h && y + H + 1 < b_m[b_mid].y && te[x + W][y + H + 1].type == 0) {
+                             te[x + W][y + H + 1].mA -= 1;
+                         }
+                         if (y + H - 1 < y && y + H - 1 >= 0 && te[x + W][y + H - 1].type == 0) {
+                             te[x + W][y + H - 1].mA -= 1;
+                         }
+                     }
+                 }
+                 LBbfs(b_m, te, e[id].x, e[id].y, e[id].pose, e[id].w, e[id].h,p[P_id].x, p[P_id].y, box, b_mid);
              }             
          }
     }
@@ -8764,16 +8926,85 @@ void e_walk(wofstream *wofs,enemy* e, player* p,b_npc *b_n, b_map* b_m,arms *ar,
                     }
                 }
             }
+            else if (box[w] / 10 == 5) {
+                int Mmove = 0;
+                if (box[w] %10 == 2) {
+                    for (int I = 0; I < ew; I++) {
+                        if (te[xbox + I][ybox - 1].mB > Mmove) {
+                            Mmove = te[xbox + I][ybox - 1].mB;
+                        }
+                        if (te[xbox + I][ybox - 1].fire == 1) {
+                            if (e[id].buff_check[11] > 0) {
+
+                            }
+                            else {
+                                e[id].buff_check[12]++;
+                            }
+                        }
+                    }
+                }
+                else if (box[w] % 10 == 4) {
+                    for (int I = 0; I < eh; I++) {
+                        if (te[xbox + ew][ybox + I].mB > Mmove) {
+                            Mmove = te[xbox + ew][ybox + I].mB;
+                        }
+                        if (te[xbox + ew][ybox + I].fire == 1) {
+                            if (e[id].buff_check[11] > 0) {
+
+                            }
+                            else {
+                                e[id].buff_check[12]++;
+                            }
+                        }
+                    }
+                }
+                else if (box[w] % 10 == 6) {
+                    for (int I = 0; I < eh; I++) {
+                        if (te[xbox - 1][ybox + I].mB > Mmove) {
+                            Mmove = te[xbox - 1][ybox + I].mB;
+                        }
+                        if (te[xbox - 1][ybox + I].fire == 1) {
+                            if (e[id].buff_check[11] > 0) {
+
+                            }
+                            else {
+                                e[id].buff_check[12]++;
+                            }
+                        }
+                    }
+                }
+                else if (box[w] % 10 == 8) {
+                    for (int I = 0; I < ew; I++) {
+                        if (te[xbox + I][ybox + eh].mB > Mmove) {
+                            Mmove = te[xbox + I][ybox + eh].mB;
+                        }
+                        if (te[xbox + I][ybox + eh].fire == 1) {
+                            if (e[id].buff_check[11] > 0) {
+
+                            }
+                            else {
+                                e[id].buff_check[12]++;
+                            }
+                        }
+                    }
+                }
+                if (e[id].move >= Mmove) {
+                    e[id].move -= Mmove;
+                }
+                else {
+                    break;
+                }
+            }
+            e[id].pose = P;
             te_check(wofs, "t", p, e, b_n, b_m, te, b_mid, -1, -1, -1);
             if (box[w] == 2) {
                 for (k = 0; k < 3; k++) {
-
                     BeginBatchDraw();
                     maps(p, e, b_m, ar, te, b_mid);
                     e_bput(e, b_m, te, id, esize, b_mid);
                     b_nput(b_n, b_m, b_m[b_mid].nsize, b_mid);
                     p_put(p, b_m, psize, b_mid);
-                    if (xbox * 48 + k * 16 - b_m[b_mid].ox < 960 && ybox * 48 - b_m[b_mid].oy < 720) {
+                    if (xbox * 48  - b_m[b_mid].ox < 960 && ybox * 48 - b_m[b_mid].oy+ k * 16 < 720) {
                         transparentimage(NULL, xbox * 48 - b_m[b_mid].ox, ybox * 48 - b_m[b_mid].oy+k*16, &enemy2, 0xFF55FF, 48 * ew * (k % 2 - (k / 2) + 1),0, ew * 48, eh * 48);
                     }
                     ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
@@ -8790,7 +9021,7 @@ void e_walk(wofstream *wofs,enemy* e, player* p,b_npc *b_n, b_map* b_m,arms *ar,
                     e_bput(e, b_m, te, id, esize, b_mid);
                     b_nput(b_n, b_m, b_m[b_mid].nsize, b_mid);
                     p_put(p, b_m, psize, b_mid);
-                    if (xbox * 48 + k * 16 - b_m[b_mid].ox < 960 && ybox * 48 - b_m[b_mid].oy - 16 < 720) {
+                    if (xbox * 48 - k * 16 - b_m[b_mid].ox < 960 && ybox * 48 - b_m[b_mid].oy - 16 < 720) {
                         transparentimage(NULL, xbox * 48 -16 * k - b_m[b_mid].ox, ybox * 48 - b_m[b_mid].oy - 16 - (k % 2), &enemy1, 0xFF55FF, 48 * ew * (k % 2 - (k / 2) + 1),0, ew * 48, eh * 48);
                     }
                     ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
@@ -8819,13 +9050,12 @@ void e_walk(wofstream *wofs,enemy* e, player* p,b_npc *b_n, b_map* b_m,arms *ar,
             }
             else if (box[w] == 8) {
                 for (k = 0; k < 3; k++) {
-
                     BeginBatchDraw();
                     maps(p, e, b_m, ar, te, b_mid);
                     e_bput(e, b_m, te, id, esize, b_mid);
                     b_nput(b_n, b_m, b_m[b_mid].nsize, b_mid);
                     p_put(p, b_m, psize, b_mid);
-                    if (xbox * 48 + k * 16 - b_m[b_mid].ox < 960 && ybox * 48 - b_m[b_mid].oy < 720) {
+                    if (xbox * 48  - b_m[b_mid].ox < 960 && ybox * 48- k * 16 - b_m[b_mid].oy < 720) {
                         transparentimage(NULL, xbox * 48 - b_m[b_mid].ox, ybox * 48 - b_m[b_mid].oy - k * 16, &enemy2, 0xFF55FF, 48 * e[id].w * (k % 2 - (k / 2) + 1), e[id].h * 48, e[id].w * 48, e[id].h * 48);
                     }
                     ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
@@ -8834,10 +9064,59 @@ void e_walk(wofstream *wofs,enemy* e, player* p,b_npc *b_n, b_map* b_m,arms *ar,
                 }
                 ybox--;
             }
+            else if (box[w] / 10 == 5) {
+                for (k = 0; k < 3; k++) {
+                    BeginBatchDraw();
+                    maps(p, e, b_m, ar, te, b_mid);
+                    e_bput(e, b_m, te, id, esize, b_mid);
+                    b_nput(b_n, b_m, b_m[b_mid].nsize, b_mid);
+                    p_put(p, b_m, psize, b_mid);
+                    if (box[w] % 10 == 2) {
+                        if (xbox * 48 - b_m[b_mid].ox < 960 && ybox * 48 - b_m[b_mid].oy-k*16 < 720) {
+                            transparentimage(NULL, xbox * 48 - b_m[b_mid].ox, ybox * 48 - b_m[b_mid].oy - k * 16, &enemy2, 0xFF55FF, 48 * ew * (k % 2 - (k / 2) + 1), 0, eh * 48, eh * 48);
+                        }
+                    }
+                    else if (box[w] % 10 == 4) {
+                        if (xbox * 48 + k * 16 - b_m[b_mid].ox < 960 && ybox * 48 - b_m[b_mid].oy < 720) {
+                            transparentimage(NULL, xbox * 48 + 16 * k - b_m[b_mid].ox, ybox * 48 - b_m[b_mid].oy - (k % 2), &enemy1, 0xFF55FF, 48 * ew * (k % 2 - (k / 2) + 1), 0, ew * 48, eh * 48);
+                        }
+                    }
+                    else if (box[w] % 10 == 6) {
+                        if (xbox * 48 - k * 16 - b_m[b_mid].ox < 960 && ybox * 48 - b_m[b_mid].oy - 16 < 720) {
+                            transparentimage(NULL, xbox * 48 - 16 * k - b_m[b_mid].ox, ybox * 48 - b_m[b_mid].oy - 16 - (k % 2), &enemy1, 0xFF55FF, 48 * ew * (k % 2 - (k / 2) + 1), eh*48, ew * 48, eh * 48);
+                        }
+                    }
+                    else if (box[w] % 10 == 8) {
+                        if (xbox * 48 - b_m[b_mid].ox < 960 && ybox * 48 - b_m[b_mid].oy + k * 16 < 720) {
+                            transparentimage(NULL, xbox * 48 - b_m[b_mid].ox, ybox * 48 - b_m[b_mid].oy + k * 16, &enemy2, 0xFF55FF, 48 * ew * (k % 2 - (k / 2) + 1), eh*48, ew * 48, eh * 48);
+                        }
+                    }
+                    ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
+                    EndBatchDraw();
+                    Sleep(30);
+                }
+                if (box[w] % 10 == 2) {
+                    ybox--;
+                }
+                else if (box[w] % 10 == 4) {
+                    xbox++;
+                }
+                else if (box[w] % 10 == 6) {
+                    xbox--;
+                }
+                else if (box[w] % 10 == 8) {
+                    ybox++;
+                }
+            }
             else if (box[w] == 0) {
                 break;
             }
-            else {
+            else {                
+                BeginBatchDraw();
+                maps(p, e, b_m, ar, te, b_mid);
+                e_bput(e, b_m, te, id, esize, b_mid);
+                b_nput(b_n, b_m, b_m[b_mid].nsize, b_mid);
+                p_put(p, b_m, psize, b_mid);
                 if (P == 1) {
                     transparentimage(NULL, xbox * 48 - b_m[b_mid].ox, ybox* 48 - b_m[b_mid].oy, &enemy2, 0xFF55FF, 48*ew  , 0, 48*ew, 48*eh);
                 }
@@ -8850,6 +9129,9 @@ void e_walk(wofstream *wofs,enemy* e, player* p,b_npc *b_n, b_map* b_m,arms *ar,
                 else if (P == 4) {
                     transparentimage(NULL, xbox * 48 - b_m[b_mid].ox, ybox * 48 - b_m[b_mid].oy, &enemy2, 0xFF55FF, 48 * ew, eh*48, 48 * ew, 48 * eh);
                 }
+                ui(p, e, b_m, P_id, esize, psize, b_mid, bu_id);
+                EndBatchDraw();
+                Sleep(30);
             }
             for (int I = 0; I < b_m[b_mid].psize; I++) {
                 if (p[I].buff_check[22] > 0 && sb == 0) {
@@ -8902,28 +9184,10 @@ void e_walk(wofstream *wofs,enemy* e, player* p,b_npc *b_n, b_map* b_m,arms *ar,
                 }
             }
             e[id].x = xbox; e[id].y = ybox;
+            e[id].h = eh; e[id].w = ew;
             w++;
         }
         *wofs << xbox << L"," << ybox << L")" << endl;
-        for (int W = 0; W < e[id].w; W++) {
-            for (int H = 0; H < e[id].h; H++) {
-                te[x + W][y + H].mA -= 10000;
-                te[x + W][y + H].mB -= 10000;
-                te[x + W][y + H].enemy = 0;
-                if (x + W + 1 == x + e[id].w && x + W + 1 < b_m[b_mid].x && te[x + W + 1][y + H].type == 0) {
-                    te[x + W + 1][y + H].mA -= 1;
-                }
-                if (x + W - 1 < x && x + W - 1 >= 0 && te[x + W - 1][y + H].type == 0) {
-                    te[x + W - 1][y + H].mA -= 1;
-                }
-                if (y + H + 1 == y + e[id].h && y + H + 1 < b_m[b_mid].y && te[x + W][y + H + 1].type == 0) {
-                    te[x + W][y + H + 1].mA -= 1;
-                }
-                if (y + H - 1 < y && y + H - 1 >= 0 && te[x + W][y + H - 1].type == 0) {
-                    te[x + W][y + H - 1].mA -= 1;
-                }
-            }
-        }
         e[id].x = xbox; e[id].y = ybox;
         e[id].w = ew;e[id].h = eh;
         e[id].pose = P;
@@ -9068,7 +9332,7 @@ void acts( player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar,buff *bu, terrain(*
                             IMAGE tri,ab,mb;
                             loadimage(&ab, L"./Game/picture/ab.png", 0, 0, false);
                             loadimage(&mb, L"./Game/picture/mb.png", 0, 0, false);
-                            int MR=e[i].Move + ar[e[i].baid].range;
+                            int MR=e[i].Move + (e[i].baid>=0) ? ar[e[i].baid].range:0;
                             int X = e[i].x,Y=e[i].y;
                             int x = e[i].x,y=e[i].y;
                             int road[100][100],dr[100][100];
@@ -14663,8 +14927,8 @@ void b_event(flag *f,b_flag *b_f,player *p,npc *n,b_map *b_m,enemy_type *e_t,ene
             else if (b_f[fk].id == 7) {
                 string filename;
                 filename = "./Game/story/b_event" + to_string(5) + string(".json");
-                b_camera(b_m, 2, 25, b_mid);
-                enemy_type_get(e, e_t, te, b_m, b_mid, 6, 1, 26, 3);
+                b_camera(b_m, 20, 25, b_mid);
+                enemy_type_get(e, e_t, te, b_m, b_mid, 6, 22, 20, 2);
                 BeginBatchDraw();
                 maps(p, e, b_m, ar, te, b_mid);/*地圖繪製*/
                 e_put(e, b_m, te, b_m[b_mid].esize, b_mid);
@@ -14745,7 +15009,7 @@ void END(wofstream *wofs,player* p, enemy* e,b_npc *b_n, string chose, b_map* b_
             if (e[bmax].turn > p[pmax].turn && e[bmax].turn >= 100) {
                 if (e[i].buff_check[13] == 0&& e[i].buff_check[15] == 0) {
                 id = bmax; e[bmax].turn -= 100;  roundp = 0; roundb = 1; roundn = 0; e[id].move = e[id].Move; e[id].act =e[id].Act;
-                e_buff_check(wofs, "r",Ar, p, e, b_n, bu, b_m, te, -1, b_mid, bu_id, id);
+                e_buff_check(wofs, "r",ar,Ar, p, e, b_n, bu, b_m, te, -1, b_mid, bu_id, id);
                 te_check(wofs,"e", p, e, b_n, b_m, te, b_mid, -1,id, -1);
                 break;
                 }
@@ -14807,8 +15071,8 @@ void END(wofstream *wofs,player* p, enemy* e,b_npc *b_n, string chose, b_map* b_
             p_buff_check(wofs,"t", p, e, b_n, bu,ar, b_m,te, P_id, b_mid,bu_id);
             p_buff_check(wofs,"T", p, e, b_n, bu, ar,b_m,te, P_id, b_mid,bu_id);
             n_buff_check(wofs, "T", p, e, b_n, bu, b_m, te,P_id, b_mid, bu_id,b_nid);
-            e_buff_check(wofs,"T",Ar, p, e, b_n, bu, b_m, te, P_id, b_mid, bu_id,-1);
-            e_buff_check(wofs, "s", Ar, p, e, b_n, bu, b_m, te, P_id, b_mid, bu_id, -1);
+            e_buff_check(wofs,"T",ar,Ar, p, e, b_n, bu, b_m, te, P_id, b_mid, bu_id,-1);
+            e_buff_check(wofs, "s",ar,Ar, p, e, b_n, bu, b_m, te, P_id, b_mid, bu_id, -1);
             cd_check("t", p, e, b_n, b_m, b_mid,sk_id,-1);
             te_check(wofs,"t", p, e, b_n, b_m, te, b_mid, -1, -1, -1);
             for (i = 0; i < b_m[b_mid].psize;i++) {
@@ -17945,7 +18209,7 @@ void e_battle_ai(wofstream* wofs, enemy *e,player *p,e_npc *e_n,b_npc *b_n,b_map
     e_target(wofs, e, p, b_m, b_n, te, P_id, id, b_mid, b_m[b_mid].psize, b_m[b_mid].nsize, b_nid, 0);
     e_walk(wofs, e, p, b_n, b_m, ar, te, id, P_id, b_m[b_mid].esize, b_m[b_mid].psize, b_mid, buff_id, b_nid, e[id].target, 0);
     if (e[id].act > 0) {
-    if (e[id].cd[0] == 0) {
+    if (e[id].cd[0] == 100000) {
         if (e[id].pose == 1) {
             if (e[id].y-1>=0&&te[e[id].x][e[id].y-1].type==0&& te[e[id].x][e[id].y - 1].npc==0&& te[e[id].x][e[id].y - 1].enemy==0&& te[e[id].x][e[id].y - 1].player==0) {
                 enemy_type_get(e, e_t, te, b_m, b_mid, 1, e[id].x, e[id].y-1, 1);        
@@ -17984,7 +18248,9 @@ void e_battle_ai(wofstream* wofs, enemy *e,player *p,e_npc *e_n,b_npc *b_n,b_map
         for (int dx = -3;dx <= 3;dx++) {
             for (int dy = -3;dy <= 3;dy++) {
                 if (abs(dx) +abs(dy) <= 3) {
-                    te[e[id].target_x + dx][e[id].target_y + dy].danger = 1;
+                    if (checkBounds(b_m,b_mid,e[id].target_x+dx, e[id].target_y + dy)) {
+                        te[e[id].target_x + dx][e[id].target_y + dy].danger ++;
+                    }
                 }
             }
         }
@@ -18033,7 +18299,10 @@ void e_battle_ai(wofstream* wofs, enemy *e,player *p,e_npc *e_n,b_npc *b_n,b_map
                         for (int I = 0; I < ar[e[id].baid].range; I++) {
                             for (int J = -I; J < I + e[id].w; J++) {
                                 if (e[id].x + J >= 0 && e[id].x + J < b_m[b_mid].x && e[id].y + e[id].h + I < b_m[b_mid].y&& e[id].x + J == p[e[id].target_id].x && e[id].y + e[id].h + I == p[e[id].target_id].y) {
-                                        for (int K = -1; K <= 1; K++) {
+                                        b_camera(b_m, p[e[id].target_id].x, p[e[id].target_id].y, b_mid);
+                                        BeginBatchDraw();
+                                        Redraw_battle(p, e, b_n, ar, te, b_m, b_mid);
+                                        for (int K = -3; K <= 3; K++) {
                                             if (e[id].x + J+K >= 0 && e[id].x + J+K < b_m[b_mid].x ) {
                                                 for (int L = 0; L < b_m[b_mid].psize; L++) {
                                                     if (e[id].x + J+K == p[L].x && e[id].y + e[id].h + I == p[L].y) {
@@ -18070,8 +18339,40 @@ void e_battle_ai(wofstream* wofs, enemy *e,player *p,e_npc *e_n,b_npc *b_n,b_map
                                                         nHP(b_n, b_m, M, b_mid, 0, DMG);
                                                     }
                                                 }
+                                                for (int N = 0; N < b_m[b_mid].esize; N++) {
+                                                    if (e[id].x + J + K == e[N].x && e[id].y + e[id].h + I == e[N].y) {
+                                                        *wofs << L"(T" << b_m[b_mid].time << L")" << e[id].name << L"用" << ar[e[id].baid].name << L"對" << e[N].name << L"造成";
+                                                        int  DMG = roll(ar[e[id].baid].dmg, 1, b_m[b_mid].rng);
+                                                        int dev = roll("", 2, b_m[b_mid].rng);
+                                                        if (e[N].buff_check[14] == 0) {
+                                                            if (e[N].dex >= dev) {
+                                                                DMG /= 2;
+                                                                *wofs << DMG << L"點傷害(迴避成功" << dev << "<=" << e[N].dex << ")" << endl;
+                                                            }
+                                                            else {
+                                                                *wofs << DMG << L"點傷害(迴避失敗" << dev << ">" << e[N].dex << ")" << endl;
+                                                            }
+                                                        }
+                                                        eHP(e, b_m, N, b_mid, 0, DMG);
+                                                    }
+                                                }
                                             }
-                                        }                                    
+                                        }                        
+                                        EndBatchDraw();
+                                        IMAGE SE, GET;
+                                        getimage(&GET, 0, 0, 960, 720);
+                                        loadimage(&SE, L"./Game/picture/msg1.png", 0, 0, false);
+                                        SEplay(L"重機関銃を乱射1", 1);
+                                        BeginBatchDraw();
+                                        for (int Ei = 0; Ei < 5; Ei++) {
+                                            for (int Ej = 0; Ej < 7; Ej++) {
+                                                putimage(0, 0, &GET);
+                                                transparentimageA(NULL, p[e[id].target_id].x * 48 - 148 - b_m[b_mid].ox, p[e[id].target_id].y * 48 - 48 - b_m[b_mid].oy, &SE, Ei * 320, Ej * 120, 320, 120);
+                                                ui(p, e, b_m, P_id, b_m[b_mid].esize, b_m[b_mid].psize, b_mid, buff_id);
+                                                Sleep(20);
+                                                FlushBatchDraw();
+                                            }
+                                        }
                                 }
                             }
                         }                    
@@ -18080,7 +18381,10 @@ void e_battle_ai(wofstream* wofs, enemy *e,player *p,e_npc *e_n,b_npc *b_n,b_map
                     for (int I = 0; I < ar[e[id].baid].range; I++) {
                         for (int J = -I; J < I + e[id].w; J++) {
                             if (e[id].x + J >= 0 && e[id].x + J < b_m[b_mid].x && e[id].y + e[id].h + I < b_m[b_mid].y&& e[id].x + J == b_n[e[id].target_id].x && e[id].y + e[id].h + I == b_n[e[id].target_id].y) {
-                                    for (int K = -1; K <= 1; K++) {
+                                b_camera(b_m, b_n[e[id].target_id].x, b_n[e[id].target_id].y, b_mid);
+                                BeginBatchDraw();
+                                Redraw_battle(p, e, b_n, ar, te, b_m, b_mid);
+                                for (int K = -3; K <= 3; K++) {
                                         if (e[id].x + J + K >= 0 && e[id].x + J + K < b_m[b_mid].x ) {
                                             for (int L = 0; L < b_m[b_mid].psize; L++) {
                                                 if (e[id].x + J + K == p[L].x && e[id].y + e[id].h + I == p[L].y) {
@@ -18117,8 +18421,40 @@ void e_battle_ai(wofstream* wofs, enemy *e,player *p,e_npc *e_n,b_npc *b_n,b_map
                                                     nHP(b_n, b_m, M, b_mid, 0, DMG);
                                                 }
                                             }
+                                            for (int N = 0; N < b_m[b_mid].esize; N++) {
+                                                if (e[id].x + J + K == e[N].x && e[id].y + e[id].h + I == e[N].y) {
+                                                    *wofs << L"(T" << b_m[b_mid].time << L")" << e[id].name << L"用" << ar[e[id].baid].name << L"對" << e[N].name << L"造成";
+                                                    int  DMG = roll(ar[e[id].baid].dmg, 1, b_m[b_mid].rng);
+                                                    int dev = roll("", 2, b_m[b_mid].rng);
+                                                    if (e[N].buff_check[14] == 0) {
+                                                        if (e[N].dex >= dev) {
+                                                            DMG /= 2;
+                                                            *wofs << DMG << L"點傷害(迴避成功" << dev << "<=" << e[N].dex << ")" << endl;
+                                                        }
+                                                        else {
+                                                            *wofs << DMG << L"點傷害(迴避失敗" << dev << ">" << e[N].dex << ")" << endl;
+                                                        }
+                                                    }
+                                                    eHP(e, b_m, N, b_mid, 0, DMG);
+                                                }
+                                            }
                                         }
-                                    }                                
+                                    }                 
+                                EndBatchDraw();
+                                IMAGE SE, GET;
+                                getimage(&GET, 0, 0, 960, 720);
+                                loadimage(&SE, L"./Game/picture/msg1.png", 0, 0, false);
+                                SEplay(L"重機関銃を乱射1", 1);
+                                BeginBatchDraw();
+                                for (int Ei = 0; Ei < 5; Ei++) {
+                                    for (int Ej = 0; Ej < 7; Ej++) {
+                                        putimage(0, 0, &GET);
+                                        transparentimageA(NULL, b_n[e[id].target_id].x * 48 - 148 - b_m[b_mid].ox, b_n[e[id].target_id].y * 48 - 48 - b_m[b_mid].oy, &SE, Ei * 320, Ej * 120, 320, 120);
+                                        ui(p, e, b_m, P_id, b_m[b_mid].esize, b_m[b_mid].psize, b_mid, buff_id);
+                                        Sleep(20);
+                                        FlushBatchDraw();
+                                    }
+                                }
                             }
                         }
                     }
@@ -18129,7 +18465,10 @@ void e_battle_ai(wofstream* wofs, enemy *e,player *p,e_npc *e_n,b_npc *b_n,b_map
                 for (int I = 0; I < ar[e[id].baid].range; I++) {
                     for (int J = -I; J < I + e[id].h; J++) {
                         if (e[id].x - I - 1 >= 0 && e[id].y + J >= 0 && e[id].y + J < b_m[b_mid].y&&e[id].x-I-1==p[e[id].target_id].x&&e[id].y+J==p[e[id].target_id].y) {
-                            for (int K = -1; K <= 1; K++) {
+                            b_camera(b_m, p[e[id].target_id].x, p[e[id].target_id].y, b_mid);
+                            BeginBatchDraw();
+                            Redraw_battle(p, e, b_n, ar, te, b_m, b_mid);
+                            for (int K = -3; K <= 3; K++) {
                                 if ( e[id].y + J + K >= 0 && e[id].y + J + K < b_m[b_mid].y) {
                                     for (int L = 0; L < b_m[b_mid].psize; L++) {
                                         if (e[id].x -I-1 == p[L].x && e[id].y + J+ K == p[L].y) {
@@ -18166,6 +18505,38 @@ void e_battle_ai(wofstream* wofs, enemy *e,player *p,e_npc *e_n,b_npc *b_n,b_map
                                             nHP(b_n, b_m, M, b_mid, 0, DMG);
                                         }
                                     }
+                                    for (int N = 0; N < b_m[b_mid].esize; N++) {
+                                        if (e[id].x - I - 1 == e[N].x && e[id].y + J + K == e[N].y) {
+                                            *wofs << L"(T" << b_m[b_mid].time << L")" << e[id].name << L"用" << ar[e[id].baid].name << L"對" << e[N].name << L"造成";
+                                            int  DMG = roll(ar[e[id].baid].dmg, 1, b_m[b_mid].rng);
+                                            int dev = roll("", 2, b_m[b_mid].rng);
+                                            if (e[N].buff_check[14] == 0) {
+                                                if (e[N].dex >= dev) {
+                                                    DMG /= 2;
+                                                    *wofs << DMG << L"點傷害(迴避成功" << dev << "<=" << e[N].dex << ")" << endl;
+                                                }
+                                                else {
+                                                    *wofs << DMG << L"點傷害(迴避失敗" << dev << ">" << e[N].dex << ")" << endl;
+                                                }
+                                            }
+                                            eHP(e, b_m, N, b_mid, 0, DMG);
+                                        }
+                                    }
+                                }
+                            }
+                            EndBatchDraw();
+                            IMAGE SE, GET;
+                            getimage(&GET, 0, 0, 960, 720);
+                            loadimage(&SE, L"./Game/picture/msg.png", 0, 0, false);
+                            SEplay(L"重機関銃を乱射1", 1);
+                            BeginBatchDraw();
+                            for (int Ej = 0; Ej < 5; Ej++) {
+                                for (int Ei = 0; Ei < 7; Ei++) {
+                                    putimage(0, 0, &GET);
+                                    transparentimageA(NULL, p[e[id].target_id].x * 48 - 36 - b_m[b_mid].ox, p[e[id].target_id].y * 48 - 136 - b_m[b_mid].oy, &SE, Ei * 120, Ej * 320, 120, 320);
+                                    ui(p, e, b_m, P_id, b_m[b_mid].esize, b_m[b_mid].psize, b_mid, buff_id);
+                                    Sleep(20);
+                                    FlushBatchDraw();
                                 }
                             }
                         }
@@ -18176,7 +18547,10 @@ void e_battle_ai(wofstream* wofs, enemy *e,player *p,e_npc *e_n,b_npc *b_n,b_map
                     for (int I = 0; I < ar[e[id].baid].range; I++) {
                         for (int J = -I; J < I + e[id].h; J++) {
                             if (e[id].x - I - 1 >= 0 && e[id].y + J >= 0 && e[id].y + J < b_m[b_mid].y && e[id].x - I - 1 == b_n[e[id].target_id].x && e[id].y + J == b_n[e[id].target_id].y) {
-                                for (int K = -1; K <= 1; K++) {
+                                b_camera(b_m, b_n[e[id].target_id].x, b_n[e[id].target_id].y, b_mid);
+                                BeginBatchDraw();
+                                Redraw_battle(p, e, b_n, ar, te, b_m, b_mid);
+                                for (int K = -3; K <= 3; K++) {
                                     if (e[id].y + J + K >= 0 && e[id].y + J + K < b_m[b_mid].y) {
                                         for (int L = 0; L < b_m[b_mid].psize; L++) {
                                             if (e[id].x - I - 1 == p[L].x && e[id].y + J + K == p[L].y) {
@@ -18213,6 +18587,38 @@ void e_battle_ai(wofstream* wofs, enemy *e,player *p,e_npc *e_n,b_npc *b_n,b_map
                                                 nHP(b_n, b_m, M, b_mid, 0, DMG);
                                             }
                                         }
+                                        for (int N = 0; N < b_m[b_mid].esize; N++) {
+                                            if (e[id].x - I - 1 == e[N].x && e[id].y + J + K == e[N].y) {
+                                                *wofs << L"(T" << b_m[b_mid].time << L")" << e[id].name << L"用" << ar[e[id].baid].name << L"對" << e[N].name << L"造成";
+                                                int  DMG = roll(ar[e[id].baid].dmg, 1, b_m[b_mid].rng);
+                                                int dev = roll("", 2, b_m[b_mid].rng);
+                                                if (e[N].buff_check[14] == 0) {
+                                                    if (e[N].dex >= dev) {
+                                                        DMG /= 2;
+                                                        *wofs << DMG << L"點傷害(迴避成功" << dev << "<=" << e[N].dex << ")" << endl;
+                                                    }
+                                                    else {
+                                                        *wofs << DMG << L"點傷害(迴避失敗" << dev << ">" << e[N].dex << ")" << endl;
+                                                    }
+                                                }
+                                                eHP(e, b_m, N, b_mid, 0, DMG);
+                                            }
+                                        }
+                                    }
+                                }
+                                EndBatchDraw();
+                                IMAGE SE, GET;
+                                getimage(&GET, 0, 0, 960, 720);
+                                loadimage(&SE, L"./Game/picture/msg.png", 0, 0, false);
+                                SEplay(L"重機関銃を乱射1", 1);
+                                BeginBatchDraw();
+                                for (int Ej = 0; Ej < 5; Ej++) {
+                                    for (int Ei = 0; Ei < 7; Ei++) {
+                                        putimage(0, 0, &GET);
+                                        transparentimageA(NULL, b_n[e[id].target_id].x * 48 - 36 - b_m[b_mid].ox, b_n[e[id].target_id].y * 48 - 136 - b_m[b_mid].oy, &SE, Ei * 120, Ej * 320, 120, 320);
+                                        ui(p, e, b_m, P_id, b_m[b_mid].esize, b_m[b_mid].psize, b_mid, buff_id);
+                                        Sleep(20);
+                                        FlushBatchDraw();
                                     }
                                 }
                             }
@@ -18263,19 +18669,19 @@ void e_battle_ai(wofstream* wofs, enemy *e,player *p,e_npc *e_n,b_npc *b_n,b_map
                                                             nHP(b_n, b_m, M, b_mid, 0, DMG);
                                                     }
                                                 }
-                                                for (int M = 0; M < b_m[b_mid].esize; M++) {
-                                                    if (e[id].x + e[id].w + I == e[M].x && e[id].y + J + K == e[M].y) {
-                                                        *wofs << L"(T" << b_m[b_mid].time << L")" << e[id].name << L"用" << ar[e[id].baid].name << L"對" << e[M].name << L"造成";
+                                                for (int N = 0; N < b_m[b_mid].esize; N++) {
+                                                    if (e[id].x + e[id].w + I == e[N].x && e[id].y + J + K == e[N].y) {
+                                                        *wofs << L"(T" << b_m[b_mid].time << L")" << e[id].name << L"用" << ar[e[id].baid].name << L"對" << e[N].name << L"造成";
                                                         int  DMG = roll(ar[e[id].baid].dmg, 1, b_m[b_mid].rng);
                                                         int dev = roll("", 2, b_m[b_mid].rng);
-                                                            if (e[M].dex >= dev) {
+                                                            if (e[N].dex >= dev) {
                                                                 DMG /= 2;
-                                                                *wofs << DMG << L"點傷害(迴避成功" << dev << "<=" << e[M].dex << ")" << endl;
+                                                                *wofs << DMG << L"點傷害(迴避成功" << dev << "<=" << e[N].dex << ")" << endl;
                                                             }
                                                             else {
-                                                                *wofs << DMG << L"點傷害(迴避失敗" << dev << ">" << e[M].dex << ")" << endl;
+                                                                *wofs << DMG << L"點傷害(迴避失敗" << dev << ">" << e[N].dex << ")" << endl;
                                                             }                                                
-                                                            eHP(e, b_m, M, b_mid, 0, DMG);
+                                                            eHP(e, b_m, N, b_mid, 0, DMG);
                                                     }
                                                 }
                                             }
@@ -18303,7 +18709,10 @@ void e_battle_ai(wofstream* wofs, enemy *e,player *p,e_npc *e_n,b_npc *b_n,b_map
                     for (int I = 0; I < ar[e[id].baid].range; I++) {
                         for (int J = -I; J < I + e[id].h; J++) {
                             if (e[id].x + e[id].w + I >= 0 && e[id].y + J >= 0 && e[id].y + J < b_m[b_mid].y && e[id].x + e[id].w + I == b_n[e[id].target_id].x && e[id].y + J == b_n[e[id].target_id].y) {
-                                for (int K = -1; K <= 1; K++) {
+                                b_camera(b_m, b_n[e[id].target_id].x, b_n[e[id].target_id].y, b_mid);
+                                BeginBatchDraw();
+                                Redraw_battle(p, e, b_n, ar, te, b_m, b_mid);
+                                for (int K = -3; K <= 3; K++) {
                                     if (e[id].y + J + K >= 0 && e[id].y + J + K < b_m[b_mid].y) {
                                         for (int L = 0; L < b_m[b_mid].psize; L++) {
                                             if (e[id].x + e[id].w + I == p[L].x && e[id].y + J + K ==p[L].y) {
@@ -18340,6 +18749,36 @@ void e_battle_ai(wofstream* wofs, enemy *e,player *p,e_npc *e_n,b_npc *b_n,b_map
                                                 nHP(b_n, b_m, M, b_mid, 0, DMG);
                                             }
                                         }
+                                        for (int N = 0; N < b_m[b_mid].esize; N++) {
+                                            if (e[id].x + e[id].w + I == e[N].x && e[id].y + J + K == e[N].y) {
+                                                *wofs << L"(T" << b_m[b_mid].time << L")" << e[id].name << L"用" << ar[e[id].baid].name << L"對" << e[N].name << L"造成";
+                                                int  DMG = roll(ar[e[id].baid].dmg, 1, b_m[b_mid].rng);
+                                                int dev = roll("", 2, b_m[b_mid].rng);
+                                                if (e[N].dex >= dev) {
+                                                    DMG /= 2;
+                                                    *wofs << DMG << L"點傷害(迴避成功" << dev << "<=" << e[N].dex << ")" << endl;
+                                                }
+                                                else {
+                                                    *wofs << DMG << L"點傷害(迴避失敗" << dev << ">" << e[N].dex << ")" << endl;
+                                                }
+                                                eHP(e, b_m, N, b_mid, 0, DMG);
+                                            }
+                                        }
+                                    }
+                                }
+                                EndBatchDraw();
+                                IMAGE SE, GET;
+                                getimage(&GET, 0, 0, 960, 720);
+                                loadimage(&SE, L"./Game/picture/msg.png", 0, 0, false);
+                                SEplay(L"重機関銃を乱射1", 1);
+                                BeginBatchDraw();
+                                for (int Ej = 0; Ej < 5; Ej++) {
+                                    for (int Ei = 0; Ei < 7; Ei++) {
+                                        putimage(0, 0, &GET);
+                                        transparentimageA(NULL, b_n[e[id].target_id].x * 48 - 36 - b_m[b_mid].ox, b_n[e[id].target_id].y * 48 - 136 - b_m[b_mid].oy, &SE, Ei * 120, Ej * 320, 120, 320);
+                                        ui(p, e, b_m, P_id, b_m[b_mid].esize, b_m[b_mid].psize, b_mid, buff_id);
+                                        Sleep(20);
+                                        FlushBatchDraw();
                                     }
                                 }
                             }
@@ -18352,7 +18791,10 @@ void e_battle_ai(wofstream* wofs, enemy *e,player *p,e_npc *e_n,b_npc *b_n,b_map
                     for (int I = 0; I < ar[e[id].baid].range; I++) {
                         for (int J = -I; J < I + e[id].w; J++) {
                             if (e[id].x + J >= 0 && e[id].x + J < b_m[b_mid].x && e[id].y - I - 1 >=0&& e[id].x + J == p[e[id].target_id].x && e[id].y - I - 1 == p[e[id].target_id].y) {
-                                    for (int K = -1; K <= 1; K++) {
+                                    b_camera(b_m, p[e[id].target_id].x, p[e[id].target_id].y, b_mid);
+                                    BeginBatchDraw();
+                                    Redraw_battle(p, e, b_n, ar, te, b_m, b_mid);
+                                    for (int K = -3; K <= 3; K++) {
                                         if (e[id].x + J + K >= 0 && e[id].x + J + K < b_m[b_mid].x ) {
                                             for (int L = 0; L < b_m[b_mid].psize; L++) {
                                                 if (e[id].x + J + K == p[L].x && e[id].y - I - 1 == p[L].y) {
@@ -18389,8 +18831,40 @@ void e_battle_ai(wofstream* wofs, enemy *e,player *p,e_npc *e_n,b_npc *b_n,b_map
                                                     nHP(b_n, b_m, M, b_mid, 0, DMG);
                                                 }
                                             }
+                                            for (int N = 0; N < b_m[b_mid].esize; N++) {
+                                                if (e[id].x + J + K == e[N].x && e[id].y - I - 1 == e[N].y) {
+                                                    *wofs << L"(T" << b_m[b_mid].time << L")" << e[id].name << L"用" << ar[e[id].baid].name << L"對" << e[N].name << L"造成";
+                                                    int  DMG = roll(ar[e[id].baid].dmg, 1, b_m[b_mid].rng);
+                                                    int dev = roll("", 2, b_m[b_mid].rng);
+                                                    if (e[N].buff_check[14] == 0) {
+                                                        if (e[N].dex >= dev) {
+                                                            DMG /= 2;
+                                                            *wofs << DMG << L"點傷害(迴避成功" << dev << "<=" << e[N].dex << ")" << endl;
+                                                        }
+                                                        else {
+                                                            *wofs << DMG << L"點傷害(迴避失敗" << dev << ">" <<e[N].dex << ")" << endl;
+                                                        }
+                                                    }
+                                                    eHP(e, b_m, N, b_mid, 0, DMG);
+                                                }
+                                            }
                                         }
-                                    }                                
+                                    }                            
+                                    EndBatchDraw();
+                                    IMAGE SE, GET;
+                                    getimage(&GET, 0, 0, 960, 720);
+                                    loadimage(&SE, L"./Game/picture/msg1.png", 0, 0, false);
+                                    SEplay(L"重機関銃を乱射1", 1);
+                                    BeginBatchDraw();                                        
+                                    for (int Ei = 0; Ei < 5; Ei++) {
+                                        for (int Ej = 0; Ej < 7; Ej++) {
+                                            putimage(0, 0, &GET);
+                                            transparentimageA(NULL, p[e[id].target_id].x * 48 - 148 - b_m[b_mid].ox, p[e[id].target_id].y * 48  -48- b_m[b_mid].oy, &SE, Ei * 320, Ej * 120, 320, 120);
+                                            ui(p, e, b_m, P_id, b_m[b_mid].esize, b_m[b_mid].psize, b_mid, buff_id);
+                                            Sleep(20);
+                                            FlushBatchDraw();
+                                        }
+                                    }
                             }
                         }
                     }
@@ -18399,7 +18873,10 @@ void e_battle_ai(wofstream* wofs, enemy *e,player *p,e_npc *e_n,b_npc *b_n,b_map
                     for (int I = 0; I < ar[e[id].baid].range; I++) {
                         for (int J = -I; J < I + e[id].w; J++) {
                             if (e[id].x + J >= 0 && e[id].x + J < b_m[b_mid].x && e[id].y - I - 1 >= 0 && e[id].x + J == b_n[e[id].target_id].x && e[id].y - I - 1 == b_n[e[id].target_id].y) {
-                                for (int K = -1; K <= 1; K++) {
+                                b_camera(b_m, b_n[e[id].target_id].x, b_n[e[id].target_id].y, b_mid);
+                                BeginBatchDraw();
+                                Redraw_battle(p, e, b_n, ar, te, b_m, b_mid);
+                                for (int K = -3; K <= 3; K++) {
                                     if (e[id].x + J + K >= 0 && e[id].x + J + K < b_m[b_mid].x ) {
                                         for (int L = 0; L < b_m[b_mid].psize; L++) {
                                             if (e[id].x + J + K == p[L].x && e[id].y - I - 1 == p[L].y) {
@@ -18436,6 +18913,38 @@ void e_battle_ai(wofstream* wofs, enemy *e,player *p,e_npc *e_n,b_npc *b_n,b_map
                                                 nHP(b_n, b_m, M, b_mid, 0, DMG);
                                             }
                                         }
+                                        for (int N = 0; N < b_m[b_mid].esize; N++) {
+                                            if (e[id].x + J + K == e[N].x && e[id].y - I - 1 == e[N].y) {
+                                                *wofs << L"(T" << b_m[b_mid].time << L")" << e[id].name << L"用" << ar[e[id].baid].name << L"對" << e[N].name << L"造成";
+                                                int  DMG = roll(ar[e[id].baid].dmg, 1, b_m[b_mid].rng);
+                                                int dev = roll("", 2, b_m[b_mid].rng);
+                                                if (e[N].buff_check[14] == 0) {
+                                                    if (e[N].dex >= dev) {
+                                                        DMG /= 2;
+                                                        *wofs << DMG << L"點傷害(迴避成功" << dev << "<=" << e[N].dex << ")" << endl;
+                                                    }
+                                                    else {
+                                                        *wofs << DMG << L"點傷害(迴避失敗" << dev << ">" << e[N].dex << ")" << endl;
+                                                    }
+                                                }
+                                                eHP(e, b_m, N, b_mid, 0, DMG);
+                                            }
+                                        }
+                                    }
+                                }
+                                EndBatchDraw();
+                                IMAGE SE, GET;
+                                getimage(&GET, 0, 0, 960, 720);
+                                loadimage(&SE, L"./Game/picture/msg1.png", 0, 0, false);
+                                SEplay(L"重機関銃を乱射1", 1);
+                                BeginBatchDraw();
+                                for (int Ei = 0; Ei < 5; Ei++) {
+                                    for (int Ej = 0; Ej < 7; Ej++) {
+                                        putimage(0, 0, &GET);
+                                        transparentimageA(NULL, b_n[e[id].target_id].x * 48 - 148 - b_m[b_mid].ox, b_n[e[id].target_id].y * 48 - 48 - b_m[b_mid].oy, &SE, Ei * 320, Ej * 120, 320, 120);
+                                        ui(p, e, b_m, P_id, b_m[b_mid].esize, b_m[b_mid].psize, b_mid, buff_id);
+                                        Sleep(20);
+                                        FlushBatchDraw();
                                     }
                                 }
                             }
@@ -18505,7 +19014,7 @@ int main() {
     /*變數數量*/    
     wofstream wofs;
     player p[3];
-    enemy_type e_t[7];
+    enemy_type e_t[8];
     enemy e[10];
     arms  ar[12];
     armor Ar[3];
@@ -18547,7 +19056,7 @@ int main() {
     m[8].nsize = 0; m[8].esize = 4; m[8].b_set = "b3zb3zb3zb3z"; m[8].e_set = "x41y42k2x25y26k0x14y10k2x52y10k0"; m[8].exitsize = 1; m[8].exit_set = "11_"; m[8].mevent_size = 2; m[8].mevent_set = "5_6_"; m[8].box_set = "2n3n4n5n6n7n8n"; m[8].name = L"南部森林外圍";
     m[9].nsize = 1; m[9].npcid = "8-"; m[9].esize = 0; m[9].exitsize = 1; m[9].exit_set = "13_"; m[9].mevent_size = 3; m[9].mevent_set = "7_8_9_"; m[9].name = L"星落村村長家";
     b_m[0].esize = 1; b_m[0].e_set = "e0x6y4p1"; b_m[0].p_set = "x18y14x19y14"; b_m[0].cx = 0; b_m[0].cy = 0; b_m[0].fsize = 0; b_m[0].nsize = 0;
-    b_m[1].esize = 1; b_m[1].e_set = "e1x20y24p4"; b_m[1].p_set = "x27y27x26y27x27y26"; b_m[1].cx = 27; b_m[1].cy = 26; b_m[1].fsize = 4; b_m[1].f_set = "0n1n6n7n"; b_m[1].type = 1;
+    b_m[1].esize = 1; b_m[1].e_set = "e7x21y23p1"; b_m[1].p_set = "x1y1x2y2x22y26"; b_m[1].cx = 27; b_m[1].cy = 26; b_m[1].fsize = 4; b_m[1].f_set = "0n1n6n7n"; b_m[1].type = 1;
     b_m[2].esize = 2; b_m[2].e_set = "e0x5y4p1e0x6y3p1"; b_m[2].p_set = "x18y13x19y13"; b_m[2].cx = 0; b_m[2].cy = 0; b_m[2].fsize = 1; b_m[2].f_set = "2n"; b_m[2].nsize = 1; b_m[2].n_set = "n0x16y10";b_m[4].lc = L"1.我方全員被擊敗\n2.戴恩或愛德華被擊敗"; b_m[4].vc = L"1.完成愛麗絲的指示";
     b_m[3].esize = 1; b_m[3].e_set = "e2x3y1p1"; b_m[3].p_set = "x3y12x4y12"; b_m[3].cx = 0; b_m[3].cy = 0; b_m[3].fsize = 0; b_m[3].nsize = 0;
     b_m[4].esize = 3; b_m[4].e_set = "e4x6y11p1e4x13y12p1e3x10y7p1"; b_m[4].p_set = "x9y14x10y14"; b_m[4].cx = 0; b_m[4].cy = 0; b_m[4].fsize = 2;  b_m[4].f_set = "3n4n"; b_m[4].nsize = 1; b_m[4].n_set = "n1x9y5"; b_m[4].lc = L"1.我方全員被擊敗\n2.愛麗絲被擊敗"; b_m[4].vc = L"1.狼王HP低於30%";
@@ -18561,6 +19070,7 @@ int main() {
     e_t[4].name = L"老狼"; e_t[4].story = L"經歷自然的競爭中存活下來的野狼，體力雖然衰退卻也獲得了生存的智慧"; e_t[4].baid = 1; e_t[4].str = 10; e_t[4].dex = 11; e_t[4].con = 10; e_t[4].INT = 6; e_t[4].wis = 14; e_t[4].cha = 7; e_t[4].lv = 1; e_t[4].mhp = 15; e_t[4].hp = 15; e_t[4].Move = 6; e_t[4].speed = 11; e_t[4].exp = 150; e_t[4].drop = "100%15i"; e_t[4].species = "a";
     e_t[5].name = L"帝國軍隊長";
     e_t[6].name = L"帝國裝甲車「阿斯提」"; e_t[6].story = L"帝國大戰後開發的新式裝甲車，運用了星隕石作為動力來源，必要時能夠激活星隕護盾隔絕大部分的傷害，裝載的機槍和迫擊炮能為步兵提供絕佳的火力掩護"; e_t[6].baid = 11; e_t[6].h = 4; e_t[6].w = 2; e_t[6].str = 24; e_t[6].dex = 15; e_t[6].con = 20; e_t[6].INT = 1; e_t[6].wis = 8; e_t[6].cha = 1; e_t[6].lv = 1; e_t[6].mhp = 120; e_t[6].hp = 120; e_t[6].Move = 10; e_t[6].speed = 8; e_t[6].s_range = 8; e_t[6].e_range = 2;
+    e_t[7].name = L"測試稻草人"; e_t[7].str = 0; e_t[7].dex = 0; e_t[7].con = 0; e_t[7].INT = 0; e_t[7].wis = 0; e_t[7].cha = 0; e_t[7].lv = 1; e_t[7].mhp = 1000; e_t[7].hp = 1000; e_t[7].Move = 0; e_t[7].speed = 0;
     b_nt[0].name = L"戴恩"; b_nt[0].story = L"夏洛特的父親，是位老練的獵手，曾在巴蘭斯獨立戰爭中擔任狙擊手"; b_nt[0].lv = 15; b_nt[0].hp = 15; b_nt[0].mhp = 20; b_nt[0].Move = 5; b_nt[0].speed = 15; b_nt[0].pose = 2; b_nt[0].str = 15; b_nt[0].dex = 20; b_nt[0].con = 15; b_nt[0].INT = 10; b_nt[0].wis = 12; b_nt[0].cha = 9; b_nt[0].baid = 0;
     b_nt[1].name = L"昏迷的愛麗絲"; b_nt[1].story = L"因為超載使用大地之心而昏迷的愛麗絲"; b_nt[1].lv = 5; b_nt[1].hp = 15; b_nt[1].mhp = 15; b_nt[1].Move = 0; b_nt[1].speed = 0; b_nt[1].pose = 1; b_nt[1].str = 12; b_nt[1].dex = 10; b_nt[1].con = 12; b_nt[1].INT = 10; b_nt[1].wis = 11; b_nt[1].cha = 12; b_nt[1].baid = 2;
     ar[0].name = L"巡林者"; ar[0].dmg = "1d12"; ar[0].Dmg = L"1d12"; ar[0].range = 5; ar[0].story = L"巴蘭斯獵戶所喜愛的獵槍，能精準射殺大型獵物，是帝國在大戰後遺留的產物\n傷害:1d12\n裝填時間:1S"; ar[0].number = 0; ar[0].bullet = 1; ar[0].mbullet = 1; ar[0].type = "rr"; ar[0].time = 1;
