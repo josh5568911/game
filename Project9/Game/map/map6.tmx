@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.9" tiledversion="1.9.2" orientation="orthogonal" renderorder="right-down" width="27" height="20" tilewidth="48" tileheight="48" infinite="0" nextlayerid="6" nextobjectid="1">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="27" height="20" tilewidth="48" tileheight="48" infinite="0" nextlayerid="6" nextobjectid="1">
  <editorsettings>
   <export target="map6.json" format="json"/>
  </editorsettings>
@@ -15,7 +15,7 @@
  <tileset firstgid="738" source="桌子2.tsx"/>
  <layer id="1" name="圖塊層 1" width="27" height="20">
   <properties>
-   <property name="blcok" type="bool" value="false"/>
+   <property name="block" type="bool" value="false"/>
   </properties>
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -42,7 +42,7 @@
  </layer>
  <layer id="2" name="圖塊層 2" width="27" height="20">
   <properties>
-   <property name="blcok" type="bool" value="true"/>
+   <property name="block" type="bool" value="true"/>
   </properties>
   <data encoding="csv">
 737,737,737,737,737,737,737,737,737,737,737,737,737,737,737,737,737,737,737,737,737,737,737,737,737,737,737,
@@ -69,7 +69,7 @@
  </layer>
  <layer id="3" name="圖塊層 3" width="27" height="20">
   <properties>
-   <property name="blcok" type="bool" value="true"/>
+   <property name="block" type="bool" value="true"/>
   </properties>
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -96,7 +96,7 @@
  </layer>
  <layer id="5" name="圖塊層 4" width="27" height="20">
   <properties>
-   <property name="blcok" type="bool" value="true"/>
+   <property name="block" type="bool" value="true"/>
   </properties>
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
