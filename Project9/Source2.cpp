@@ -2825,6 +2825,7 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
                 loadimage(&ma2_0, L"./Game/picture/路易斯1.png", 0, 0, false);
                 loadimage(&ma2_1, L"./Game/picture/路易斯2.png", 0, 0, false);
                 loadimage(&ma2_2, L"./Game/picture/路易斯3.png", 0, 0, false);
+                loadimage(&ma1, L"./Game/picture/馬1.png", 0, 0, false);
                 loadimage(&ma3_0, L"./Game/picture/馬3_0.png", 0, 0, false);
                 loadimage(&ma3_1, L"./Game/picture/馬3_1.png", 0, 0, false);
                 loadimage(&ma3_2, L"./Game/picture/馬3_2.png", 0, 0, false);
@@ -3329,7 +3330,7 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
             transparentimage(NULL, 21 * 48, 6 * 48 - 16, &p3, 0xFF55FF, 64 + 8, 64, 48, 64);
             transparentimage(NULL, 21 * 48, 2 * 48 - 16, &p3, 0xFF55FF, 64 + 8, 64, 48, 64);
             if (k < 5&&pa!=1&&ubs>-1) {
-                transparentimage(NULL, 48*14, 48 * 6, &ma2_0, 0xFF55FF);
+                transparentimage(NULL, 48*14, 48 * 6+24, &ma2_0, 0xFF55FF);
                 transparentimage(NULL, 48 * 18, 48 * 6, &ma1_0, 0xFF55FF);
                 transparentimage(NULL, 48 * 18, 48 * 7, &ma1_0, 0xFF55FF);
                 transparentimage(NULL, 48 * 16, 48 * 6, &ma1_0, 0xFF55FF);
@@ -3343,7 +3344,7 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
                 ubs = 16*3;
                 SEplay("馬が走る1", 11);
             }
-            if (k == 5 && w >= s.size() - 1 && ei==0 && pa == 0) {
+            if (k == 5 && w >= s.size()  && ei==0 && pa == 0) {
                 pa = 1;
                 ei = 0;
                 ubs = 7 * 3;
@@ -3365,14 +3366,15 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
                         transparentimage(NULL, ubs * 16 + ui * 96, 48 * 7, &ma1_2, 0xFF55FF);
                     }
                 }
+
                 if (ubs % 3 == 0) {
-                    transparentimage(NULL, ubs * 16-96, 48 * 6, &ma2_0, 0xFF55FF);
+                    transparentimage(NULL, ubs * 16-96, 48 * 6+24, &ma2_0, 0xFF55FF);
                 }
                 else if (ubs % 3 == 1) {
-                    transparentimage(NULL, ubs * 16 - 96, 48 * 6, &ma2_1, 0xFF55FF);
+                    transparentimage(NULL, ubs * 16 - 96, 48 * 6+24, &ma2_1, 0xFF55FF);
                 }
                 else if (ubs % 3 == 2) {
-                    transparentimage(NULL, ubs * 16 - 96, 48 * 6, &ma2_2, 0xFF55FF);
+                    transparentimage(NULL, ubs * 16 - 96, 48 * 6+24, &ma2_2, 0xFF55FF);
                 }
                 ubs--;
                 if (ubs == -20*3) {
@@ -3384,13 +3386,13 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
             if (pa == 1 && k == 5) {               
                 if (ei == 15) {
                     if (ubs % 3 == 0) {
-                        transparentimage(NULL, 48 * 13 , ubs*16, &ma4_0, 0xFF55FF);
+                        transparentimage(NULL, 48 * 13 , ubs*16, &ma1, 0xFF55FF,96,0,96,96);
                     }
                     else if (ubs % 3 == 1) {
-                        transparentimage(NULL, 48 * 13, ubs * 16, &ma4_1, 0xFF55FF);
+                        transparentimage(NULL, 48 * 13, ubs * 16, &ma1, 0xFF55FF,0,0,96,96);
                     }
                     else if (ubs % 3 == 2) {
-                        transparentimage(NULL, 48 * 13, ubs * 16, &ma4_2, 0xFF55FF);
+                        transparentimage(NULL, 48 * 13, ubs * 16, &ma1, 0xFF55FF,96*2,0,96,96);
                     }
                     ubs++;
                 }
@@ -11310,13 +11312,17 @@ void event(flag *f,b_flag *b_f,player *p,npc *n,m_flag *m_f,Map *m,BOX *Box,Exit
      if (f[18].check == 1) {
           string filename;
          p[2].name = L"女騎士";
+         /*
          filename = "./Game/story/event" + to_string(12) + string(".json");
          readeventjson(p, n, f, m, Box, tk, m_f, it, st, filename.c_str(), m_id, b_id);
          filename = "./Game/story/event" + to_string(13) + string(".json");
          readeventjson(p, n, f, m, Box, tk, m_f, it, st, filename.c_str(), m_id, b_id);
          p[2].name = L"愛麗絲";
          filename = "./Game/story/event" + to_string(14) + string(".json");
-         readeventjson(p, n, f, m, Box, tk, m_f, it, st, filename.c_str(), m_id, b_id);
+         readeventjson(p, n, f, m, Box, tk, m_f, it, st, filename.c_str(), m_id, b_id);         
+         
+         */
+
          filename = "./Game/story/event" + to_string(15) + string(".json");
          readeventjson(p, n, f, m, Box, tk, m_f, it, st, filename.c_str(), m_id, b_id);
          filename = "./Game/story/event" + to_string(16) + string(".json");
