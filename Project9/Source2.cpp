@@ -1,4 +1,4 @@
-﻿#pragma warning(disable:4996)  
+﻿#pragma warning(disable:4996)
 #pragma comment(lib,"winmm.lib") 
 #pragma comment(lib, "user32")
 #pragma comment( lib, "MSIMG32.LIB")
@@ -538,8 +538,8 @@ void b_camera( b_map* b_m,int x,int y, int b_mid);
 void SEplay(string id, int type) {
     MIX_Audio* audio = nullptr;
     string ext;
-    int ext_type = type % 10;   
-    int loops = type >= 10 ? -1 : 0; 
+    int ext_type = type % 10;
+    int loops = type >= 10 ? -1 : 0;
     switch (ext_type) {
     case 1: ext = ".mp3"; break;
     case 2: ext = ".wav"; break;
@@ -571,7 +571,7 @@ void SEplay(string id, int type) {
     }
     if (!track) {
         track = g_seTrack[0];
-        MIX_StopTrack(track,0);
+        MIX_StopTrack(track, 0);
     }
     float gain = soundSize / 1000.0f;
     MIX_SetTrackGain(track, gain);
@@ -2742,20 +2742,24 @@ void m_map(player* p, Map* m, BOX* Box, int m_id, int b_id, npc* n, string g);
 void show(Map* m, player* p, enemy* e, e_npc* e_n, BOX* Box, int& m_id, int b_id, npc* n,flag *f, string g);
 void n_put(npc *n,Map *M,player *p,int m_id);
 void  m_set(Map* m, npc* n, player* p,e_npc *e_n ,flag *f,BOX *Box,int m_id,int b_id);
-void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f,item *it,stone *st,const char* filename,int &m_id,int b_id) {
+void readeventjson(player* p, npc* n, flag* f, Map* m, BOX* Box, task* tk, m_flag* m_f, item* it, stone* st, const char* filename, int& m_id, int b_id) {
     settextcolor(WHITE);
     setbkmode(TRANSPARENT);
-    settextstyle(30, 0, _T("Taipei Sans TC Beta"));
-    IMAGE t_block, a1, tri, c1,mmp,p1,p2,p3,p4,ma1,ma1_0,ma1_1,ma1_2,ma2_0, ma2_1, ma2_2, ma3_0, ma3_1, ma3_2, ma4_0, ma4_1, ma4_2,ef_1,ef_2,ef_3,ef_4,Get,can_0,can_1,ene1,ene2,ene3,ene4,get;
-    RECT t={50,696+5,210,696+60+5};
-    time_t bom=time(NULL),ts=time(NULL);
-    int ui=0, uj=0, uk=0,uK=0,ei=0,ej=0,pa=0,Ei=0,Ej=0,ep=0,EI=0,EJ=0,po=0,uI=0, numFrames;
-    loadimage(&t_block, L"./Game/picture/talkblock.png", 0, 0, false);
+    settextstyle(30, 0, _T("Noto Sans TC"));
+    IMAGE t_block, a1, tri,tri1, c1, mmp, p1, p2, p3, p4, pf0,pf1,pf2, ma1, ma1_0, ma1_1, ma1_2, ma2_0, ma2_1, ma2_2, ma3_0, ma3_1, ma3_2, ma4_0, ma4_1, ma4_2, ef_1, ef_2, ef_3, ef_4, Get, can_0, can_1, ene1, ene2, ene3, ene4, get,gt,gc;
+    RECT t = { 50+200,696 + 10,210+200,696 + 60 + 10 };
+    time_t bom = time(NULL), ts = time(NULL);
+    int ui = 0, uj = 0, uk = 0, uK = 0, ei = 0, ej = 0, pa = 0, Ei = 0, Ej = 0, ep = 0, EI = 0, EJ = 0, po = 0, uI = 0, numFrames,talkEnd=1,tE=0;
+    loadimage(&t_block, L"./Game/picture/talkblockC.png", 0, 0, false);
     loadimage(&tri, L"./Game/picture/talktri.png", 0, 0, false);
+    loadimage(&tri1, L"./Game/picture/talktri1.png", 0, 0, false);
     loadimage(&mmp, L"./Game/picture/Mmap.png", 0, 0, false);
     loadimage(&p1, L"./Game/picture/p0.png", 0, 0, false);
     loadimage(&p2, L"./Game/picture/p1.png", 0, 0, false);
-    wstring mm,tt,ss,MM;
+    loadimage(&pf0, L"./Game/picture/player0f.png", 0, 0, false);
+    loadimage(&pf1, L"./Game/picture/player1f.png", 0, 0, false);
+    loadimage(&pf2, L"./Game/picture/player2f.png", 0, 0, false);
+    wstring mm, tt, ss, MM;
     Json::Reader reader;
     Json::Value root;
     ifstream in(filename, ios::binary);
@@ -2809,7 +2813,7 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
                 SEstopLoop("馬が走る1");
                 loadimage(&ef_1, L"./Game/picture/shot.png", 0, 0, false);
                 loadimage(&ef_2, L"./Game/picture/爆発2.png", 0, 0, false);
-                loadimage(&ef_3, L"./Game/picture/msg.png", 0, 0, false);          
+                loadimage(&ef_3, L"./Game/picture/msg.png", 0, 0, false);
                 SEplay("重機関銃を乱射1", 11);
             }
             else if (root["mType"].asInt() == 4) {
@@ -2882,30 +2886,30 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
                 mciSendString(vos.c_str(), NULL, 0, NULL);
             }
             else if (root["mType"].asInt() == 9) {
-            EJ = 4;
-            loadimage(&p1, L"./Game/picture/p0.png", 0, 0, false);
-            loadimage(&p2, L"./Game/picture/p1.png", 0, 0, false);
-            loadimage(&p3, L"./Game/picture/alice_sleep.png", 0, 0, false);
-            loadimage(&p4, L"./Game/picture/eba.png", 0, 0, false);
-            loadimage(&ene1, L"./Game/picture/enemy0.png", 0, 0, false);
-            loadimage(&ene2, L"./Game/picture/enemy3.png", 0, 0, false);
-            loadimage(&ene4, L"./Game/picture/enemy4.png", 0, 0, false);
-            loadimage(&ene3, L"./Game/picture/死狼.png", 0, 0, false);
-            loadimage(&ef_1, L"./Game/picture/shot.png", 0, 0, false);
-            loadimage(&ef_2, L"./Game/picture/shot_2.png", 0, 0, false);
-            wstring sPath = L"open ./Game/Sound/SE/拳銃2.mp3 alias shot";
-            mciSendString(sPath.c_str(), NULL, 0, NULL);
-            wstring vos = L"setaudio shot volume to " + to_wstring(soundSize);
-            mciSendString(vos.c_str(), NULL, 0, NULL);
-            sPath = L"open ./Game/Sound/SE/eSe0.mp3 alias woo";
-            mciSendString(sPath.c_str(), NULL, 0, NULL);
-             vos = L"setaudio woo volume to " + to_wstring(soundSize);
-            mciSendString(vos.c_str(), NULL, 0, NULL);
+                EJ = 4;
+                loadimage(&p1, L"./Game/picture/p0.png", 0, 0, false);
+                loadimage(&p2, L"./Game/picture/p1.png", 0, 0, false);
+                loadimage(&p3, L"./Game/picture/alice_sleep.png", 0, 0, false);
+                loadimage(&p4, L"./Game/picture/eba.png", 0, 0, false);
+                loadimage(&ene1, L"./Game/picture/enemy0.png", 0, 0, false);
+                loadimage(&ene2, L"./Game/picture/enemy3.png", 0, 0, false);
+                loadimage(&ene4, L"./Game/picture/enemy4.png", 0, 0, false);
+                loadimage(&ene3, L"./Game/picture/死狼.png", 0, 0, false);
+                loadimage(&ef_1, L"./Game/picture/shot.png", 0, 0, false);
+                loadimage(&ef_2, L"./Game/picture/shot_2.png", 0, 0, false);
+                wstring sPath = L"open ./Game/Sound/SE/拳銃2.mp3 alias shot";
+                mciSendString(sPath.c_str(), NULL, 0, NULL);
+                wstring vos = L"setaudio shot volume to " + to_wstring(soundSize);
+                mciSendString(vos.c_str(), NULL, 0, NULL);
+                sPath = L"open ./Game/Sound/SE/eSe0.mp3 alias woo";
+                mciSendString(sPath.c_str(), NULL, 0, NULL);
+                vos = L"setaudio woo volume to " + to_wstring(soundSize);
+                mciSendString(vos.c_str(), NULL, 0, NULL);
             }
             else if (root["mType"].asInt() == 10) {
-            loadimage(&p1, L"./Game/picture/p0.png", 0, 0, false);
-            loadimage(&p2, L"./Game/picture/p1.png", 0, 0, false);
-            loadimage(&p3, L"./Game/picture/p3.png", 0, 0, false);
+                loadimage(&p1, L"./Game/picture/p0.png", 0, 0, false);
+                loadimage(&p2, L"./Game/picture/p1.png", 0, 0, false);
+                loadimage(&p3, L"./Game/picture/p3.png", 0, 0, false);
             }
         }
         if (root.isMember("map")) {
@@ -2920,7 +2924,7 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
             X = root["cammer"]["x"].asInt();
             Y = root["cammer"]["y"].asInt();
             m[m_id].ox = (X > 13) * (X - 13) * 48 - (14 - (m[m_id].x - X)) * (X + 14 > m[m_id].x) * 48;
-            m[m_id].oy = (Y > 10) * (Y - 10) * 48 - (10 - (m[m_id].y - Y)) * (Y+ 10 > m[m_id].y) * 48;
+            m[m_id].oy = (Y > 10) * (Y - 10) * 48 - (10 - (m[m_id].y - Y)) * (Y + 10 > m[m_id].y) * 48;
             putimage(0, 0, 1296, 960, &mapP, m[m_id].ox, m[m_id].oy);
             n_put(n, m, p, m_id);
         }
@@ -2930,7 +2934,7 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
             int ubs = 0;
             int w = 0;
             int K = 0, W = 0;
-            putimage(0, 696, &t_block);
+            tE = 0;
             if (root["talk"][k]["cg"].asInt() != -1) {
                 IMAGE cg;
                 mm = std::to_wstring(root["talk"][k]["cg"].asInt());
@@ -2938,9 +2942,10 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
                 LPCTSTR path = mm.c_str();
                 loadimage(&cg, path, 0, 0, false);
                 putimage(0, 0, &cg);
-            }
+            }           
+            transparentimage(NULL, 0, 676, &t_block);
             if (root["talk"][k]["npc"].asInt() != -1) {
-                settextstyle(23, 0, _T("Taipei Sans TC Beta"));
+                settextstyle(50, 0, _T("Noto Sans TC"));
                 LPCTSTR path = n[root["talk"][k]["npc"].asInt()].name.c_str();
                 drawtext(path, &t, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
                 IMAGE p1;
@@ -2949,827 +2954,833 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
                     mm = L"./Game/picture/t_npc" + mm + L"_" + std::to_wstring(root["talk"][k]["face"].asInt()) + L".png";
                     LPCTSTR path = mm.c_str();
                     loadimage(&p1, path, 0, 0, false);
-                    transparentimage(NULL, 50, 746, &p1, 0xFF55FF);
+                    transparentimage(NULL, 125, 780, &p1, 0xFF55FF);
                 }
+
             }
             else {
-                settextstyle(23, 0, _T("Taipei Sans TC Beta"));
+                settextstyle(50, 0, _T("Noto Sans TC"));
                 LPCTSTR path = p[root["talk"][k]["player"].asInt()].name.c_str();
                 drawtext(path, &t, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-                IMAGE p1;
-                mm = std::to_wstring(root["talk"][k]["player"].asInt());
-                mm = L"./Game/picture/player" + mm + L"_" + std::to_wstring(root["talk"][k]["face"].asInt()) + L".png";
-                path = mm.c_str();
-                loadimage(&p1, path, 0, 0, false);
-                transparentimage(NULL, 50, 746, &p1, 0xFF55FF);
-            }
-            settextcolor(WHITE);
-            settextstyle(30, 0, _T("Taipei Sans TC Beta"));
-          while (1) {
-              start_time = clock();
-                int Bu = F / 10;
+                int fid = root["talk"][k]["face"].asInt();
+                int pid = root["talk"][k]["player"].asInt();
+                if (pid==0) {
+                    transparentimageA(NULL, 125, 780, &pf0, fid%4*144, fid/4*144, 144, 144);
+                }
+                else if (pid == 1) {
+                    transparentimageA(NULL,125, 780, &pf1, fid % 4 * 144, fid / 4 * 144, 144, 144);
+                }
+                else if (pid == 2) {
+                    transparentimageA(NULL, 125, 780, &pf2, fid % 4 * 144, fid / 4 * 144, 144, 144);
+                }
+            }        
+        settextcolor(WHITE);
+        settextstyle(38, 0, _T("Noto Sans TC"));
+        while (1) {
+            start_time = clock();
+            int Bu = F / 10;
             BeginBatchDraw();
             if (root.isMember("mType")) {
-            if ( root["mType"].asInt()==1 && F % 129 == 0) {
-                transparentimage(NULL,1*(F%1295), 0, &mmp, 0xFF55FF,0,0,1295 - 1 * (F % 1295),696);
-                transparentimage(NULL, 0, 0, &mmp, 0xFF55FF, 1295-1*(F%1295), 0, 1 * (F % 1295), 696);
-                transparentimage(NULL, 14 * 48 , 10* 48-16, &p1, 0xFF55FF, 128*(ubs%2) + 16, 64, 48, 64);
-                transparentimage(NULL, 14 * 48, 11 * 48 - 16, &p2, 0xFF55FF, 128 * (ubs % 2) + 16, 64, 48, 64);
-                ubs++;
-            }
-            else if (root["mType"].asInt() == 2 && F % 30 == 0) {      
-                putimage(0, 0, 1296, 696, &mmp, ui * 1296 + 48 * uk, uj * 960 + 48 * uK);
-                if (k == 4&&ep==0) {
-                    pa = 1;
+                if (root["mType"].asInt() == 1 && F % 129 == 0) {
+                    transparentimage(NULL, 1 * (F % 1295), 0, &mmp, 0xFF55FF, 0, 0, 1295 - 1 * (F % 1295), 696);
+                    transparentimage(NULL, 0, 0, &mmp, 0xFF55FF, 1295 - 1 * (F % 1295), 0, 1 * (F % 1295), 696);
+                    transparentimage(NULL, 14 * 48, 10 * 48 - 16, &p1, 0xFF55FF, 128 * (ubs % 2) + 16, 64, 48, 64);
+                    transparentimage(NULL, 14 * 48, 11 * 48 - 16, &p2, 0xFF55FF, 128 * (ubs % 2) + 16, 64, 48, 64);
+                    ubs++;
                 }
-                if (k == 5&&ubs!=15) {
-                    pa = 1;
-                }
-                if (k == 6 && w >= s.size() - 1 && pa == 0) {                   
-                    pa = 1;
-                }
-                if (ep == 0) {
-                if (uj!=1&&uK==0) {
-                if ( uk % 3 == 1) {
-                transparentimage(NULL, 528, 528-96, &ma1, 0xFF55FF,0,96*2,96,96);
-                }
-                else if ( uk % 3 == 2) {
-                    transparentimage(NULL, 528, 528 - 96, &ma1, 0xFF55FF, 96 * 2, 96*2, 96, 96);
-                }
-                else if (uk % 3 == 0) {
-                    transparentimage(NULL, 528, 528 - 96, &ma1, 0xFF55FF, 96, 96*2, 96, 96);
-                }
-                }
-                else {
-                    if (uK % 3 == 1) {
-                        transparentimage(NULL, 528, 528 - 96, &ma1, 0xFF55FF, 0, 0, 96, 96);
+                else if (root["mType"].asInt() == 2 && F % 30 == 0) {
+                    putimage(0, 0, 1296, 696, &mmp, ui * 1296 + 48 * uk, uj * 960 + 48 * uK);
+                    if (k == 4 && ep == 0) {
+                        pa = 1;
                     }
-                    else if (uK % 3 == 0) {
-                        transparentimage(NULL, 528, 528 - 96, &ma1, 0xFF55FF, 96*2, 0, 96, 96);                       
+                    if (k == 5 && ubs != 15) {
+                        pa = 1;
                     }
-                    else if (uK % 3 == 2) {
-                        transparentimage(NULL, 528, 528 - 96, &ma1, 0xFF55FF, 96, 0, 96, 96);
- 
+                    if (k == 6 && w >= s.size() - 1 && pa == 0) {
+                        pa = 1;
                     }
-                }
-                if (uk == 26 && (ui == 0 || uj == 2)) {
-                    ui++; uk = 0;
-                }
-                else if (ui == 0 || uj == 2) {
-                    uk++;
-                }
-                if (uK == 19 && ui == 1 && uj < 2) {
-                    uj++; uK = 0;
-                }
-                else if (ui == 1 && uj < 2) {
-                    uK++;
-                }
-                if (ui == 2 && uj == 2) {
-                    ui = 0; uj = 0; uk = 0; uK = 0;
-                    if (k == 4) {
-                        ep = 1;      
-                        SEstopLoop("馬が走る1");
-                    }
-                }
-                if (k >2 ) {
-                    if (uj != 1 && uK == 0) {
-                        if (Ei >0) {
-                            Ei -= 2;
+                    if (ep == 0) {
+                        if (uj != 1 && uK == 0) {
+                            if (uk % 3 == 1) {
+                                transparentimage(NULL, 528, 528 - 96, &ma1, 0xFF55FF, 0, 96 * 2, 96, 96);
+                            }
+                            else if (uk % 3 == 2) {
+                                transparentimage(NULL, 528, 528 - 96, &ma1, 0xFF55FF, 96 * 2, 96 * 2, 96, 96);
+                            }
+                            else if (uk % 3 == 0) {
+                                transparentimage(NULL, 528, 528 - 96, &ma1, 0xFF55FF, 96, 96 * 2, 96, 96);
+                            }
                         }
-                        if (Ej >0) {
-                            Ej--;
+                        else {
+                            if (uK % 3 == 1) {
+                                transparentimage(NULL, 528, 528 - 96, &ma1, 0xFF55FF, 0, 0, 96, 96);
+                            }
+                            else if (uK % 3 == 0) {
+                                transparentimage(NULL, 528, 528 - 96, &ma1, 0xFF55FF, 96 * 2, 0, 96, 96);
+                            }
+                            else if (uK % 3 == 2) {
+                                transparentimage(NULL, 528, 528 - 96, &ma1, 0xFF55FF, 96, 0, 96, 96);
+
+                            }
                         }
-                    if (uk % 3 == 0) {
-                        transparentimage(NULL, 4 * 48+Ei*16, 10 * 48 - 16-Ej*16 - 30, &ene1, 0xFF55FF, 64 + 48+2, 128, 48, 64);
-                        transparentimage(NULL, 3 * 48 + Ei * 16, 9* 48 - 16 - Ej * 16 - 30, &ene1, 0xFF55FF, 64 + 48 + 2, 128, 48, 64);
+                        if (uk == 26 && (ui == 0 || uj == 2)) {
+                            ui++; uk = 0;
+                        }
+                        else if (ui == 0 || uj == 2) {
+                            uk++;
+                        }
+                        if (uK == 19 && ui == 1 && uj < 2) {
+                            uj++; uK = 0;
+                        }
+                        else if (ui == 1 && uj < 2) {
+                            uK++;
+                        }
+                        if (ui == 2 && uj == 2) {
+                            ui = 0; uj = 0; uk = 0; uK = 0;
+                            if (k == 4) {
+                                ep = 1;
+                                SEstopLoop("馬が走る1");
+                            }
+                        }
+                        if (k > 2) {
+                            if (uj != 1 && uK == 0) {
+                                if (Ei > 0) {
+                                    Ei -= 2;
+                                }
+                                if (Ej > 0) {
+                                    Ej--;
+                                }
+                                if (uk % 3 == 0) {
+                                    transparentimage(NULL, 4 * 48 + Ei * 16, 10 * 48 - 16 - Ej * 16 - 30, &ene1, 0xFF55FF, 64 + 48 + 2, 128, 48, 64);
+                                    transparentimage(NULL, 3 * 48 + Ei * 16, 9 * 48 - 16 - Ej * 16 - 30, &ene1, 0xFF55FF, 64 + 48 + 2, 128, 48, 64);
+
+                                }
+                                else if (uk % 3 == 1) {
+                                    transparentimage(NULL, 4 * 48 + Ei * 16, 10 * 48 - 16 - Ej * 16 - 30, &ene1, 0xFF55FF, 64 + 2, 128, 48, 64);
+                                    transparentimage(NULL, 3 * 48 + Ei * 16, 9 * 48 - 16 - Ej * 16 - 30, &ene1, 0xFF55FF, 64 + 2, 128, 48, 64);
+
+                                }
+                                else if (uk % 3 == 2) {
+                                    transparentimage(NULL, 4 * 48 + Ei * 16, 10 * 48 - 16 - Ej * 16 - 30, &ene1, 0xFF55FF, 64 - 48, 128, 48, 64);
+                                    transparentimage(NULL, 3 * 48 + Ei * 16, 9 * 48 - 16 - Ej * 16 - 30, &ene1, 0xFF55FF, 64 - 48, 128, 48, 64);
+
+                                }
+                                ei = 0;
+                                ej = 0;
+                            }
+                            else {
+                                if (ei < 24) {
+                                    ei += 2;
+                                }
+                                if (ej < 6) {
+                                    ej++;
+                                }
+                                if (uK % 3 == 0) {
+                                    transparentimage(NULL, 4 * 48 + ei * 16, 10 * 48 - 16 - ej * 16 - 30, &ene1, 0xFF55FF, 64 + 48 + 2, 0, 48, 64);
+                                    transparentimage(NULL, 3 * 48 + ei * 16, 9 * 48 - 16 - ej * 16 - 30, &ene1, 0xFF55FF, 64 + 48 + 2, 0, 48, 64);
+
+                                }
+                                else if (uK % 3 == 1) {
+                                    transparentimage(NULL, 4 * 48 + ei * 16, 10 * 48 - 16 - ej * 16 - 30, &ene1, 0xFF55FF, 64 + 2, 0, 48, 64);
+                                    transparentimage(NULL, 3 * 48 + ei * 16, 9 * 48 - 16 - ej * 16 - 30, &ene1, 0xFF55FF, 64 + 2, 0, 48, 64);
+
+                                }
+                                else if (uK % 3 == 2) {
+                                    transparentimage(NULL, 4 * 48 + ei * 16, 10 * 48 - 16 - ej * 16 - 30, &ene1, 0xFF55FF, 64 - 48, 0, 48, 64);
+                                    transparentimage(NULL, 3 * 48 + ei * 16, 9 * 48 - 16 - ej * 16 - 30, &ene1, 0xFF55FF, 64 - 48, 0, 48, 64);
+                                }
+                                Ei = 24;
+                                Ej = 6;
+                            }
+                        }
+                    }
+                    else if (ep == 1) {
+                        if (k == 5 && ubs == 15 && pa == 0) {
+                            transparentimage(NULL, 15 * 16, 11 * 48 - 16 - 30, &ene2, 0xFF55FF, 64 + 48 + 2, 128, 48, 64);
+                            transparentimage(NULL, 528, 528 - 96, &ma3_0);
+                            transparentimage(NULL, 13 * 48, 11 * 48 - 16, &p1, 0xFF55FF, 64 + 8, 64, 48, 64);
+                        }
+                        if (k == 6) {
+                            transparentimage(NULL, 528, 528 - 96, &ma3_0);
+                        }
+                        if (ubs <= 15 && k <= 5 && EJ != 5) {
+                            transparentimage(NULL, 528, 528 - 96, &ma1_0, 0xFF55FF);
+                        }
+                        transparentimage(NULL, 4 * 48 + uI * 16, 10 * 48 - 16 - 30, &ene1, 0xFF55FF, 64 + 48 * (uI % 2) + 2, 128, 48, 64);
+                        transparentimage(NULL, 3 * 48 + uI * 16, 9 * 48 - 16 - 30, &ene1, 0xFF55FF, 64 + 48 * (uI % 2) + 2, 128, 48, 64);
+                        if (po == 1) {
+                            transparentimage(NULL, 25 * 48 + uI * 16, 9 * 48 - 16 - 30, &ene1, 0xFF55FF, 64 + 48 * (uI % 2) + 2, 128, 48, 64);
+                            transparentimage(NULL, 24 * 48 + uI * 16, 10 * 48 - 16 - 30, &ene1, 0xFF55FF, 64 + 48 * (uI % 2) + 2, 128, 48, 64);
+                        }
+                        else {
+                            transparentimage(NULL, 25 * 48, 9 * 48 - 16 - 30, &ene1, 0xFF55FF, 64 + 16, 64, 48, 64);
+                            transparentimage(NULL, 24 * 48, 10 * 48 - 16 - 30, &ene1, 0xFF55FF, 64 + 16, 64, 48, 64);
+                        }
+                        if (ubs >= 30 && EJ == 3) {
+                            transparentimage(NULL, 24 * 48, 11 * 48 - 16 - 10, &p2);
+                            transparentimage(NULL, 25 * 48, 12 * 48 - 16 - 10, &p2);
+                        }
+                        else {
+                            transparentimage(NULL, 24 * 48, 11 * 48 - 16 - 30, &ene1, 0xFF55FF, 64 + 16, 64, 48, 64);
+                            transparentimage(NULL, 25 * 48, 12 * 48 - 16 - 30, &ene1, 0xFF55FF, 64 + 16, 64, 48, 64);
+                        }
+                        if (k == 4) {
+                            pa = 0;
+                        }
+                        if (k == 5 && pa == 1) {
+                            transparentimage(NULL, ubs * 16, 11 * 48 - 16 - 30, &ene2, 0xFF55FF, 64 + 48 + 2, 128, 48, 64);
+                            if (ubs < 15) {
+                                ubs++;
+                            }
+                            if (ubs == 15) {
+                                if (EI == 0 && EJ == 0) {
+                                    mciSendString(L"play fir from 0", NULL, 0, NULL);
+                                    mciSendString(L"play sss from 0", NULL, 0, NULL);
+                                }
+                                transparentimageA(NULL, 48 * 6 + 60, 10 * 48 - 60, &ef_1, EI * 320, EJ * 120, 320, 120);
+                                EI++;
+                                if (EI == 3) {
+                                    EJ++;
+                                    EI = 0;
+                                }
+                                if (EJ == 5) {
+                                    pa = 0;
+                                }
+                            }
+                        }
+                        if (k == 6) {
+                            transparentimage(NULL, 15 * 16 + uI * 16, 11 * 48 - 16 - 30, &ene2, 0xFF55FF, 64 + 48 * (uI % 2) + 2, 128, 48, 64);
+                            if (13 * 48 + ubs * 16 < 1296) {
+                                transparentimage(NULL, 13 * 48 + ubs * 16, 11 * 48 - 16, &p1, 0xFF55FF, 64 * (ubs % 3) + 8, 128, 48, 64);
+                            }
+                            else if (po != 1) {
+                                po = 1;
+                                uI = 0;
+                                mciSendString(L"play woo from 0", NULL, 0, NULL);
+                            }
+                        }
+                        if (pa == 1 && k == 6) {
+                            if (ubs < 10 * 3) {
+                                ubs += 3;
+                                EI = 0; EJ = 0;
+                            }
+                            else if (ubs == 30 && EJ != 3) {
+                                transparentimageA(NULL, 23 * 48 + 50, 10 * 48 + 10, &ef_2, EI * 80, EJ * 80, 80, 80);
+                                if (EI == 0 && EJ == 0) {
+                                    mciSendString(L"play sword from 0", NULL, 0, NULL);
+                                    mciSendString(L"play blood from 0", NULL, 0, NULL);
+                                }
+
+                                EI++;
+                                if (EI == 3) {
+                                    EJ++;
+                                    EI = 0;
+                                }
+                            }
+                            else if (ubs >= 30 && EJ == 3 && po == 0) {
+                                ubs += 3;
+                            }
+                            else if (po == 1) {
+                                uI += 2;
+                                if (uI * 16 + 3 * 48 > 1296) {
+                                    pa = 0;
+                                }
+                            }
+                        }
+                    }
+                }
+                else if (root["mType"].asInt() == 3 && F % 30 == 0) {
+                    Ei++;
+                    putimage(0, 0, &mmp);
+                    transparentimageA(NULL, 300, 100 - 10, &ef_1, ui * 300, uj * 120, 300, 120);
+                    transparentimageA(NULL, 0, 150, &ef_1, ui * 300, uj * 120, 300, 120);
+                    transparentimageA(NULL, 96 + 30, 150 + 96, &ef_1, ui * 300, uj * 120, 300, 120);
+                    transparentimageA(NULL, 96 + 30 + 48 + 10, 150 + 96 + 48 + 10, &ef_1, ui * 300, uj * 120, 300, 120);
+                    transparentimageA(NULL, 96 + 30, 150 + 96 + 96 + 20, &ef_1, ui * 300, uj * 120, 300, 120);
+                    transparentimageA(NULL, 80, 150 + 96 + 48 + 210, &ef_1, ui * 300, uj * 120, 300, 120);
+                    transparentimageA(NULL, 80 + 80, 150 + 96 + 48 + 210 + 80, &ef_1, ui * 300, uj * 120, 300, 120);
+                    transparentimageA(NULL, 8 * 48, 6 * 48, &ef_3, Ei * 120, Ej * 320, 120, 320);
+                    transparentimageA(NULL, 9 * 48, 0 * 48, &ef_3, Ei * 120, Ej * 320, 120, 320);
+                    if (time(NULL) - bom > 2) {
+                        if (ei == 0 && ej == 0) {
+                            SEplay("爆発1", 1);
+                        }
+                        transparentimageA(NULL, 1179, 175, &ef_2, ei * 80, ej * 80, 80, 80);
+                        transparentimageA(NULL, 1184, 608, &ef_2, ei * 80, ej * 80, 80, 80);
+                        transparentimageA(NULL, 1088, 512, &ef_2, ei * 80, ej * 80, 80, 80);
+                        ei++;
+                        if (ei == 8) {
+                            ei = 0; ej++;
+                        }
+                        if (ej == 2) {
+                            ej = 0; bom = time(NULL);
+
+                        }
+                    }
+                    uj++;
+                    if (uj == 3) {
+                        ui--;
+                        uj = 0;
+                    }
+                    if (ui == 0) {
+                        ui = 5;
+                    }
+                    if (Ei == 6) {
+                        Ei = 0;
+                        Ej++;
+                    }
+                    if (Ej == 5) {
+                        Ej = 0;
+                    }
+
+                }
+                else if (root["mType"].asInt() == 4 && F % 30 == 0) {
+                    if (k < 5) {
+                        if (time(NULL) - bom > 2) {
+                            SEplay("爆発1", 1);
+                            bom = time(NULL);
+                        }
+                    }
+                    putimage(0, 0, &mmp);
+                    transparentimage(NULL, 21 * 48, 9 * 48 - 16, &p3, 0xFF55FF, 64 + 8, 64, 48, 64);
+                    transparentimage(NULL, 21 * 48, 6 * 48 - 16, &p3, 0xFF55FF, 64 + 8, 64, 48, 64);
+                    transparentimage(NULL, 21 * 48, 2 * 48 - 16, &p3, 0xFF55FF, 64 + 8, 64, 48, 64);
+                    if (k == 0) {
+                        transparentimage(NULL, 23 * 48, 5 * 48 - 16, &p1, 0xFF55FF, 64 + 16, 64, 48, 64);
+                    }
+                    else {
+                        transparentimage(NULL, 23 * 48, 5 * 48 - 16, &p1, 0xFF55FF, 64 + 8, 192, 48, 64);
+                    }
+                    if (k == 1 && ubs == 0) {
+                        pa = 1;
+                    }
+                    if (k == 2 && ubs == 0) {
+                        pa = 1;
+                    }
+                    if (k == 4 && w >= s.size() - 1 && ubs != -1 && pa == 0) {
+                        pa = 1;
+                        ubs = 9;
+                    }
+                    if (k == 5 && ubs == 0) {
+                        pa = 1;
+                    }
+                    if (k == 16 && w >= s.size() - 1 && ubs != -1 && pa == 0) {
+                        pa = 1;
+                        ubs = 9;
+                    }
+                    if (k > 0 && k < 5) {
+                        if ((k == 1 && pa == 1) || (k == 4 && pa == 1) || ubs == -1) {
+
+                        }
+                        else {
+                            transparentimage(NULL, 23 * 48, 3 * 48 - 16, &p3, 0xFF55FF, 64 + 8, 0, 48, 64);
+                        }
+                    }
+                    if (k > 1 && k < 5) {
+                        if ((k == 2 && pa == 1) || (k == 4 && pa == 1) || ubs == -1) {
+
+                        }
+                        else {
+                            transparentimage(NULL, 22 * 48, 3 * 48 - 16, &p3, 0xFF55FF, 64 + 8, 0, 48, 64);
+                        }
+                    }
+                    if (k > 4 && k < 17 && ubs != -1) {
+                        if (k == 5 && pa == 1) {
+
+                        }
+                        else if (k == 16 && pa == 1) {
+
+                        }
+                        else {
+                            transparentimage(NULL, 23 * 48, 3 * 48 - 16, &p2, 0xFF55FF, 64 + 8, 0, 48, 64);
+                        }
+                    }
+
+                    if (pa == 1 && k == 1) {
+                        transparentimage(NULL, 23 * 48, 16 * ubs - 16, &p3, 0xFF55FF, 64 * (ubs % 2) + 8, 0, 48, 64);
+                        ubs++;
+                        if (ubs == 9) {
+                            pa = 0;
+                        }
+                    }
+                    else if (pa == 1 && k == 2) {
+                        transparentimage(NULL, 22 * 48, 16 * ubs - 16, &p3, 0xFF55FF, 64 * (ubs % 2) + 8, 0, 48, 64);
+                        ubs++;
+                        if (ubs == 9) {
+                            pa = 0;
+                        }
+                    }
+                    else if (pa == 1 && k == 4) {
+                        transparentimage(NULL, 23 * 48, 16 * ubs - 16, &p3, 0xFF55FF, 64 * (ubs % 2) + 8, 64 * 3, 48, 64);
+                        transparentimage(NULL, 22 * 48, 16 * ubs - 16, &p3, 0xFF55FF, 64 * (ubs % 2) + 8, 64 * 3, 48, 64);
+                        ubs--;
+                        if (ubs == 0) {
+                            pa = 0;
+                            ubs = -1;
+                        }
+                    }
+                    else if (pa == 1 && k == 5) {
+                        transparentimage(NULL, 23 * 48, 16 * ubs - 16, &p2, 0xFF55FF, 64 * (ubs % 2) + 8, 0, 48, 64);
+                        ubs++;
+                        if (ubs == 9) {
+                            pa = 0;
+                        }
+                    }
+                    else if (pa == 1 && k == 16) {
+                        transparentimage(NULL, 23 * 48, 16 * ubs - 16, &p2, 0xFF55FF, 64 * (ubs % 2) + 8, 64 * 3, 48, 64);
+                        ubs--;
+                        if (ubs == 0) {
+                            pa = 0;
+                            ubs = -1;
+                        }
+                    }
+                }
+                else if (root["mType"].asInt() == 5 && F % 30 == 0) {
+                    putimage(0, 0, &mmp);
+                    transparentimage(NULL, 21 * 48, 9 * 48 - 16, &p3, 0xFF55FF, 64 + 8, 64, 48, 64);
+                    transparentimage(NULL, 21 * 48, 6 * 48 - 16, &p3, 0xFF55FF, 64 + 8, 64, 48, 64);
+                    transparentimage(NULL, 21 * 48, 2 * 48 - 16, &p3, 0xFF55FF, 64 + 8, 64, 48, 64);
+                    if (k < 5 && pa != 1 && ubs>-1) {
+                        transparentimage(NULL, 48 * 14, 48 * 6 + 24, &ma2_0, 0xFF55FF);
+                        transparentimage(NULL, 48 * 18, 48 * 6, &ma1_0, 0xFF55FF);
+                        transparentimage(NULL, 48 * 18, 48 * 7, &ma1_0, 0xFF55FF);
+                        transparentimage(NULL, 48 * 16, 48 * 6, &ma1_0, 0xFF55FF);
+                        transparentimage(NULL, 48 * 16, 48 * 7, &ma1_0, 0xFF55FF);
+                    }
+                    if (k == 5 && pa != 1 && ei == 0) {
+                        transparentimage(NULL, 48 * 18, 48 * 7, &ma1, 0xFF55FF, 96, 96, 96, 96);
+                    }
+                    if (k == 4 && w >= s.size() - 1 && ubs > -1 && pa == 0) {
+                        pa = 1;
+                        ubs = 16 * 3;
+                        SEplay("馬が走る1", 11);
+                    }
+                    if (k == 5 && w >= s.size() && ei == 0 && pa == 0) {
+                        pa = 1;
+                        ei = 0;
+                        ubs = 7 * 3;
+                        SEplay("馬が走る1", 11);
 
                     }
-                    else if (uk % 3 == 1) {
-                        transparentimage(NULL, 4 * 48 + Ei * 16, 10 * 48 - 16 - Ej * 16 - 30, &ene1, 0xFF55FF, 64+2, 128, 48, 64);
-                        transparentimage(NULL, 3 * 48 + Ei * 16, 9 * 48 - 16 - Ej * 16 - 30, &ene1, 0xFF55FF, 64 + 2, 128, 48, 64);
-
-                    }
-                    else if (uk % 3 == 2) {
-                        transparentimage(NULL, 4 * 48 + Ei * 16, 10 * 48 - 16 - Ej * 16 - 30, &ene1, 0xFF55FF, 64 - 48, 128, 48, 64);
-                        transparentimage(NULL, 3 * 48 + Ei * 16, 9 * 48 - 16 - Ej * 16 - 30, &ene1, 0xFF55FF, 64 - 48, 128, 48, 64);
-
-                    }
-                    ei = 0;
-                    ej = 0;
-                    }
-                    else {                       
-                        if (ei <24) {
-                            ei+=2;
+                    if (pa == 1 && k == 4) {
+                        for (ui = 0; (ui * 96 + ubs * 16 < 18 * 48 && ui < 10); ui++) {
+                            if (ubs % 3 == 0 && ubs * 16 + ui * 96 > -96) {
+                                transparentimage(NULL, ubs * 16 + ui * 96, 48 * 6, &ma1_0, 0xFF55FF);
+                                transparentimage(NULL, ubs * 16 + ui * 96, 48 * 7, &ma1_0, 0xFF55FF);
+                            }
+                            else if ((ubs % 3 == 1 || ubs % 3 == -1) && ubs * 16 + ui * 96 > -96) {
+                                transparentimage(NULL, ubs * 16 + ui * 96, 48 * 6, &ma1_1, 0xFF55FF);
+                                transparentimage(NULL, ubs * 16 + ui * 96, 48 * 7, &ma1_1, 0xFF55FF);
+                            }
+                            else if ((ubs % 3 == 2 || ubs % 3 == -2) && ubs * 16 + ui * 96 > -96) {
+                                transparentimage(NULL, ubs * 16 + ui * 96, 48 * 6, &ma1_2, 0xFF55FF);
+                                transparentimage(NULL, ubs * 16 + ui * 96, 48 * 7, &ma1_2, 0xFF55FF);
+                            }
                         }
-                        if (ej < 6) {
+
+                        if (ubs % 3 == 0) {
+                            transparentimage(NULL, ubs * 16 - 96, 48 * 6 + 24, &ma2_0, 0xFF55FF);
+                        }
+                        else if (ubs % 3 == 1) {
+                            transparentimage(NULL, ubs * 16 - 96, 48 * 6 + 24, &ma2_1, 0xFF55FF);
+                        }
+                        else if (ubs % 3 == 2) {
+                            transparentimage(NULL, ubs * 16 - 96, 48 * 6 + 24, &ma2_2, 0xFF55FF);
+                        }
+                        ubs--;
+                        if (ubs == -20 * 3) {
+                            ubs = -1;
+                            pa = 0;
+                            SEstopLoop("馬が走る1");
+                        }
+                    }
+                    if (pa == 1 && k == 5) {
+                        if (ei == 15) {
+                            if (ubs % 3 == 0) {
+                                transparentimage(NULL, 48 * 13, ubs * 16, &ma1, 0xFF55FF, 96, 0, 96, 96);
+                            }
+                            else if (ubs % 3 == 1) {
+                                transparentimage(NULL, 48 * 13, ubs * 16, &ma1, 0xFF55FF, 0, 0, 96, 96);
+                            }
+                            else if (ubs % 3 == 2) {
+                                transparentimage(NULL, 48 * 13, ubs * 16, &ma1, 0xFF55FF, 96 * 2, 0, 96, 96);
+                            }
+                            ubs++;
+                        }
+                        if (ei < 15) {
+                            if (ei % 3 == 0) {
+                                transparentimage(NULL, 48 * 18 - ei * 16, 48 * 7, &ma1, 0xFF55FF, 96, 96, 96, 96);
+                            }
+                            else if (ei % 3 == 1) {
+                                transparentimage(NULL, 48 * 18 - ei * 16, 48 * 7, &ma1, 0xFF55FF, 0, 96, 96, 96);
+                            }
+                            else if (ei % 3 == 2) {
+                                transparentimage(NULL, 48 * 18 - ei * 16, 48 * 7, &ma1, 0xFF55FF, 96 * 2, 96, 96, 96);
+                            }
+                            ei++;
+                        }
+                        if (ubs >= 3 * 13 - 1) {
+                            pa = 0;
+                            SEstopLoop("馬が走る1");
+                        }
+                    }
+                }
+                else if (root["mType"].asInt() == 6 && F % 30 == 0) {
+                    putimage(0, 0, &mmp);
+                    transparentimage(NULL, 3 * 48, 8 * 48 - 16, &p1, 0xFF55FF, 64 + 8, 128, 48, 64);
+                    if ((k > 1 || ei == -1) && k != 3 && k != 6 && k < 9) {
+                        transparentimage(NULL, 3 * 48, 6 * 48 - 16, &p2, 0xFF55FF, 64 + 8, 0, 48, 64);
+                    }
+                    else if (k == 3 && pa == 0) {
+                        transparentimage(NULL, 3 * 48, 6 * 48 - 16, &p2, 0xFF55FF, 64 + 8, 125, 48, 64);
+                    }
+                    else if (k == 6 && pa == 0) {
+                        transparentimage(NULL, 3 * 48, 6 * 48 - 16, &p2, 0xFF55FF, 64 + 8, 0, 48, 64);
+                    }
+                    else if (k == 9 && pa == 0 && ei != -3) {
+                        transparentimage(NULL, 3 * 48, 6 * 48 - 16, &p2, 0xFF55FF, 64 + 8, 0, 48, 64);
+                    }
+                    if (k == 1 && pa == 0 && ei == 0) {
+                        pa = 1;
+                    }
+                    if (k == 6 && w >= s.size() - 1 && ei == -1 && pa == 0) {
+                        pa = 1;
+                        ei = 6;
+                    }
+                    if (k == 9 && w >= s.size() - 1 && ei == -2 && pa == 0) {
+                        ei = 0;
+                        pa = 1;
+                    }
+                    if (k == 1 && pa == 1) {
+                        transparentimage(NULL, 3 * 48, 4 * 48 - 16 + ei * 16, &p2, 0xFF55FF, 64 * (ei % 3) + 8, 0, 48, 64);
+                        ei++;
+                        if (ei == 6) {
+                            pa = 0;
+                            ei = -1;
+                        }
+                    }
+                    if (k == 6 && pa == 1 && ei != -2) {
+                        transparentimage(NULL, 3 * 48, 4 * 48 - 16 + ei * 16, &p2, 0xFF55FF, 64 * (ei % 3) + 8, 192, 48, 64);
+                        ei--;
+                        if (ei == 0) {
+                            ei = -2;
+                            ts = time(NULL);
+                        }
+                    }
+                    else if (k == 6 && pa == 1 && ei == -2) {
+                        if (time(NULL) - ts > 3) {
+                            transparentimage(NULL, 3 * 48, 4 * 48 - 16 + ej * 16, &p2, 0xFF55FF, 64 * (ej % 3) + 8, 0, 48, 64);
                             ej++;
+                            if (ej == 6) {
+                                ej = 0;
+                                pa = 0;
+                            }
                         }
-                        if (uK % 3 == 0) {
-                            transparentimage(NULL, 4 * 48+ei*16, 10* 48 - 16-ej*16 - 30, &ene1, 0xFF55FF, 64 + 48 + 2, 0, 48, 64);
-                            transparentimage(NULL, 3 * 48 + ei * 16, 9 * 48 - 16 - ej * 16 - 30, &ene1, 0xFF55FF, 64 + 48 + 2, 0, 48, 64);
-
-                        }
-                        else if (uK % 3 == 1) {
-                            transparentimage(NULL, 4 * 48 + ei * 16, 10 * 48 - 16 - ej * 16 - 30, &ene1, 0xFF55FF, 64 + 2, 0, 48, 64);
-                            transparentimage(NULL, 3 * 48 + ei * 16, 9 * 48 - 16 - ej * 16 - 30, &ene1, 0xFF55FF, 64 + 2, 0, 48, 64);
-
-                        }
-                        else if (uK % 3 == 2) {
-                            transparentimage(NULL, 4 * 48 + ei * 16, 10* 48 - 16 - ej * 16 - 30, &ene1, 0xFF55FF, 64 - 48, 0, 48, 64);
-                            transparentimage(NULL, 3 * 48 + ei * 16, 9 * 48 - 16 - ej * 16 - 30, &ene1, 0xFF55FF, 64 - 48, 0, 48, 64);
-                        }
-                        Ei = 24;
-                        Ej = 6;
                     }
-                }
-                }
-                else if (ep == 1) {                   
-                    if (k==5&&ubs==15&&pa==0) {
-                        transparentimage(NULL, 15 * 16, 11 * 48 - 16 - 30, &ene2, 0xFF55FF, 64 + 48 + 2, 128, 48, 64);
-                        transparentimage(NULL, 528, 528 - 96, &ma3_0);
-                        transparentimage(NULL, 13*48 ,11 * 48 -16 , &p1, 0xFF55FF, 64 +8, 64, 48, 64);
-                    }      
-                    if (k == 6) {
-                        transparentimage(NULL, 528, 528 - 96, &ma3_0);
+                    if (k == 9 && pa == 1) {
+                        transparentimage(NULL, 3 * 48, 6 * 48 - 16 - ei * 16, &p2, 0xFF55FF, 64 * (ei % 3) + 8, 192, 48, 64);
+                        ei++;
+                        if (ei == 6) {
+                            pa = 0;
+                            ei = -3;
+                        }
                     }
-                    if (ubs <= 15&&k<=5&&EJ!=5) {
-                    transparentimage(NULL, 528, 528 - 96, &ma1_0, 0xFF55FF);
-                    }
-                    transparentimage(NULL, 4 * 48 + uI* 16, 10 * 48 - 16 - 30, &ene1, 0xFF55FF, 64 + 48 * (uI % 2) + 2, 128, 48, 64);
-                    transparentimage(NULL, 3 * 48 + uI * 16, 9 * 48 - 16 - 30, &ene1, 0xFF55FF, 64 + 48 * (uI % 2) + 2, 128, 48, 64);
-                    if (po == 1) {
-                        transparentimage(NULL, 25 * 48 + uI * 16, 9 * 48 - 16 - 30, &ene1, 0xFF55FF, 64 +48 * (uI % 2) +2, 128, 48, 64);
-                        transparentimage(NULL, 24 * 48 + uI * 16, 10 * 48 - 16 - 30, &ene1, 0xFF55FF, 64 +48 * (uI % 2) +2, 128, 48, 64);
+                    if (k > 4) {
+                        if (ubs % 35 > 5) {
+                            transparentimage(NULL, 48 * 15, 48 * 0, &can_0, 0xFF55FF);
+                            transparentimage(NULL, 48 * 15, 48 * 4, &can_0, 0xFF55FF);
+                            transparentimage(NULL, 48 * 15, 48 * 8, &can_0, 0xFF55FF);
+                            transparentimage(NULL, 48 * 11, 48 * 1, &can_0, 0xFF55FF);
+                            transparentimage(NULL, 48 * 11, 48 * 5, &can_0, 0xFF55FF);
+                            transparentimage(NULL, 48 * 11, 48 * 9, &can_0, 0xFF55FF);
+                        }
+                        else {
+                            if (time(NULL) - bom > 2) {
+                                SEplay("大砲2", 1);
+                                bom = time(NULL);
+                            }
+                            transparentimage(NULL, 48 * 15, 48 * 0, &can_1);
+                            transparentimage(NULL, 48 * 15, 48 * 4, &can_1);
+                            transparentimage(NULL, 48 * 15, 48 * 8, &can_1);
+                            transparentimage(NULL, 48 * 11, 48 * 1, &can_1);
+                            transparentimage(NULL, 48 * 11, 48 * 5, &can_1);
+                            transparentimage(NULL, 48 * 11, 48 * 9, &can_1);
+                        }
+                        ubs++;
                     }
                     else {
-                    transparentimage(NULL, 25 * 48, 9 * 48 - 16 - 30, &ene1, 0xFF55FF, 64 + 16, 64, 48, 64);
-                    transparentimage(NULL, 24 * 48, 10 * 48 - 16 - 30, &ene1, 0xFF55FF, 64 + 16, 64, 48, 64);
+                        transparentimage(NULL, 48 * 15, 48 * 0, &can_0, 0xFF55FF);
+                        transparentimage(NULL, 48 * 15, 48 * 4, &can_0, 0xFF55FF);
+                        transparentimage(NULL, 48 * 15, 48 * 8, &can_0, 0xFF55FF);
+                        transparentimage(NULL, 48 * 11, 48 * 1, &can_0, 0xFF55FF);
+                        transparentimage(NULL, 48 * 11, 48 * 5, &can_0, 0xFF55FF);
+                        transparentimage(NULL, 48 * 11, 48 * 9, &can_0, 0xFF55FF);
                     }
-                    if (ubs >= 30 && EJ == 3) {
-                        transparentimage(NULL, 24 * 48, 11 * 48 - 16 - 10, &p2);
-                        transparentimage(NULL, 25 * 48, 12 * 48 - 16 - 10, &p2);
+                }
+                else if (root["mType"].asInt() == 7 && F % 30 == 0) {
+                    putimage(0, 0, &mmp);
+                    if (k == 1 && w >= s.size() - 1 && ubs != -1 && pa == 0) {
+                        pa = 1;
                     }
-                    else {
-                    transparentimage(NULL, 24 * 48, 11 * 48 - 16 - 30, &ene1, 0xFF55FF, 64 + 16, 64, 48, 64);
-                    transparentimage(NULL, 25 * 48, 12 * 48 - 16 - 30, &ene1, 0xFF55FF, 64 + 16, 64, 48, 64);                    
+                    if (k >= 0 & ubs == 0) {
+                        transparentimage(NULL, 10 * 48, 11 * 48 - 16, &p1, 0xFF55FF, 64 + 8, 128, 48, 64);
+                        transparentimage(NULL, 10 * 48, 10 * 48 - 16, &p2, 0xFF55FF, 64 + 8, 128, 48, 64);
                     }
-                    if (k == 4) {
-                        pa = 0;
+                    if (pa == 1 && k == 1) {
+                        transparentimage(NULL, 10 * 48 + ubs * 16, 11 * 48 - 16, &p1, 0xFF55FF, 64 * (ubs % 3) + 8, 128, 48, 64);
+                        transparentimage(NULL, 10 * 48 + ubs * 16, 10 * 48 - 16, &p2, 0xFF55FF, 64 * (ubs % 3) + 8, 128, 48, 64);
+                        ubs++;
+                        if (ubs * 16 + 10 * 48 > 1296) {
+                            pa = 0;
+                        }
                     }
-                    if (k == 5&&pa==1) {
-                        transparentimage(NULL, ubs*16, 11 * 48 - 16 - 30, &ene2, 0xFF55FF, 64 + 48 + 2, 128, 48, 64);                     
-                        if (ubs < 15) {
-                               ubs++;
+                }
+                else if (root["mType"].asInt() == 8 && F % 30 == 0) {
+                    putimage(0, 0, &mmp);
+                    if (k == 0 && ubs == -1) {
+                        transparentimage(NULL, 13.5 * 48, 5 * 48 - 16, &p3, 0xFF55FF, 64 + 8, 0, 48, 64);
+                        transparentimage(NULL, 12 * 48, 10 * 48, &ene1, 0xFF55FF, 64 + 2, 192, 48, 64);
+                        transparentimage(NULL, 15 * 48, 10 * 48, &ene1, 0xFF55FF, 64 + 2, 192, 48, 64);
+                        transparentimage(NULL, 10 * 48, 11 * 48 - 16, &ene4, 0xFF55FF, 64 + 2, 192, 48, 64);
+                        transparentimage(NULL, 17 * 48, 12 * 48 - 16, &ene4, 0xFF55FF, 64 + 2, 192, 48, 64);
+                        transparentimage(NULL, 13.5 * 48, 13 * 48 - 16, &ene2, 0xFF55FF, 64 + 2, 192, 48, 64);
+                    }
+                    else if (k > 0) {
+                        transparentimage(NULL, 13.5 * 48, 5 * 48 - 16, &p3, 0xFF55FF, 64 + 8, 0, 48, 64);
+                        if (k > 3) {
+                            transparentimage(NULL, 10 * 48, 11 * 48 - 16, &ene4, 0xFF55FF, 64 + 2, 128, 48, 64);
+                            transparentimage(NULL, 17 * 48, 12 * 48 - 16, &ene4, 0xFF55FF, 64 + 16 - 48, 64, 48, 64);
+                        }
+                        else if (k > 0) {
+                            transparentimage(NULL, 10 * 48, 11 * 48 - 16, &ene4, 0xFF55FF, 64 + 2, 192, 48, 64);
+                            transparentimage(NULL, 17 * 48, 12 * 48 - 16, &ene4, 0xFF55FF, 64 + 2, 192, 48, 64);
+                        }
+                        if (k < 2) {
+                            transparentimage(NULL, 13.5 * 48, 13 * 48 - 16, &ene2, 0xFF55FF, 64 + 2, 192, 48, 64);
+
+                        }
+                        else if (k == 2 && pa == 0 && EI == 4) {
+                            transparentimage(NULL, 13.5 * 48 - 5, 8 * 48 - 16, &ene2, 0xFF55FF, 64 + 2, 192, 48, 64);
+                            transparentimageA(NULL, 13 * 48 - 35, 3 * 48 - 10, &ef_4, 3 * 120, 2 * 320, 120, 320);
+                        }
+                        else if (k > 2) {
+                            transparentimage(NULL, 13.5 * 48 - 5, 8 * 48 - 16, &ene2, 0xFF55FF, 64 + 2, 192, 48, 64);
+                        }
+                        if (k > 2) {
+                            transparentimage(NULL, 13.5 * 48, 5 * 48 - 16, &ef_3);
+                        }
+                        if (k == 1 && ubs == 12 && pa == 0) {
+                            transparentimage(NULL, 13 * 48, 6 * 48 + 16, &ene3);
+                            transparentimage(NULL, 14 * 48, 6 * 48 + 16, &ene3);
+                        }
+                        else if (k > 1) {
+                            transparentimage(NULL, 13 * 48, 6 * 48 + 16, &ene3);
+                            transparentimage(NULL, 14 * 48, 6 * 48 + 16, &ene3);
+                        }
+                        if (k > 3) {
+                            transparentimage(NULL, 13 * 48, 13 * 48 - 16, &p1, 0xFF55FF, 64 + 8, 192, 48, 64);
+                            transparentimage(NULL, 14 * 48, 13 * 48 - 16, &p2, 0xFF55FF, 64 + 8, 192, 48, 64);
+                        }
+                    }
+                    if (k == 0 && pa == 0 && ubs == 0) {
+                        pa = 1;
+                    }
+                    if (k == 1 && pa == 0 && ubs == 0) {
+                        mciSendString(L"play woo from 0", NULL, 0, NULL);
+                        pa = 1;
+
+                    }
+                    if (k == 2 && pa == 0 && ubs == 0) {
+                        pa = 1;
+                        EI = 0;
+                        EJ = 2;
+                    }
+                    if (k == 3 && pa == 0 && EJ == 2 && EI == 4) {
+                        mciSendString(L"play zun from 0", NULL, 0, NULL);
+                        pa = 1;
+                    }
+                    if (k == 0 && pa == 1) {
+                        transparentimage(NULL, 12 * 48 + (ubs / (3 * 5)) * (ubs - 15) * 6, 13 * 48 - 16 - ubs * 16, &p3, 0xFF55FF, 64 * (ubs % 3) + 8, 192, 48, 64);
+                        if (ubs >= 15) {
+                            transparentimage(NULL, 12 * 48, 13 * 48 - 16 * (ubs - 15), &ene1, 0xFF55FF, 64 + 48 * (ubs % 2) + 2, 192, 48, 64);
+                            transparentimage(NULL, 15 * 48, 13 * 48 - 16 * (ubs - 15), &ene1, 0xFF55FF, 64 + 48 * (ubs % 2) + 2, 192, 48, 64);
+                            transparentimage(NULL, 4 * 48 + 32 * (ubs - 15), 11 * 48 - 16, &ene4, 0xFF55FF, 64 + 48 * (ubs % 2) + 2, 128, 48, 64);
+                            transparentimage(NULL, 23 * 48 - (ubs - 15) * 32, 12 * 48 - 16, &ene4, 0xFF55FF, 64 + 48 * (ubs % 2) + 16 - 48, 64, 48, 64);
+                        }
+                        if (ubs < 3 * 8) {
+                            ubs++;
+                        }
+                        else if (ubs == 24) {
+                            ubs = -1;
+                            pa = 0;
+                        }
+                    }
+                    if (k == 1 && pa == 1) {
+                        if (ubs < 12) {
+                            ubs++;
+                        }
+                        transparentimage(NULL, 12 * 48 + (ubs / 6) * (ubs - 6) * 8, 10 * 48 - 16 * ubs, &ene1, 0xFF55FF, 64 + 2 + 48 * (ubs % 2), 192, 48, 64);
+                        transparentimage(NULL, 15 * 48 - (ubs / 6) * (ubs - 6) * 8, 10 * 48 - 16 * ubs, &ene1, 0xFF55FF, 64 + 2 + 48 * (ubs % 2), 192, 48, 64);
+                        if (ubs == 4 * 3) {
+                            if (uI == 0 && uK == 0) {
+                                mciSendString(L"play sword from 0", NULL, 0, NULL);
+                                mciSendString(L"play zua from 0", NULL, 0, NULL);
+                                mciSendString(L"play blood from 0", NULL, 0, NULL);
+                            }
+                            transparentimageA(NULL, 13 * 48 - 40, 6 * 48 - 10, &ef_1, uI * 120, uK * 120, 120, 120);
+                            transparentimageA(NULL, 14 * 48 - 40, 6 * 48 - 10, &ef_1, uI * 120, uK * 120, 120, 120);
+                            transparentimageA(NULL, 13.5 * 48 - 25, 5 * 48 - 16 - 20, &ef_2, uI * 120, uK * 120, 120, 120);
+                            uI++;
+                            if (uI == 3) {
+                                uK++;
+                                uI = 0;
+                            }
+                            if (uK == 5) {
+                                pa = 0;
+                            }
+                        }
+                    }
+                    if (k == 2 && pa == 1) {
+                        transparentimage(NULL, 13.5 * 48 - 5, 13 * 48 - 16 - ubs * 16, &ene2, 0xFF55FF, 64 + 2 + 48 * (ubs % 2), 192, 48, 64);
+                        if (ubs < 3 * 5) {
+                            ubs++;
                         }
                         if (ubs == 15) {
-                            if (EI == 0 && EJ == 0) {
+                            transparentimageA(NULL, 13 * 48 - 35, 3 * 48 - 10, &ef_4, EI * 120, EJ * 320, 120, 320);
+                            if (EJ == 2 && EI == 0) {
                                 mciSendString(L"play fir from 0", NULL, 0, NULL);
-                                mciSendString(L"play sss from 0", NULL, 0, NULL);
                             }
-                            transparentimageA(NULL,48*6+60, 10 * 48-60, &ef_1, EI*320, EJ*120, 320, 120);
-                            EI++;                            
-                            if (EI == 3) {
-                                EJ++;
-                                EI = 0;
+                            EJ--;
+                            if (EJ == -1) {
+                                EJ = 2;
+                                EI++;
                             }
-                            if (EJ == 5) {
+                            if (EI == 4) {
                                 pa = 0;
                             }
                         }
-                    }               
-                    if (k == 6) {
-                        transparentimage(NULL, 15 * 16 + uI * 16, 11 * 48 - 16 - 30, &ene2, 0xFF55FF, 64 + 48 * (uI % 2) + 2, 128, 48, 64);
-                        if (13 * 48 + ubs * 16 < 1296) {
-                            transparentimage(NULL, 13 * 48 + ubs * 16, 11 * 48 - 16, &p1, 0xFF55FF, 64 * (ubs % 3) + 8, 128, 48, 64);
-                        }
-                        else if (po != 1) {
-                            po = 1;
-                            uI = 0;
-                            mciSendString(L"play woo from 0", NULL, 0, NULL);
-                        }
                     }
-                    if (pa == 1 && k == 6) {
-                        if (ubs < 10 * 3) {
-                            ubs+=3;
-                            EI = 0; EJ = 0;
-                        }
-                        else if (ubs == 30&&EJ!=3) {
-                            transparentimageA(NULL, 23 * 48+50 , 10 * 48 +10, &ef_2, EI * 80, EJ * 80, 80, 80);
-                            if (EI == 0 && EJ == 0) {
-                            mciSendString(L"play sword from 0", NULL, 0, NULL);
-                            mciSendString(L"play blood from 0", NULL, 0, NULL);
-                            }
-
+                    if (k == 3 && pa == 1) {
+                        transparentimageA(NULL, 13 * 48 - 35, 3 * 48 - 10, &ef_4, EI * 120, EJ * 320, 120, 320);
+                        EJ--;
+                        if (EJ == -1) {
+                            EJ = 2;
                             EI++;
-                            if (EI == 3) {
-                                EJ++;
-                                EI = 0;
-                            }
                         }
-                        else if (ubs >= 30 && EJ == 3&&po==0) {
-                            ubs+=3;
+                        if (EI == 5) {
+                            pa = 0;
                         }
-                        else if (po == 1) {
-                            uI+=2;
-                            if (uI * 16 + 3 * 48 > 1296) {
+                    }
+                }
+                else if (root["mType"].asInt() == 9 && F % 30 == 0) {
+                    putimage(0, 0, &mmp);
+                    transparentimage(NULL, 17 * 48, 5 * 48 - 16, &ene3);
+                    transparentimage(NULL, 12 * 48, 8 * 48 - 16, &ene3);
+                    if (k < 8) {
+                        transparentimage(NULL, 48 * 13 + 16, 48 * 5, &p3);
+                        if (k > 2) {
+                            transparentimage(NULL, 13 * 48 + 16, 6 * 48 - 16, &p1, 0xFF55FF, 64 + 8, 192, 48, 64);
+                        }
+                    }
+                    if (k > 7) {
+                        transparentimage(NULL, 13 * 48 + 16, 5 * 48 - 16, &p4);
+                    }
+                    if (k > 0) {
+                        transparentimage(NULL, 9 * 48, 5 * 48 - 16, &ene3);
+                        transparentimage(NULL, 15 * 48, 8 * 48 - 16, &ene3);
+                        transparentimage(NULL, 15 * 48, 5 * 48 - 16, &p2, 0xFF55FF, 64 + 8, 0, 48, 64);
+                    }
+                    if (k == 1) {
+                        transparentimage(NULL, 12 * 48, 5 * 48 - 16, &p1, 0xFF55FF, 64 + 8, 0, 48, 64);
+                    }
+                    if (k == 2 && ubs == 0) {
+                        transparentimage(NULL, 12 * 48, 5 * 48 - 16, &p1, 0xFF55FF, 64 + 8, 0, 48, 64);
+                    }
+                    if (k == 2 && uk == 4) {
+                        transparentimage(NULL, 12 * 48 + uk * 16, 6 * 48 - 16, &p1, 0xFF55FF, 64 + 8, 192, 48, 64);
+                    }
+                    if (k == 0 && ei == 5 && EJ == -1) {
+                        transparentimage(NULL, 12 * 48, 5 * 48 - 16, &p1, 0xFF55FF, 64 + 8, 0, 48, 64);
+                        transparentimage(NULL, 15 * 48, 5 * 48 - 16, &p2, 0xFF55FF, 64 + 8, 0, 48, 64);
+                        transparentimage(NULL, 9 * 48, 5 * 48 - 16, &ene3);
+                        transparentimage(NULL, 15 * 48, 8 * 48 - 16, &ene3);
+                    }
+                    if (k == 1 && ubs == 0) {
+                        pa = 1;
+                    }
+                    if (k == 2 && s[w] == '^' && ubs == 0) {
+                        pa = 1;
+                        ubs = 0;
+                    }
+                    if (k == 0) {
+                        transparentimage(NULL, 13 * 48 + 15, 8 * 48, &ene2, 0xFF55FF, 64, 192, 48, 64);
+                        transparentimage(NULL, 12 * 48, 10 * 48 - 16, &ene4, 0xFF55FF, 64, 192, 48, 64);
+                        transparentimage(NULL, 15 * 48, 10 * 48 - 16, &ene4, 0xFF55FF, 64, 192, 48, 64);
+                    }
+                    if (k == 0 && pa == 0 && w == 0) {
+                        pa = 1;
+                    }
+                    if (k == 0 && pa == 1) {
+                        if (EJ == 4 && EI == 0) {
+                            mciSendString(L"play shot from 0", NULL, 0, NULL);
+                        }
+                        transparentimage(NULL, 12 * 48, 5 * 48 - 16, &p1, 0xFF55FF, 64 + 8, 64, 48, 64);
+                        transparentimage(NULL, 15 * 48, 5 * 48 - 16, &p2, 0xFF55FF, 64 + 8, 0, 48, 64);
+                        transparentimage(NULL, 9 * 48, 5 * 48 - 16, &ene1, 0xFF55FF, 64, 128, 48, 64);
+                        transparentimage(NULL, 15 * 48, 8 * 48 - 16, &ene1, 0xFF55FF, 64 + 8, 192, 48, 64);
+                        transparentimageA(NULL, 8 * 48 - 35, 4 * 48 + 10, &ef_1, ei * 320, ej * 120, 320, 120);
+                        transparentimageA(NULL, 15 * 48 - 35, 6 * 48 - 10, &ef_2, EI * 120, EJ * 300, 120, 300);
+                        if (EJ >= 0) {
+                            EI++;
+                        }
+                        if (EI == 3) {
+                            EI = 0;
+                            EJ--;
+                        }
+                        if (ei < 5) {
+                            ej++;
+                        }
+                        if (ej == 3) {
+                            ej = 0;
+                            ei++;
+                        }
+                        if (ei == 5 && EJ == -1) {
+                            mciSendString(L"play woo from 1", NULL, 0, NULL);
+                            pa = 0;
+                        }
+                    }
+                    if (k == 1 && pa == 1) {
+                        if (8 * 48 + ubs * 16 <= 13 * 48) {
+                            transparentimage(NULL, 13 * 48 + 15, 8 * 48 + ubs * 16, &ene2, 0xFF55FF, 48 * (ubs % 3) + 16, 0, 48, 64);
+                        }
+                        else {
+                            pa = 0;
+                        }
+                        if (10 * 48 - 16 + ubs * 16 <= 13 * 48) {
+                            transparentimage(NULL, 12 * 48, 10 * 48 - 16 + ubs * 16, &ene4, 0xFF55FF, 48 * (ubs % 3) + 16, 0, 48, 64);
+                            transparentimage(NULL, 15 * 48, 10 * 48 - 16 + ubs * 16, &ene4, 0xFF55FF, 48 * (ubs % 3) + 16, 0, 48, 64);
+                        }
+                        ubs++;
+                    }
+                    if (k == 2 && pa == 1) {
+                        if (ubs <= 3) {
+                            transparentimage(NULL, 12 * 48, 5 * 48 - 16 + ubs * 16, &p1, 0xFF55FF, 64 * (ubs % 3) + 8, 0, 48, 64);
+                            ubs++;
+                        }
+                        if (ubs == 4) {
+                            transparentimage(NULL, 12 * 48 + uk * 16, 6 * 48 - 16, &p1, 0xFF55FF, 64 * (uk % 3) + 8, 128, 48, 64);
+                            uk++;
+                            if (uk == 4) {
                                 pa = 0;
                             }
                         }
                     }
                 }
-            }
-            else if ( root["mType"].asInt() == 3 && F % 30 == 0) {       
-                 Ei++;
-                putimage(0,0,&mmp);
-                transparentimageA(NULL, 300, 100-10, &ef_1, ui * 300, uj * 120, 300, 120);
-                transparentimageA(NULL, 0, 150, &ef_1, ui * 300, uj * 120, 300, 120);
-                transparentimageA(NULL, 96+30, 150+96, &ef_1, ui * 300, uj * 120, 300, 120);
-                transparentimageA(NULL, 96 + 30+48+10, 150 + 96+48+10, &ef_1, ui * 300, uj * 120, 300, 120);
-                transparentimageA(NULL, 96 + 30, 150 + 96+96+20, &ef_1, ui * 300, uj * 120, 300, 120);
-                transparentimageA(NULL, 80, 150 + 96 + 48 + 210, &ef_1, ui * 300, uj * 120, 300, 120);
-                transparentimageA(NULL, 80+80, 150 + 96 + 48 + 210+80, &ef_1, ui * 300, uj * 120, 300, 120);
-                transparentimageA(NULL, 8*48, 6*48, &ef_3, Ei * 120, Ej * 320, 120, 320);
-                transparentimageA(NULL, 9 * 48, 0 * 48, &ef_3, Ei * 120, Ej * 320, 120, 320);
-                if (time(NULL)-bom>2){                
-                    if (ei == 0 && ej == 0) {
-                        SEplay("爆発1", 1);
-                    }
-                transparentimageA(NULL, 1179, 175, &ef_2, ei * 80, ej * 80, 80, 80);
-                transparentimageA(NULL, 1184, 608, &ef_2, ei * 80, ej * 80, 80, 80);
-                transparentimageA(NULL, 1088, 512, &ef_2, ei * 80, ej * 80, 80, 80);
-                    ei++;
-                if (ei == 8) {
-                    ei = 0; ej++;
-                }
-                if (ej == 2) {
-                    ej = 0; bom = time(NULL);                
-
-                }
-                }     
-                uj++;
-                if (uj == 3) {
-                    ui--;
-                    uj = 0;
-                }  
-                if (ui == 0) {
-                    ui = 5;
-                }
-                if (Ei == 6) {
-                    Ei = 0;
-                    Ej++;
-                }
-                if (Ej == 5) {
-                    Ej = 0;
-                }
-                
-            }
-            else if (root["mType"].asInt() == 4 && F % 30 == 0) {
-                if (k < 5) {
-                if (time(NULL) - bom > 2) {
-                    SEplay("爆発1", 1);
-                        bom = time(NULL);
-                 }
-                }
-                putimage(0, 0, &mmp);
-                transparentimage(NULL, 21 * 48, 9 * 48 - 16, &p3, 0xFF55FF, 64 + 8, 64, 48, 64);
-                transparentimage(NULL, 21 * 48, 6* 48 - 16, &p3, 0xFF55FF, 64 + 8, 64, 48, 64);
-                transparentimage(NULL, 21 * 48, 2 * 48 - 16, &p3, 0xFF55FF, 64 + 8, 64, 48, 64);
-                if (k == 0) {
-                transparentimage(NULL, 23 * 48, 5 * 48 - 16, &p1, 0xFF55FF, 64 + 16, 64, 48, 64);
-                }
-                else {
-                    transparentimage(NULL, 23 * 48, 5 * 48 - 16, &p1, 0xFF55FF, 64 + 8, 192, 48, 64);
-                }
-                if (k == 1&& ubs==0) {
-                    pa = 1;
-                }
-                if (k == 2 && ubs == 0) {
-                    pa = 1;
-                }
-                 if (k == 4 && w >= s.size() - 1&&ubs!=-1&&pa==0) {
-                     pa = 1;
-                     ubs = 9;
-                 }
-                if (k == 5 && ubs == 0) {
-                    pa = 1;
-                }
-                if (k == 16 && w >= s.size() - 1 && ubs != -1 && pa == 0) {
-                    pa = 1;
-                    ubs = 9;
-                }
-                if (k > 0&&k<5) {
-                    if ((k == 1 && pa == 1)||(k==4&&pa==1)||ubs==-1) {
-                 
-                    }
-                    else {
-                    transparentimage(NULL, 23 * 48, 3 * 48 - 16, &p3, 0xFF55FF, 64 + 8, 0, 48, 64);
-                    }
-                }
-                if (k > 1 && k < 5) {
-                    if ((k == 2 && pa == 1) || (k == 4 && pa == 1)||ubs==-1) {
-
-                    }
-                    else{
-                    transparentimage(NULL, 22 * 48, 3 * 48 - 16, &p3, 0xFF55FF, 64 + 8, 0, 48, 64);
-                    }
-                }
-                if (k > 4&&k<17&&ubs!=-1) {
-                    if (k == 5 && pa == 1) {
-
-                    }
-                    else if (k == 16 && pa == 1) {
-
-                    }
-                    else {
-                    transparentimage(NULL, 23 * 48, 3 * 48 - 16, &p2, 0xFF55FF, 64 + 8, 0, 48, 64);
-                    }
-                }
-
-                if (pa == 1 && k == 1 ) {
-                    transparentimage(NULL,23*48, 16 * ubs - 16, &p3, 0xFF55FF, 64 * (ubs % 2) + 8, 0, 48, 64);
-                    ubs++;
-                    if (ubs == 9) {
-                        pa = 0;
-                    }
-                }
-                else if (pa == 1 && k == 2) {
-                    transparentimage(NULL, 22 * 48, 16 * ubs - 16, &p3, 0xFF55FF, 64 * (ubs % 2) + 8, 0, 48, 64);
-                    ubs++;
-                    if (ubs == 9) {
-                        pa = 0;
-                    }
-                }
-                else if (pa == 1 && k == 4) {
-                    transparentimage(NULL, 23 * 48, 16 * ubs - 16, &p3, 0xFF55FF, 64 * (ubs % 2) + 8, 64*3, 48, 64);
-                    transparentimage(NULL, 22 * 48, 16 * ubs - 16, &p3, 0xFF55FF, 64 * (ubs % 2) + 8, 64*3, 48, 64);
-                    ubs--;
-                    if (ubs == 0) {
-                        pa = 0;
-                        ubs = -1;
-                    }
-                }
-                else if (pa == 1 && k == 5) {
-                    transparentimage(NULL, 23 * 48, 16 * ubs - 16, &p2, 0xFF55FF, 64 * (ubs % 2) + 8, 0, 48, 64);
-                    ubs++;
-                    if (ubs == 9) {
-                        pa = 0;
-                    }
-                }
-                else if (pa == 1 && k == 16) {
-                    transparentimage(NULL, 23 * 48, 16 * ubs - 16, &p2, 0xFF55FF, 64 * (ubs % 2) + 8, 64 * 3, 48, 64);
-                    ubs--;
-                    if (ubs == 0) {
-                        pa = 0;
-                        ubs = -1;
-                    }
-                }            
-}
-            else if (root["mType"].asInt() == 5 && F % 30 == 0) {
-            putimage(0, 0, &mmp);
-            transparentimage(NULL, 21 * 48, 9 * 48 - 16, &p3, 0xFF55FF, 64 + 8, 64, 48, 64);
-            transparentimage(NULL, 21 * 48, 6 * 48 - 16, &p3, 0xFF55FF, 64 + 8, 64, 48, 64);
-            transparentimage(NULL, 21 * 48, 2 * 48 - 16, &p3, 0xFF55FF, 64 + 8, 64, 48, 64);
-            if (k < 5&&pa!=1&&ubs>-1) {
-                transparentimage(NULL, 48*14, 48 * 6+24, &ma2_0, 0xFF55FF);
-                transparentimage(NULL, 48 * 18, 48 * 6, &ma1_0, 0xFF55FF);
-                transparentimage(NULL, 48 * 18, 48 * 7, &ma1_0, 0xFF55FF);
-                transparentimage(NULL, 48 * 16, 48 * 6, &ma1_0, 0xFF55FF);
-                transparentimage(NULL, 48*16, 48*7, &ma1_0, 0xFF55FF);
-            }
-            if (k == 5 && pa != 1&&ei==0) {
-                transparentimage(NULL, 48 * 18, 48*7, &ma1, 0xFF55FF, 96, 96, 96, 96);
-            }
-            if (k == 4 && w >= s.size() - 1&& ubs >-1 && pa == 0) {
-                pa = 1;
-                ubs = 16*3;
-                SEplay("馬が走る1", 11);
-            }
-            if (k == 5 && w >= s.size()  && ei==0 && pa == 0) {
-                pa = 1;
-                ei = 0;
-                ubs = 7 * 3;
-                SEplay("馬が走る1", 11);
-
-            }
-            if (pa == 1 && k == 4) {
-                for (ui = 0; (ui*96 +ubs*16<18*48&&ui<10); ui++) {
-                    if (ubs % 3 == 0&& ubs * 16 + ui * 96>-96) {
-                         transparentimage(NULL, ubs*16+ui*96, 48 * 6, &ma1_0, 0xFF55FF);
-                         transparentimage(NULL, ubs*16+ui*96, 48 * 7, &ma1_0, 0xFF55FF);
-                    }
-                    else if ((ubs % 3 == 1||ubs%3==-1) && ubs * 16 + ui * 96 > -96) {
-                        transparentimage(NULL, ubs * 16 + ui * 96, 48 * 6, &ma1_1, 0xFF55FF);
-                        transparentimage(NULL, ubs * 16 + ui * 96, 48 * 7, &ma1_1, 0xFF55FF);
-                    }
-                    else if ((ubs % 3 == 2 || ubs % 3 == -2) && ubs * 16 + ui * 96 > -96) {
-                        transparentimage(NULL, ubs * 16 + ui * 96, 48 * 6, &ma1_2, 0xFF55FF);
-                        transparentimage(NULL, ubs * 16 + ui * 96, 48 * 7, &ma1_2, 0xFF55FF);
-                    }
-                }
-
-                if (ubs % 3 == 0) {
-                    transparentimage(NULL, ubs * 16-96, 48 * 6+24, &ma2_0, 0xFF55FF);
-                }
-                else if (ubs % 3 == 1) {
-                    transparentimage(NULL, ubs * 16 - 96, 48 * 6+24, &ma2_1, 0xFF55FF);
-                }
-                else if (ubs % 3 == 2) {
-                    transparentimage(NULL, ubs * 16 - 96, 48 * 6+24, &ma2_2, 0xFF55FF);
-                }
-                ubs--;
-                if (ubs == -20*3) {
-                    ubs = -1;
-                    pa = 0;
-                    SEstopLoop("馬が走る1");
+                else if (root["mType"].asInt() == 10 && F % 30 == 0) {
+                    putimage(0, 0, 1296, 696, &mmp, 48, 48 * 16);
                 }
             }
-            if (pa == 1 && k == 5) {               
-                if (ei == 15) {
-                    if (ubs % 3 == 0) {
-                        transparentimage(NULL, 48 * 13 , ubs*16, &ma1, 0xFF55FF,96,0,96,96);
-                    }
-                    else if (ubs % 3 == 1) {
-                        transparentimage(NULL, 48 * 13, ubs * 16, &ma1, 0xFF55FF,0,0,96,96);
-                    }
-                    else if (ubs % 3 == 2) {
-                        transparentimage(NULL, 48 * 13, ubs * 16, &ma1, 0xFF55FF,96*2,0,96,96);
-                    }
-                    ubs++;
-                }
-                if (ei <15) {
-                    if (ei % 3 == 0) {
-                        transparentimage(NULL, 48 * 18-ei*16, 48 * 7, &ma1, 0xFF55FF, 96, 96, 96, 96);
-                    }
-                    else if (ei % 3 == 1) {
-                        transparentimage(NULL, 48 * 18 - ei * 16, 48 * 7, &ma1, 0xFF55FF, 0, 96, 96, 96);
-                    }
-                    else if (ei % 3 == 2) {
-                        transparentimage(NULL, 48 * 18 - ei * 16, 48 * 7, &ma1, 0xFF55FF, 96*2, 96, 96, 96);
-                    }
-                    ei++;
-                    }
-                if (ubs >=3*13 -1) {
-                    pa = 0;
-                    SEstopLoop("馬が走る1");
-                }
-            }
-            }
-            else if (root["mType"].asInt() == 6 && F % 30 == 0) {
-            putimage(0, 0, &mmp);
-            transparentimage(NULL, 3 * 48, 8 * 48 - 16, &p1, 0xFF55FF, 64 + 8, 128, 48, 64);
-            if ((k > 1 || ei ==-1)&&k!=3&&k!=6&&k<9) {
-                transparentimage(NULL, 3 * 48, 6 * 48 - 16, &p2, 0xFF55FF, 64 + 8, 0, 48, 64);
-            }
-            else if (k == 3&&pa==0) {
-                transparentimage(NULL, 3 * 48, 6 * 48 - 16, &p2, 0xFF55FF, 64 + 8, 125, 48, 64);
-            }
-            else if (k == 6 && pa == 0) {
-                transparentimage(NULL, 3 * 48, 6 * 48 - 16, &p2, 0xFF55FF, 64 + 8, 0, 48, 64);
-            }
-            else if (k == 9 && pa == 0&&ei!=-3) {
-                transparentimage(NULL, 3 * 48, 6 * 48 - 16, &p2, 0xFF55FF, 64 + 8, 0, 48, 64);
-            }
-            if (k == 1 && pa == 0&&ei==0) {
-                pa = 1;
-            }
-            if (k == 6 && w >= s.size() - 1 && ei == -1 && pa == 0) {
-                pa = 1;            
-                ei = 6;
-            }
-            if (k == 9 && w >= s.size() - 1 && ei == -2 && pa == 0) {
-                ei = 0;
-                pa = 1;
-            }
-            if (k == 1 && pa == 1) {
-                transparentimage(NULL, 3 * 48, 4 * 48 - 16+ei*16, &p2, 0xFF55FF, 64 * (ei % 3) + 8, 0, 48, 64);
-                ei++;
-                if (ei == 6) {
-                    pa = 0;
-                    ei = -1;
-                }
-            }
-            if (k == 6 && pa == 1&&ei!=-2) {
-                transparentimage(NULL, 3 * 48, 4 * 48 - 16 + ei * 16, &p2, 0xFF55FF, 64 * (ei % 3) + 8, 192, 48, 64);
-                ei--;
-                if (ei == 0) {
-                    ei = -2;
-                    ts = time(NULL);
-                }
-            }
-            else if (k == 6 && pa == 1 && ei == -2) {
-                if (time(NULL) - ts > 3) {
-                    transparentimage(NULL, 3 * 48, 4 * 48 - 16 + ej * 16, &p2, 0xFF55FF, 64 * (ej % 3) + 8, 0, 48, 64);
-                    ej++;
-                    if (ej == 6) {
-                        ej = 0;
-                        pa = 0;
-                    }
-                }
-            }
-            if (k == 9 && pa == 1) {
-                transparentimage(NULL, 3 * 48, 6 * 48 - 16 - ei * 16, &p2, 0xFF55FF, 64 * (ei % 3) + 8, 192, 48, 64);
-                ei++;
-                if (ei == 6) {
-                    pa = 0;
-                    ei = -3;
-                }
-            }
-            if (k > 4) {
-            if (ubs % 35 >5) {
-            transparentimage(NULL, 48 * 15, 48 *0, &can_0, 0xFF55FF);
-            transparentimage(NULL, 48 * 15, 48 * 4, &can_0, 0xFF55FF);
-            transparentimage(NULL, 48 * 15, 48 * 8, &can_0, 0xFF55FF);
-            transparentimage(NULL, 48 * 11, 48 * 1, &can_0, 0xFF55FF);
-            transparentimage(NULL, 48 * 11, 48 * 5, &can_0, 0xFF55FF);
-            transparentimage(NULL, 48 * 11, 48 * 9, &can_0, 0xFF55FF);
-            }
-            else {
-                if (time(NULL) - bom > 2) {
-                    SEplay("大砲2", 1);
-                    bom = time(NULL);
-                }
-                transparentimage(NULL, 48 * 15, 48 * 0, &can_1);
-                transparentimage(NULL, 48 * 15, 48 * 4, &can_1);
-                transparentimage(NULL, 48 * 15, 48 * 8, &can_1);
-                transparentimage(NULL, 48 * 11, 48 * 1, &can_1);
-                transparentimage(NULL, 48 * 11, 48 * 5, &can_1);
-                transparentimage(NULL, 48 * 11, 48 * 9, &can_1);
-            }
-            ubs++;
-            }
-            else {
-                transparentimage(NULL, 48 * 15, 48 * 0, &can_0, 0xFF55FF);
-                transparentimage(NULL, 48 * 15, 48 * 4, &can_0, 0xFF55FF);
-                transparentimage(NULL, 48 * 15, 48 * 8, &can_0, 0xFF55FF);
-                transparentimage(NULL, 48 * 11, 48 * 1, &can_0, 0xFF55FF);
-                transparentimage(NULL, 48 * 11, 48 * 5, &can_0, 0xFF55FF);
-                transparentimage(NULL, 48 * 11, 48 * 9, &can_0, 0xFF55FF);
-            }
-            }
-            else if (root["mType"].asInt() == 7 && F % 30 == 0) {
-            putimage(0, 0, &mmp);
-            if (k == 1 && w >= s.size() - 1 && ubs != -1 && pa == 0) {
-                pa = 1;
-            }
-            if (k >= 0 & ubs == 0) {
-                transparentimage(NULL, 10 * 48, 11 * 48 - 16, &p1, 0xFF55FF, 64 + 8, 128, 48, 64);
-                transparentimage(NULL, 10 * 48, 10 * 48 - 16, &p2, 0xFF55FF, 64 + 8, 128, 48, 64);
-            }
-            if (pa == 1 && k == 1) {
-                transparentimage(NULL, 10 * 48+ubs*16, 11 * 48 - 16, &p1, 0xFF55FF, 64*(ubs%3) + 8, 128, 48, 64);
-                transparentimage(NULL, 10 * 48+ubs*16, 10 * 48 - 16, &p2, 0xFF55FF, 64*(ubs%3) + 8, 128, 48, 64);
-                ubs++;
-                if (ubs * 16 + 10 * 48 > 1296) {
-                    pa = 0;
-                }
-            }
-            }
-            else if (root["mType"].asInt() == 8 && F % 30 == 0) {
-            putimage(0, 0, &mmp);
-            if (k == 0 && ubs == -1) {
-                transparentimage(NULL, 13.5 * 48, 5 * 48 - 16 , &p3, 0xFF55FF, 64  + 8, 0, 48, 64);
-                transparentimage(NULL, 12 * 48, 10 * 48 , &ene1, 0xFF55FF, 64+ 2, 192, 48, 64);
-                transparentimage(NULL, 15 * 48, 10 * 48, &ene1, 0xFF55FF, 64  + 2, 192, 48, 64);
-                transparentimage(NULL, 10* 48, 11 * 48 - 16, &ene4, 0xFF55FF, 64 + 2, 192, 48, 64);
-                transparentimage(NULL, 17 * 48, 12 * 48 - 16, &ene4, 0xFF55FF, 64 + 2, 192, 48, 64);
-                transparentimage(NULL, 13.5 * 48, 13 * 48 - 16, &ene2, 0xFF55FF, 64 + 2, 192, 48, 64);
-            }
-            else if(k>0) {
-                transparentimage(NULL, 13.5 * 48, 5 * 48 - 16 , &p3, 0xFF55FF, 64 + 8, 0, 48, 64);
-                if (k > 3) {
-                    transparentimage(NULL, 10 * 48, 11 * 48 - 16, &ene4, 0xFF55FF, 64 + 2, 128, 48, 64);
-                    transparentimage(NULL, 17 * 48, 12 * 48 - 16, &ene4, 0xFF55FF, 64 + 16 - 48, 64, 48, 64);
-                }
-                else if (k > 0) {
-                transparentimage(NULL, 10 * 48, 11 * 48 - 16, &ene4, 0xFF55FF, 64 + 2, 192, 48, 64);
-                transparentimage(NULL, 17 * 48, 12 * 48 - 16, &ene4, 0xFF55FF, 64 + 2, 192, 48, 64);
-                }
-                if (k < 2) {
-                transparentimage(NULL, 13.5 * 48, 13 * 48 - 16, &ene2, 0xFF55FF, 64 + 2, 192, 48, 64);
-              
-                }
-                else if (k == 2 && pa == 0 && EI == 4) {
-                    transparentimage(NULL, 13.5 * 48 - 5, 8 * 48 - 16, &ene2, 0xFF55FF, 64 + 2, 192, 48, 64);  
-                    transparentimageA(NULL, 13 * 48 - 35, 3 * 48 - 10, &ef_4, 3 * 120, 2 * 320, 120, 320);
-                }
-                else if (k > 2) {
-                    transparentimage(NULL, 13.5 * 48-5, 8 * 48 - 16, &ene2, 0xFF55FF, 64 + 2, 192, 48, 64);
-                }
-                if (k > 2) {
-                transparentimage(NULL, 13.5 * 48 , 5 * 48 - 16, &ef_3);
-                }
-                if (k == 1 && ubs == 12&&pa==0) {
-                    transparentimage(NULL, 13 * 48, 6 * 48+16, &ene3);
-                    transparentimage(NULL, 14*48, 6*48+16, &ene3);
-                }
-                else if (k > 1) {
-                    transparentimage(NULL, 13*48, 6*48+16, &ene3);
-                    transparentimage(NULL, 14 * 48, 6 * 48+16, &ene3);
-                }
-                if (k > 3) {
-                    transparentimage(NULL, 13 * 48, 13 * 48 - 16, &p1, 0xFF55FF, 64 + 8, 192, 48, 64);
-                    transparentimage(NULL, 14 * 48, 13 * 48 - 16, &p2, 0xFF55FF, 64 + 8, 192, 48, 64);
-                }
-            }
-            if (k == 0 && pa == 0 && ubs == 0) {
-                pa = 1;
-            }          
-            if (k == 1 && pa == 0 && ubs == 0) {
-                mciSendString(L"play woo from 0", NULL, 0, NULL);
-                pa = 1;
-
-            }
-            if (k == 2 && pa == 0 && ubs == 0) {
-                pa = 1;
-                EI = 0;
-                EJ = 2;
-            }
-            if (k == 3 && pa == 0 &&EJ == 2&&EI==4) {
-                mciSendString(L"play zun from 0", NULL, 0, NULL);
-                pa = 1;
-            }
-            if (k == 0 && pa == 1) {
-                transparentimage(NULL, 12 * 48+(ubs/(3*5))*(ubs-15)*6, 13 * 48 - 16 - ubs * 16, &p3, 0xFF55FF, 64 * (ubs % 3) + 8, 192, 48, 64);
-                if (ubs >= 15) {
-                    transparentimage(NULL, 12 * 48 , 13 * 48-16*(ubs-15), &ene1, 0xFF55FF, 64 + 48 * (ubs % 2) + 2, 192, 48, 64);
-                    transparentimage(NULL, 15 * 48, 13 * 48-16*(ubs-15), &ene1, 0xFF55FF, 64 + 48 * (ubs % 2) + 2, 192, 48, 64);
-                    transparentimage(NULL, 4 * 48+32*(ubs-15), 11 * 48-16, &ene4, 0xFF55FF, 64 + 48 * (ubs % 2) + 2, 128, 48, 64);
-                    transparentimage(NULL, 23 * 48-(ubs-15) * 32, 12 * 48-16, &ene4, 0xFF55FF, 64 + 48 * (ubs % 2) +16-48, 64, 48, 64);
-                }
-                if(ubs<3*8){
-                    ubs++;
-                }
-                else if(ubs==24) {
-                    ubs = -1;
-                    pa = 0;
-                }
-            }
-            if (k == 1 && pa == 1) {  
-                if (ubs < 12) {
-                    ubs++;
-                }               
-                transparentimage(NULL, 12 * 48+(ubs/6)*(ubs-6)*8, 10 * 48 - 16 * ubs, &ene1, 0xFF55FF, 64 + 2 + 48 * (ubs % 2), 192, 48, 64);
-                transparentimage(NULL, 15 * 48 - (ubs / 6) * (ubs - 6) * 8, 10 * 48-16*ubs, &ene1, 0xFF55FF, 64 + 2 + 48 * (ubs % 2), 192, 48, 64);
-                if (ubs == 4 * 3) {
-                    if (uI == 0 && uK == 0) {
-                        mciSendString(L"play sword from 0", NULL, 0, NULL);
-                        mciSendString(L"play zua from 0", NULL, 0, NULL);
-                        mciSendString(L"play blood from 0", NULL, 0, NULL);
-                    }
-                    transparentimageA(NULL, 13 * 48 -40, 6 * 48 -10, &ef_1, uI * 120, uK * 120, 120, 120);
-                    transparentimageA(NULL, 14 * 48 -40, 6 * 48-10 , &ef_1, uI * 120, uK * 120, 120, 120);
-                    transparentimageA(NULL,13.5* 48 - 25, 5* 48 - 16 - 20, &ef_2, uI * 120, uK * 120, 120, 120);
-                    uI++;
-                    if (uI == 3) {
-                        uK++;
-                        uI = 0;
-                    }
-                    if (uK == 5) {
-                        pa = 0;
-                    }
-                }
-            }
-            if (k == 2 && pa == 1) {
-                transparentimage(NULL, 13.5 * 48-5, 13 * 48 - 16-ubs*16, &ene2, 0xFF55FF, 64 + 2 + 48 * (ubs % 2), 192, 48, 64);
-                if (ubs < 3 * 5) {
-                    ubs++;
-                }
-                if (ubs == 15) {
-                    transparentimageA(NULL, 13 * 48 - 35, 3 * 48 - 10, &ef_4, EI * 120, EJ * 320, 120, 320);
-                    if (EJ == 2 && EI == 0) {
-                    mciSendString(L"play fir from 0", NULL, 0, NULL);
-                    }
-                    EJ--;
-                    if (EJ == -1) {
-                        EJ = 2;
-                        EI++;
-                    }
-                    if (EI == 4) {
-                        pa = 0;
-                    }
-                }
-            }
-            if (k == 3 && pa == 1) {
-                transparentimageA(NULL, 13 * 48 - 35, 3 * 48 - 10, &ef_4, EI * 120, EJ * 320, 120, 320);
-                EJ--;
-                if (EJ == -1) {
-                    EJ = 2;
-                    EI++;
-                }
-                if (EI == 5) {
-                    pa = 0;
-                }
-            }
-            }
-             else if (root["mType"].asInt() == 9 && F % 30 == 0) {
-             putimage(0, 0, &mmp);
-             transparentimage(NULL, 17 * 48, 5 * 48 - 16, &ene3);
-             transparentimage(NULL, 12 * 48, 8 * 48 - 16, &ene3);
-             if (k < 8) {
-                 transparentimage(NULL,48*13+16,48*5,&p3);
-                 if (k > 2) {
-                     transparentimage(NULL, 13 * 48 + 16, 6 * 48 - 16, &p1, 0xFF55FF, 64 + 8, 192, 48, 64);
-                 }
-             }             
-             if (k > 7) {
-                 transparentimage(NULL, 13 * 48+16, 5 * 48 - 16, &p4);
-             }
-             if (k > 0 ) {
-                 transparentimage(NULL, 9 * 48, 5 * 48 - 16, &ene3);
-                 transparentimage(NULL, 15 * 48, 8 * 48 - 16, &ene3);             
-                 transparentimage(NULL, 15 * 48, 5 * 48 - 16, &p2, 0xFF55FF, 64 + 8, 0, 48, 64);                 
-             }
-             if (k == 1) {
-                 transparentimage(NULL, 12 * 48, 5 * 48 - 16, &p1, 0xFF55FF, 64 + 8, 0, 48, 64);
-             }
-             if (k == 2 && ubs == 0) {
-                 transparentimage(NULL, 12 * 48, 5 * 48 - 16 , &p1, 0xFF55FF, 64  + 8, 0, 48, 64);
-             }
-             if (k == 2 && uk == 4) {
-                 transparentimage(NULL, 12 * 48 + uk * 16, 6 * 48 - 16, &p1, 0xFF55FF, 64+ 8, 192, 48, 64);
-             }
-             if (k == 0 && ei == 5 && EJ == -1) {
-                 transparentimage(NULL, 12 * 48, 5 * 48 - 16, &p1, 0xFF55FF, 64 + 8, 0, 48, 64);
-                 transparentimage(NULL, 15 * 48, 5 * 48 - 16, &p2, 0xFF55FF, 64 + 8, 0, 48, 64);
-                 transparentimage(NULL, 9 * 48, 5 * 48 - 16, &ene3);
-                 transparentimage(NULL, 15 * 48, 8 * 48 - 16, &ene3);
-             }
-             if (k == 1 && ubs == 0) {
-                 pa = 1;
-             }
-             if (k == 2 && s[w] == '^'&&ubs==0) {
-                 pa = 1;
-                 ubs = 0;
-             }
-             if (k == 0) {
-                 transparentimage(NULL, 13 * 48+15, 8 * 48 , &ene2, 0xFF55FF, 64, 192, 48, 64);
-                 transparentimage(NULL, 12 * 48, 10 * 48 - 16, &ene4, 0xFF55FF, 64, 192, 48, 64);
-                 transparentimage(NULL, 15 * 48, 10 * 48 - 16, &ene4, 0xFF55FF, 64, 192, 48, 64);
-             }
-             if (k == 0 && pa == 0 && w == 0) {
-                 pa = 1;
-             }
-             if (k == 0 && pa == 1) {
-                 if (EJ == 4 && EI== 0) {
-                     mciSendString(L"play shot from 0", NULL, 0, NULL);
-                 }
-                 transparentimage(NULL, 12 * 48, 5 * 48 - 16, &p1, 0xFF55FF, 64 + 8, 64, 48, 64);
-                 transparentimage(NULL, 15 * 48, 5 * 48 - 16, &p2, 0xFF55FF, 64 + 8, 0, 48, 64);
-                 transparentimage(NULL, 9 * 48, 5 * 48 - 16, &ene1, 0xFF55FF, 64  , 128, 48, 64);
-                 transparentimage(NULL, 15 * 48, 8 * 48 - 16, &ene1, 0xFF55FF, 64 + 8, 192, 48, 64);
-                 transparentimageA(NULL, 8 * 48 - 35, 4 * 48+10 , &ef_1, ei * 320, ej * 120, 320, 120);
-                 transparentimageA(NULL, 15 * 48 - 35, 6 * 48 - 10, &ef_2, EI * 120, EJ * 300, 120, 300);
-                 if (EJ >=0) {
-                     EI++;
-                 }
-                 if (EI == 3) {
-                     EI = 0;
-                     EJ--;
-                 }
-                 if (ei < 5) {
-                     ej++;
-                 }
-                 if (ej == 3) {
-                     ej = 0;
-                     ei++;
-                 }
-                 if (ei == 5 && EJ ==- 1) {
-                     mciSendString(L"play woo from 1", NULL, 0, NULL);
-                     pa = 0;
-                 }
-             }
-             if (k == 1 && pa == 1) {
-                 if (8 * 48 + ubs * 16 <= 13 * 48) {
-                 transparentimage(NULL, 13 * 48 + 15, 8 * 48+ubs*16, &ene2, 0xFF55FF, 48*(ubs%3)+16, 0, 48, 64);
-                 }
-                 else {
-                     pa = 0;
-                 }
-                 if (10 * 48 - 16 + ubs * 16 <= 13 * 48) {
-                 transparentimage(NULL, 12 * 48, 10 * 48 - 16 + ubs * 16, &ene4, 0xFF55FF, 48 * (ubs % 3)+16, 0, 48, 64);
-                 transparentimage(NULL, 15 * 48, 10 * 48 - 16 + ubs * 16, &ene4, 0xFF55FF, 48 * (ubs % 3)+16, 0, 48, 64);
-                 }
-                 ubs++;
-             }
-             if (k == 2 && pa == 1) {
-                 if (ubs <= 3) {
-                 transparentimage(NULL, 12 * 48, 5 * 48 - 16+ubs*16, &p1, 0xFF55FF, 64*(ubs%3) + 8, 0, 48, 64);
-                 ubs++;
-                 }
-                 if (ubs == 4) {
-                     transparentimage(NULL, 12 * 48+ uk * 16, 6 * 48 - 16 , &p1, 0xFF55FF, 64 * (uk % 3) + 8, 128, 48, 64);
-                     uk++;
-                     if (uk == 4) {
-                         pa = 0;
-                     }
-                 }
-             }
-             }
-              else if (root["mType"].asInt() == 10 && F % 30 == 0) {
-              putimage(0, 0, 1296, 696, &mmp, 48, 48*16);
-              }
-            }
-            if ((w < s.size() && w < Bu) && F % 30==0 && pa == 0) {
+            if ((w < s.size() && w < Bu) && F % 30 == 0 && pa == 0) {
                 tt = L"";
                 if (s[w] == '^') {
                     K++;
@@ -3784,39 +3795,31 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
                 else {
                     tt += s[w];
                     LPCTSTR path = tt.c_str();
-                    outtextxy(30 * W + 250, 716 + K * 50 + 5, path);
+                    outtextxy(30 * W + 300, 765 + K * 50 , path);
                     W++;
                 }
                 w++;
-            }          
+            }
             int ku = 0;
             if (s[w] == '#') {
-                IMAGE q1;
-                W = 0;
-                loadimage(&q1, L"./Game/picture/c_blok.png", 0, 0, false);
-                transparentimage(NULL, 250, 196 + K * 150, &q1, 0xFF55FF);
-                for (int q = w+1; q < s.size(); q++) {
-                    tt = L"";
-                    if (s[q] == '^') {
-                        K++;
-                        transparentimage(NULL, 250, 196 + K * 150 , &q1, 0xFF55FF);
-                        W = 0;
-                    }
-                    else {
-                        tt += s[q];
-                        LPCTSTR path = tt.c_str();
-                        outtextxy(30 * W + 300, 196 + K * 150 + 5, path);
-                        W++;
-                    }
-                }
-                EndBatchDraw();
+                getimage(&gt, 0, 0, 1296, 695);
+                int R=int(s[++w])-'0',cType=-1,cHtype=-1;
+                IMAGE q1,q2;
                 ExMessage em;
- 
-                while (ku==0) {
-                    if (peekmessage(&em,EM_MOUSE)) {
-                        if (em.lbutton) {
-                            for (int I = 0; I <= K; I++) {
-                                if (em.x > 250 && em.x < 1050 && em.y>196 + I * 150 && em.y < 196 + I * 150 + 50) {
+                W = 0;
+                loadimage(&q1, L"./Game/picture/btn_select_normal.png", 0, 0, false);
+                loadimage(&q2, L"./Game/picture/btn_select_hover.png", 0, 0, false);         
+                BeginBatchDraw();
+                int mouseX = -1, mouseY = -1;
+                while (ku == 0) {
+                    while (peekmessage(&em, EM_MOUSE)) {
+                        mouseX = em.x;
+                        mouseY = em.y;
+                        cType = -1;
+                        if (em.message == WM_LBUTTONDOWN) {
+                            for (int I = 0; I < R; I++) {
+                                if (mouseX > 250 && mouseX < 1050 &&mouseY > 196 + I * 150 &&mouseY < 246 + I * 150) {
+                                    SEplay("button05",1 );
                                     if (root.isMember("chose_flag")) {
                                         f[root["chose_flag"][I].asInt()].check = 1;
                                         ku = 1;
@@ -3825,7 +3828,40 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
                             }
                         }
                     }
+
+                    putimage(0, 0, &gt);
+                    int q = w + 1;
+                    for (int I = 0; I < R; I++) {
+                        W = 0;
+                        bool hover =mouseX > 250 && mouseX < 1050 &&mouseY > 196 + I * 150 &&mouseY < 246 + I * 150;
+                        transparentimage(NULL, 250, 196 + I * 150,hover ? &q2 : &q1);
+                        if (hover) {
+                            cType = I;
+                        }
+                        if (cType != -1 && cType != cHtype) {
+                            cHtype = I;
+                            SEplay("button05", 2);
+                        }
+                        while (q < s.size()) {
+                            tt = L"";
+                            if (s[q] == '^') {
+                                q++;
+                                W = 0;                                
+                                break;
+                            }
+                            else {
+                                tt += s[q];
+                                LPCTSTR path = tt.c_str();
+                                outtextxy(30 * W + 300, 196 + I * 150 + 5, path);
+                                W++;
+                            }
+                            q++;
+                        }
+                    }
+
+                    FlushBatchDraw();
                 }
+                EndBatchDraw();
             }
             if (s[w] == '~') {
                 string box = "";
@@ -3836,8 +3872,8 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
                         w++;
                     }
                     else {
-                        int eSe=stoi(box); 
-                        SEplay("eSe"+to_string(eSe), 1);
+                        int eSe = stoi(box);
+                        SEplay("eSe" + to_string(eSe), 1);
                         break;
                     }
                 }
@@ -3845,68 +3881,80 @@ void readeventjson(player *p,npc *n,flag *f,Map *m,BOX *Box,task *tk,m_flag *m_f
             if (ku == 1) {
                 break;
             }
-            if(w==s.size()&&isReady){
-            transparentimage(NULL, 600, 910, &tri, 0xFF55FF);
-            FlushBatchDraw();
-            flushmessage(-1);
-            if ((GetAsyncKeyState(VK_LBUTTON) & 0x8000)&&w==s.size()&&pa==0) {
-                        break;
+            if (w == s.size() && tE == 0) {
+                getimage(&gt, 0, 696, 1296, 960);
+                tE = 1;
             }
-            if ((GetAsyncKeyState(VK_SPACE) & 0x8000 )&& w == s.size()&&pa==0) {
+            if (w == s.size() && isReady) {
+                putimage(0,696,&gt);          
+                if (talkEnd%30 != 0) {
+                     transparentimage(NULL, 30 * W + 300, 765 + K * 50+5, &tri1);
+                    talkEnd ++;
+                }
+                else {
+                    transparentimage(NULL, 30 * W + 300, 765 + K * 50 + 5, &tri);
+                    talkEnd = 1;
+                }
+                FlushBatchDraw();
+                flushmessage(-1);
+                if ((GetAsyncKeyState(VK_LBUTTON) & 0x8000) && w == s.size() && pa == 0) {
+                    break;
+                }
+                if ((GetAsyncKeyState(VK_SPACE) & 0x8000) && w == s.size() && pa == 0) {
 
-                        break;
+                    break;
+                }
+                if (GetAsyncKeyState(VK_RETURN) & 0x8000 && w == s.size() && pa == 0) {
+                    break;
+                }
             }
-            if (GetAsyncKeyState(VK_RETURN) & 0x8000 && w == s.size() && pa == 0) {
-                break;
-            }
-            }
-            FlushBatchDraw(); 
+            FlushBatchDraw();
             for (; (clock() - start_time) < 2;);
-              F++;
-          }
+            F++;
         }
-        if (root.isMember("flag")) {
-            f[root["flag"].asInt()].check = 1;
         }
-        if (root.isMember("stone")) {
-            for (int uc = 0; uc < root["stone"]["id"].size(); uc++) {
-                st[root["stone"]["id"][uc].asInt()].number += root["stone"]["number"][uc].asInt();
-            }
-        }
-        if (root.isMember("m_flag_on")) {
-            m_f[root["m_flag_on"].asInt()].check=0;
-        }
-        if (root.isMember("m_flag_off")) {
-            m_f[root["m_flag_off"].asInt()].check = 1;
-        }
-        if (root.isMember("task_d")) {
-            tk[root["task_d"].asInt()].state = 2;
-        }
-        if (root.isMember("task_u")) {
-            tk[root["task_u"].asInt()].state = 1;
-        }
-        if (root.isMember("item")) {
-            for (int uc = 0; uc < root["item"]["id"].size(); uc++) {
-                it[root["item"]["id"][uc].asInt()].number += root["item"]["number"][uc].asInt();
-            }
-        }
-        if (root.isMember("team_state")) {
-            p[root["team_state"].asInt()].state = 1;
-            m[m_id].team_state[m[m_id].psize] = root["team_state"].asInt();
-            m[m_id].psize++;
+    if (root.isMember("flag")) {
+        f[root["flag"].asInt()].check = 1;
+    }
+    if (root.isMember("stone")) {
+        for (int uc = 0; uc < root["stone"]["id"].size(); uc++) {
+            st[root["stone"]["id"][uc].asInt()].number += root["stone"]["number"][uc].asInt();
         }
     }
-    in.close();
+    if (root.isMember("m_flag_on")) {
+        m_f[root["m_flag_on"].asInt()].check = 0;
+    }
+    if (root.isMember("m_flag_off")) {
+        m_f[root["m_flag_off"].asInt()].check = 1;
+    }
+    if (root.isMember("task_d")) {
+        tk[root["task_d"].asInt()].state = 2;
+    }
+    if (root.isMember("task_u")) {
+        tk[root["task_u"].asInt()].state = 1;
+    }
+    if (root.isMember("item")) {
+        for (int uc = 0; uc < root["item"]["id"].size(); uc++) {
+            it[root["item"]["id"][uc].asInt()].number += root["item"]["number"][uc].asInt();
+        }
+    }
+    if (root.isMember("team_state")) {
+        p[root["team_state"].asInt()].state = 1;
+        m[m_id].team_state[m[m_id].psize] = root["team_state"].asInt();
+        m[m_id].psize++;
+    }    
+    }
+        in.close();
 }
 void readmapeventjson(player* p, npc* n,m_flag *m_f,arms *ar,item *it,Map *m,t_equip *t_E,stone *st,task *tk,const char* filename,int &m_id,int s,int &sp_id) {
     EndBatchDraw();
     settextcolor(WHITE);
     setbkmode(TRANSPARENT);
-    settextstyle(30, 0, _T("Taipei Sans TC Beta"));
+    settextstyle(38, 0, _T("Noto Sans TC"));
     IMAGE t_block, a1, tri, c1;
     RECT t = { 50,696 + 5,210,696 + 60 + 5 };
     bool bo=true;
-    loadimage(&t_block, L"./Game/picture/talkblock.png", 0, 0, false);
+    loadimage(&t_block, L"./Game/picture/talkblockC.png", 0, 0, false);
     loadimage(&tri, L"./Game/picture/talktri.png", 0, 0, false);
     wstring mm, tt, ss, MM;
     Json::Reader reader;
@@ -3919,9 +3967,9 @@ void readmapeventjson(player* p, npc* n,m_flag *m_f,arms *ar,item *it,Map *m,t_e
         if (root.isMember("talk")) {
         for (int k = 0; k < root["talk"].size(); k++) {
             BeginBatchDraw();
-            putimage(0, 696, &t_block);
+            transparentimage(NULL, 0, 676, &t_block);
             if (root["talk"][k]["npc"].asInt() != -1) {
-                settextstyle(23, 0, _T("Taipei Sans TC Beta"));
+                settextstyle(50, 0, _T("Noto Sans TC"));
                 LPCTSTR path = n[root["talk"][k]["npc"].asInt()].name.c_str();
                 drawtext(path, &t, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
                 IMAGE p1;
@@ -3930,11 +3978,11 @@ void readmapeventjson(player* p, npc* n,m_flag *m_f,arms *ar,item *it,Map *m,t_e
                     mm = L"./Game/picture/t_npc" + mm + L"_" + std::to_wstring(root["talk"][k]["face"].asInt()) + L".png";
                     LPCTSTR path = mm.c_str();
                     loadimage(&p1, path, 0, 0, false);
-                  transparentimage(NULL, 50, 746, &p1, 0xFF55FF);
+                  transparentimage(NULL, 60, 750, &p1, 0xFF55FF);
                 }
             }
             else {
-                settextstyle(23, 0, _T("Taipei Sans TC Beta"));
+                settextstyle(50, 0, _T("Noto Sans TC"));
                 LPCTSTR path = p[root["talk"][k]["player"].asInt()].name.c_str();
                 drawtext(path, &t, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
                 IMAGE p1;
@@ -3942,11 +3990,11 @@ void readmapeventjson(player* p, npc* n,m_flag *m_f,arms *ar,item *it,Map *m,t_e
                 mm = L"./Game/picture/player" + mm + L"_" + std::to_wstring(root["talk"][k]["face"].asInt()) + L".png";
                 path = mm.c_str();
                 loadimage(&p1, path, 0, 0, false);
-                transparentimage(NULL, 50, 746, &p1, 0xFF55FF);
+                transparentimage(NULL, 60, 750, &p1, 0xFF55FF);
             }
             EndBatchDraw();
             wstring s = UTF8ToUnicode(root["talk"][k]["sentence"].asString());
-            settextstyle(30, 0, _T("Taipei Sans TC Beta"));
+            settextstyle(38, 0, _T("Noto Sans TC"));
             settextcolor(WHITE);
             int K = 0, W = 0;
             for (int w = 0; w < s.size(); w++) {
@@ -3988,7 +4036,7 @@ void readmapeventjson(player* p, npc* n,m_flag *m_f,arms *ar,item *it,Map *m,t_e
             for (j = 0; j < root["see"].size();j++) {  
                 putimage(0, 696, &t_block);
                 wstring s = UTF8ToUnicode(root["see"][j]["sentence"].asString());
-                settextstyle(30, 0, _T("Taipei Sans TC Beta"));
+                settextstyle(38, 0, _T("Noto Sans TC"));
                 settextcolor(WHITE);
                 int K = 0, W = 0;
                 for (int w = 0; w < s.size(); w++) {
@@ -3998,7 +4046,7 @@ void readmapeventjson(player* p, npc* n,m_flag *m_f,arms *ar,item *it,Map *m,t_e
                         W = 0;
                     }
                     else if (s[w] == '@') {
-                        settextstyle(30, 0, _T("Taipei Sans TC Beta"),0,0,0,false, false,bo);
+                        settextstyle(38, 0, _T("Noto Sans TC"),0,0,0,false, false,bo);
                         bo = !bo;
                     }
                     else {
@@ -9444,7 +9492,7 @@ void acts( player *p,enemy *e,b_npc *b_n,b_map *b_m,arms *ar,buff *bu, terrain(*
                             IMAGE tri,ab,mb;
                             loadimage(&ab, L"./Game/picture/ab.png", 0, 0, false);
                             loadimage(&mb, L"./Game/picture/mb.png", 0, 0, false);
-                            int MR=e[i].Move + (e[i].baid>=0) ? ar[e[i].baid].range:0;
+                            int MR=e[i].Move + ((e[i].baid>=0) ? ar[e[i].baid].range:0);
                             int X = e[i].x,Y=e[i].y;
                             int x = e[i].x,y=e[i].y;
                             int road[100][100],dr[100][100];
@@ -19275,7 +19323,7 @@ int main() {
     p[2].name = L"愛麗絲"; p[2].story = L"騎士冠軍"; p[2].lv = 5; p[2].mhp = 20; p[2].hp = 20; p[2].dex = 13; p[2].Move = 6; p[2].isize = 1; p[2].asize = 1; p[2].x = 10; p[2].y = 10; p[2].speed = 12; p[2].turn = 0; p[2].abox = 0; p[2].pose = 1; p[2].str = 15; p[2].INT = 14; p[2].con = 14; p[2].cha = 13; p[2].wis = 12; p[2].arms_id_1 = 2; p[2].arms_id_2 = -1; p[2].armor_id = 2; p[2].stone_id = 2; p[2].exp = 0; p[2].dexUp = 30; p[2].strUp = 80; p[2].intUp = 50; p[2].conUp = 70; p[2].chaUp = 30; p[2].wisUp = 20; p[2].act = 1; p[2].Act = 1; p[2].t_id = 1; p[2].arms_b_1 = 1; p[2].arms_b_2 = 1; p[2].b_id_1 = -1; p[2].b_id_2 = -1; p[2].s_check[7] = 1; p[2].s_check[11] = 1; p[2].s_check[20] = 1; p[2].s_check[21] = 1; p[2].EDV = -2; p[2].DEF = 3;
     e_t[0].name = L"野狼"; e_t[0].story = L"群體行動的動物 隨著數量增加危險性也會大幅上升"; e_t[0].baid = 1; e_t[0].str = 12; e_t[0].dex = 13; e_t[0].con = 12; e_t[0].INT = 3; e_t[0].wis = 14; e_t[0].cha = 7; e_t[0].lv = 1; e_t[0].mhp = 11; e_t[0].hp = 11; e_t[0].Move = 7; e_t[0].speed = 12; e_t[0].exp = 105; e_t[0].drop = "100%15i"; e_t[0].species = "a";
     e_t[1].name = L"帝國動員兵"; e_t[1].story = L"帝國戰時動員的士兵，只接受過基礎的軍事訓練"; e_t[1].baid = 10; e_t[1].str = 11; e_t[1].dex = 10; e_t[1].con = 11; e_t[1].INT = 10; e_t[1].wis = 10; e_t[1].cha = 10; e_t[1].lv = 1; e_t[1].mhp = 10; e_t[1].hp = 10; e_t[1].Move = 5; e_t[1].speed = 11; e_t[1].exp = 150; e_t[1].drop = "50%0i"; e_t[1].species = "h"; e_t[1].e_range = 5;
-    e_t[2].name = L"野蜂"; e_t[2].story = L"領地意識極強，一但靠近就會使用帶有毒液的尾針攻擊"; e_t[2].baid = 7; e_t[2].str = 3; e_t[2].dex = 15; e_t[2].con = 10; e_t[2].INT = 1; e_t[1].wis = 7; e_t[2].cha = 1; e_t[2].lv = 1; e_t[2].mhp = 5; e_t[2].hp = 5; e_t[2].Move = 5; e_t[2].speed = 15; e_t[2].exp = 50; e_t[2].drop = "20%16i"; e_t[2].species = "a"; e_t[2].e_range = 8;
+    e_t[2].name = L"野蜂"; e_t[2].story = L"領地意識極強，一但靠近就會使用帶有毒液的尾針攻擊"; e_t[2].baid = 7; e_t[2].str = 3; e_t[2].dex = 15; e_t[2].con = 10; e_t[2].INT = 1; e_t[2].wis = 7; e_t[2].cha = 1; e_t[2].lv = 1; e_t[2].mhp = 5; e_t[2].hp = 5; e_t[2].Move = 5; e_t[2].speed = 15; e_t[2].exp = 50; e_t[2].drop = "20%16i"; e_t[2].species = "a"; e_t[2].e_range = 8;
     e_t[3].name = L"狼王"; e_t[3].story = L"統御南部森林的王者，過去誤食星隕礦而覺醒了操控火焰的能力，也獲得了普通野狼所沒有的智力"; e_t[3].baid = 1; e_t[3].str = 13; e_t[3].dex = 14; e_t[3].con = 13; e_t[3].INT = 15; e_t[3].wis = 13; e_t[3].cha = 11; e_t[3].lv = 1; e_t[3].mhp = 50; e_t[3].hp = 50; e_t[3].Move = 8; e_t[3].speed = 13; e_t[3].exp = 500; e_t[3].drop = ""; e_t[3].s_range = 4; e_t[3].species = "a";
     e_t[4].name = L"老狼"; e_t[4].story = L"經歷自然的競爭中存活下來的野狼，體力雖然衰退卻也獲得了生存的智慧"; e_t[4].baid = 1; e_t[4].str = 10; e_t[4].dex = 11; e_t[4].con = 10; e_t[4].INT = 6; e_t[4].wis = 14; e_t[4].cha = 7; e_t[4].lv = 1; e_t[4].mhp = 15; e_t[4].hp = 15; e_t[4].Move = 6; e_t[4].speed = 11; e_t[4].exp = 150; e_t[4].drop = "100%15i"; e_t[4].species = "a";
     e_t[5].name = L"帝國軍隊長";

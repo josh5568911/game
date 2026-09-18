@@ -1,0 +1,365 @@
+/*メニュ－ボタン系
+-------------------------------------*/
+.menu_item {
+	position: relative;
+	margin: 0;
+	cursor: pointer;
+}
+
+.menu_item img {
+	width: auto;
+	height: auto;
+	max-width: 100%;
+	max-height: 100%;
+}
+
+/* Save */
+.menu_save {
+	display: inline-block;
+	position: absolute;
+	margin: 0;
+	padding: 0;
+	top: 108px;
+	left: 0;
+}
+
+/* Load */
+.menu_load {
+	display: inline-block;
+	position: absolute;
+	margin: 0;
+	padding: 0;
+	top: 218px;
+	left: 0;
+}
+
+/* Hide Message */
+.menu_window_close {
+	display: inline-block;
+	position: absolute;
+	margin: 0;
+	padding: 0;
+	top:  328px;
+	left: 0;
+}
+
+/* Skip Message */
+.menu_skip {
+	display: inline-block;
+	position: absolute;
+	margin: 0;
+	padding: 0;
+	top:  438px;
+	left: 0;
+}
+
+/* Back to Title */
+.menu_back_title {
+	display: inline-block;
+	position: absolute;
+	margin: 0;
+	padding: 0;
+	top:  548px;
+	left: 0;
+}
+
+/* 上記のマウスダウン時処理 */
+.menu_save img:active,
+.menu_load img:active,
+.menu_window_close img:active,
+.menu_skip img:active,
+.menu_back_title img:active {
+	transform: translateY(4px);
+	transition: transform 0.1s ease;
+}
+
+/* バックログ画面の設定
+--------------------------------------*/
+.log_body {
+	position: absolute;
+	top: 200px;
+	left: 170px;
+	width: 950px;
+	height: 400px;
+	margin: 0;
+	padding: 20px 60px 0 40px;
+	border: none;
+	border-radius: none;
+	color: #443836;
+	background: none;
+	font-weight: normal;
+	text-align: left;
+	line-height: 1.6em;
+	overflow-y: scroll;
+	-webkit-overflow-scrolling: touch;
+	-webkit-transform: translateZ(0);
+	transform: translateZ(0);
+	box-sizing: border-box;
+}
+
+/* スクロールバー */
+.log_body::-webkit-scrollbar {
+	width: 10px;
+}
+.log_body::-webkit-scrollbar-thumb {
+	border-radius: 0;
+	background: #65655B;
+}
+
+.log_body::-webkit-scrollbar-track {
+	border-radius: 0;
+	background-color: transparent;
+	border: 1px solid #65655B;
+}
+
+
+/* セーブ・ロード画面の設定
+--------------------------------------*/
+.area_save_list {
+	display: block;
+	width: 940px;
+	height: 480px;
+	margin: 160px 0 0 20px;
+	overflow-y: scroll;
+	-webkit-overflow-scrolling: touch;
+	-webkit-transform: translateZ(0);
+	transform: translateZ(0);
+}
+
+/* スクロールバー */
+.area_save_list::-webkit-scrollbar {
+	width:10px;
+}
+
+.area_save_list::-webkit-scrollbar-thumb {
+	border-radius: 0;
+	background: #65655B;
+}
+
+.area_save_list::-webkit-scrollbar-track {
+	border-radius: 0;
+	background-color: transparent;
+	border: 1px solid #65655B;
+}
+
+
+/* セーブデータリスト全体の設定 */
+.save_list {
+	display: table;
+	table-layout: fixed;
+	position: absolute;
+	width: 844px;
+	height: 124px;
+	margin: 0;
+	padding: 0;
+	font-size: 17px;
+	font-weight: normal;
+	background-color: none;
+	border: none;
+	border-collapse: separate;
+	border-spacing: 0 20px;
+	box-sizing: border-box;
+}
+
+/* セーブデータの設定 */
+.save_list_item {
+	display:table-row;
+	width: 844px;
+	height: 124px;
+	margin: 0;
+	padding: 0;
+	border: none;
+	box-sizing: border-box;
+	cursor: pointer;
+}
+
+.save_list_item:hover > .save_list_item_thumb{
+	background: url('image/system/saveslot2.png');
+	background-repeat: y-repeat;
+	background-position: left top;
+	background-color: none;
+}
+
+.save_list_item:hover > .save_list_item_area{
+	background: url('image/system/saveslot2.png');
+	background-repeat: y-repeat;
+	background-position: right top;
+	background-color: none;
+}
+
+.save_list_item:hover {
+	background: none;
+}
+
+/* セーブデータのサムネイル部分の設定 */
+.save_list_item_thumb {
+	display: table-cell;
+	width: 220px;
+	height: 124px;
+	margin: 0;
+	padding: 15px 0 0 20px;
+	border: none;
+	background: url('image/system/saveslot.png');
+	background-repeat: y-repeat;
+	background-position: left top;
+}
+
+/* サムネイル画像の設定 */
+.save_list_item_thumb img {
+	width: 160px;
+	height: 90px;
+	margin: 0;
+	padding: 0;
+	border: none;
+	border-radius: 0;
+}
+
+/* セーブデータのテキスト部文の設定 */
+.save_list_item_area {
+	display: table-cell;
+	width: 624px;
+	height: 124px;
+	margin: 0;
+	padding: 0;
+	border-radius: none;
+	border: none;
+	background: url('image/system/saveslot.png');
+	background-repeat: y-repeat;
+	background-position: right top;
+	text-align: left;
+	vertical-align: top;
+}
+
+/* セーブデータの日付の設定 */
+.save_list_item_date {
+	display: block;
+	margin: 0;
+	padding: 16px 0 0 0;
+	height: 24px;
+	line-height: 1;
+	color: #804633;
+	font-size: 18px;
+	font-weight: bold;
+}
+
+/* セーブデータのテキストの設定 */
+.save_list_item_text {
+	display: block;
+	height: 84px;
+	margin: 0;
+	padding: 16px 32px 16px 0;
+	line-height: 1.3;
+	color: #443836;
+	overflow: hidden;
+}
+
+.layer_event_click{
+	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+	background-color: rgba(0, 0, 0, 0);
+}
+
+.layer{
+	background-size: 100% 100%;
+}
+
+.button_menu{
+	position: absolute;
+	z-index: 99999;
+	cursor: pointer;
+}
+
+
+/*glink
+--------------------------------------------- */
+/* normal */
+.ts21 {
+	position: relative;
+	display: inline-flex;
+	justify-content: center;
+	align-items: center;
+	padding: .6em 1em;
+	background: #3F3F32;
+	color: #CCB5A3;
+	text-shadow: none;
+	border-radius: 4px;
+	border: 1px solid #26261E;
+	box-shadow: 0 2px 0 #26261E;
+	box-sizing: border-box;
+	transition: all .1s;
+}
+
+.ts21::after{
+	position: absolute;
+	content: "";
+	inset: 4px;
+	border: 1px solid #99877A;
+}
+
+/* hover */
+.ts21:hover {
+	background: #99533E;
+	color: #F5F5F5;
+	border-color: #332724;
+	box-shadow: 0 2px 0 #332724;
+}
+
+.ts21:hover::after {
+	border: 1px solid #B29E90;
+}
+
+/* active */
+.ts21:active {
+	background: #696934;
+	color: #F5F5F5;
+	box-shadow: none;
+	border-color: #26261E;
+	transform: translateY(2px);
+}
+
+/* modalwindow-color
+--------------------------------------------- */
+/* base */
+.remodal {
+	color: #ccb7a9;
+	background: #372e2c;
+}
+
+/* button-OK */
+.remodal-confirm {
+  color: #F5F5F5;
+	background: #7A7943;
+	border: none;
+	transition: all .1s;
+}
+
+.remodal-confirm:hover,
+.remodal-confirm:focus {
+	color: #FFF;
+	background: #94935B;
+	transform: translateY(-2px);
+}
+
+.remodal-confirm:hover:active {
+	background: #7A7943;
+	transform: translateY(0px);
+}
+
+/* button-cancel */
+.remodal-cancel {
+  color: #F5F5F5;
+	background: #8F4A36;
+	border: none;
+	transition: all .1s;
+}
+
+.remodal-cancel:hover,
+.remodal-cancel:focus {
+	color: #FFF;
+	background: #Ab634D;
+	transform: translateY(-2px);
+}
+
+.remodal-cancel:hover:active {
+	background: #8F4A36;
+	transform: translateY(0px);
+}

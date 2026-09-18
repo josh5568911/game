@@ -1,10 +1,6 @@
 [BGM]
-bgm0=魔王魂_ファンタジー12
+Bbgm0=魔王魂_ファンタジー12
 https://maou.audio/bgm_fantasy12/
-魔王魂_戦闘18
-https://maou.audio/se_battle18/
-魔王魂 効果音 ワンポイント33
-https://maou.audio/se_onepoint33/
 堕人-Rokudenasi-
 https://note.com/rengokuteien/n/ndd7c625ee331
 bgm3=荒野に吹く風
@@ -13,6 +9,8 @@ bgm1=ファンタジー14
 https://maou.audio/bgm_fantasy14/
 bgm2=ファンタジー1
 https://maou.audio/bgm_fantasy01/
+bgm0=白の世界
+http://oto-no-sono.com/
 [SE]
 効果音ラボ 
 https://soundeffect-lab.info/
@@ -20,3 +18,7 @@ M-ART
 https://mart.kitunebi.com/index.html
 小森平
 https://taira-komori.net/welcome.html
+魔王魂_戦闘18
+https://maou.audio/se_battle18/
+魔王魂 効果音 ワンポイント33
+https://maou.audio/se_onepoint33/
