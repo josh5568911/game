@@ -54,12 +54,14 @@ wchar_t vo[50];
 LOGFONT lft;
 MIX_Mixer* g_mixer = nullptr;
 static const int SE_TRACK_COUNT = 8;
-static MIX_Track* g_seTrack[SE_TRACK_COUNT] = {};
-static unordered_map<string, MIX_Audio*> g_seCache;
 static const int VO_TRACK_COUNT = 4; 
+static MIX_Track* g_seTrack[SE_TRACK_COUNT] = {};
 static MIX_Track* g_voTrack[VO_TRACK_COUNT] = {};
+static MIX_Track* g_bgmTrack = nullptr;
+static unordered_map<string, MIX_Audio*> g_seCache;
 static unordered_map<string, MIX_Audio*> g_voCache;
 static unordered_map<string, MIX_Track*> g_loopingMap;
+static unordered_map<string, MIX_Audio*> g_bgmCache;
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {    
     if (uMsg == WM_CLOSE) {
@@ -631,6 +633,8 @@ void VOplay(string id,int type) {
     MIX_SetTrackAudio(track, audio);
     MIX_PlayTrack(track, 0);
 }
+
+
 void pHP(player* p,b_map *b_m,int id,int b_mid,int type,int &DMG) {
     /*護甲只防護對HP傷害*/
     if (type == 0) {

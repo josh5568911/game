@@ -1,0 +1,16 @@
+# Visual Studio per-user state and verified Project9 build-output locations.
+# Kept deliberately narrow so game source and assets remain eligible for Git.
+Project9/.vs/
+Project9/x64/
+Project9/Project9/x64/
+backup-logs/
+
+# Visual Studio intermediate/debug symbols and linker databases.
+*.obj
+*.pdb
+*.ilk
+*.idb
+*.ipch
+*.tlog
+*.lastbuildstate
+*.exe.recipe
