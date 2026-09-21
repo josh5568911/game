@@ -48,14 +48,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Could not inspect the staging area.' }
 
     # Stage all eligible changes, but never the known Visual Studio output paths or artifacts.
-$AddPathspec = @(
-    '.',
-    ':!Project9/.vs', ':!Project9/.vs/**',
-    ':!Project9/x64', ':!Project9/x64/**',
-    ':!Project9/Project9/x64', ':!Project9/Project9/x64/**',
-    ':!*.obj', ':!*.pdb', ':!*.ilk', ':!*.idb', ':!*.ipch',
-    ':!*.tlog', ':!*.lastbuildstate', ':!*.exe.recipe'
-)
+
 
     if ($WhatIf) {
         Write-BackupLog "WhatIf: would stage eligible changes and push branch '$Branch'."
@@ -63,8 +56,10 @@ $AddPathspec = @(
         exit 0
     }
 
-& git -C $RepositoryPath add -A -- @AddPathspec
-if ($LASTEXITCODE -ne 0) { throw "git add -A failed with exit code $LASTEXITCODE." }
+& git -C $RepositoryPath add -A
+if ($LASTEXITCODE -ne 0) {
+    throw "git add -A failed with exit code $LASTEXITCODE."
+}
 
     & git -C $RepositoryPath diff --cached --quiet
     if ($LASTEXITCODE -eq 0) {
