@@ -627,14 +627,43 @@ void VOplay(string id,int type) {
         track = g_voTrack[0];
         MIX_StopTrack(track, 0);
     }
-
     float gain = voSize / 1000.0f;
     MIX_SetTrackGain(track, gain);
     MIX_SetTrackAudio(track, audio);
     MIX_PlayTrack(track, 0);
 }
+void BGMplay(const string& id) {
+    MIX_Audio* audio = nullptr;
+    auto IT = g_bgmCache.find(id);
+    if (IT != g_bgmCache.end()) {
+        audio = IT->second;
+    }
+    if (!audio) {
+        string path = "./Game/Sound/bgm/" + id+".mp3";
+        audio = MIX_LoadAudio(g_mixer, path.c_str(), true);
+        g_bgmCache[id] = audio;
+    }
 
+    if (!g_bgmTrack) {
+        g_bgmTrack = MIX_CreateTrack(g_mixer);
+    }
+    if (MIX_TrackPlaying(g_bgmTrack)) {
+        MIX_StopTrack(g_bgmTrack, 0);
+    }
+    float gain = clamp(voiceSize / 1000.0f, 0.0f, 1.0f);
+    MIX_SetTrackGain(g_bgmTrack, gain);
+    MIX_SetTrackAudio(g_bgmTrack, audio);
 
+    SDL_PropertiesID props = SDL_CreateProperties();
+    if (props != 0) {
+        SDL_SetNumberProperty(props, MIX_PROP_PLAY_LOOPS_NUMBER, -1);
+        MIX_PlayTrack(g_bgmTrack, props);
+        SDL_DestroyProperties(props);
+    }
+    else {
+        MIX_PlayTrack(g_bgmTrack, 0);
+    }
+}
 void pHP(player* p,b_map *b_m,int id,int b_mid,int type,int &DMG) {
     /*護甲只防護對HP傷害*/
     if (type == 0) {
@@ -2770,7 +2799,7 @@ void readeventjson(player* p, npc* n, flag* f, Map* m, BOX* Box, task* tk, m_fla
     if (!in.is_open()) {
         return;
     }
-    if (reader.parse(in, root)) {
+    if (reader.parse(in, root)) {        
         if (root.isMember("mType")) {
             mm = L"./Game/picture/Mmap_" + to_wstring(root["mType"].asInt()) + L".png";
             loadimage(&mmp, mm.c_str(), 0, 0, false);
@@ -2932,7 +2961,11 @@ void readeventjson(player* p, npc* n, flag* f, Map* m, BOX* Box, task* tk, m_fla
             putimage(0, 0, 1296, 960, &mapP, m[m_id].ox, m[m_id].oy);
             n_put(n, m, p, m_id);
         }
+
         for (int k = 0; k < root["talk"].size(); k++) {
+            if (root["talk"][k].isMember("bgm")) {
+                BGMplay(root["talk"][k]["bgm"].asString());
+            }
             wstring s = UTF8ToUnicode(root["talk"][k]["sentence"].asString());
             int F = 0;
             int ubs = 0;
@@ -3917,36 +3950,37 @@ void readeventjson(player* p, npc* n, flag* f, Map* m, BOX* Box, task* tk, m_fla
             F++;
         }
         }
-    if (root.isMember("flag")) {
-        f[root["flag"].asInt()].check = 1;
-    }
-    if (root.isMember("stone")) {
-        for (int uc = 0; uc < root["stone"]["id"].size(); uc++) {
-            st[root["stone"]["id"][uc].asInt()].number += root["stone"]["number"][uc].asInt();
+        if (root.isMember("flag")) {
+            f[root["flag"].asInt()].check = 1;
         }
-    }
-    if (root.isMember("m_flag_on")) {
-        m_f[root["m_flag_on"].asInt()].check = 0;
-    }
-    if (root.isMember("m_flag_off")) {
-        m_f[root["m_flag_off"].asInt()].check = 1;
-    }
-    if (root.isMember("task_d")) {
-        tk[root["task_d"].asInt()].state = 2;
-    }
-    if (root.isMember("task_u")) {
-        tk[root["task_u"].asInt()].state = 1;
-    }
-    if (root.isMember("item")) {
-        for (int uc = 0; uc < root["item"]["id"].size(); uc++) {
-            it[root["item"]["id"][uc].asInt()].number += root["item"]["number"][uc].asInt();
+        if (root.isMember("stone")) {
+            for (int uc = 0; uc < root["stone"]["id"].size(); uc++) {
+                st[root["stone"]["id"][uc].asInt()].number += root["stone"]["number"][uc].asInt();
+            }
         }
-    }
-    if (root.isMember("team_state")) {
-        p[root["team_state"].asInt()].state = 1;
-        m[m_id].team_state[m[m_id].psize] = root["team_state"].asInt();
-        m[m_id].psize++;
-    }    
+        if (root.isMember("m_flag_on")) {
+            m_f[root["m_flag_on"].asInt()].check = 0;
+        }
+        if (root.isMember("m_flag_off")) {
+            m_f[root["m_flag_off"].asInt()].check = 1;
+        }
+        if (root.isMember("task_d")) {
+            tk[root["task_d"].asInt()].state = 2;
+        }
+        if (root.isMember("task_u")) {
+            tk[root["task_u"].asInt()].state = 1;
+        }
+        if (root.isMember("item")) {
+            for (int uc = 0; uc < root["item"]["id"].size(); uc++) {
+                it[root["item"]["id"][uc].asInt()].number += root["item"]["number"][uc].asInt();
+            }
+        }
+        if (root.isMember("team_state")) {
+            p[root["team_state"].asInt()].state = 1;
+            m[m_id].team_state[m[m_id].psize] = root["team_state"].asInt();
+            m[m_id].psize++;
+        }    
+
     }
         in.close();
 }
@@ -12222,6 +12256,7 @@ void menu_load(player* p, arms* ar, item* it, stone* st, flag* f,Exit* EX, m_fla
         m_id = root["m_id"].asInt();
         voiceSize = root["voiceSize"].asInt();
         soundSize = root["soundSize"].asInt();
+        voSize = root["voSize"].asInt();
         first = time(NULL);
         m_map(p, m, Box, m_id, b_id, n, ""); m_put(p, m, m_id); m_set(m, n, p, e_n,f, Box, m_id, b_id); m_put(p, m, m_id);
     }

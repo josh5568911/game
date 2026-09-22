@@ -9,7 +9,7 @@ bgm1=ファンタジー14
 https://maou.audio/bgm_fantasy14/
 bgm2=ファンタジー1
 https://maou.audio/bgm_fantasy01/
-bgm0=白の世界
+bgm0=水の巫女
 http://oto-no-sono.com/
 [SE]
 効果音ラボ 
