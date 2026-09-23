@@ -9,8 +9,8 @@ bgm1=ファンタジー14
 https://maou.audio/bgm_fantasy14/
 bgm2=ファンタジー1
 https://maou.audio/bgm_fantasy01/
-bgm0=水の巫女
-http://oto-no-sono.com/
+nozomi=望み
+音楽の卵 https://ontama-m.com/ongaku_kurai.html
 [SE]
 効果音ラボ 
 https://soundeffect-lab.info/
