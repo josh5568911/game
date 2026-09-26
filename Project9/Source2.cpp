@@ -2782,7 +2782,7 @@ void readeventjson(player* p, npc* n, flag* f, Map* m, BOX* Box, task* tk, m_fla
     IMAGE t_block, a1, tri,tri1, c1, mmp, p1, p2, p3, p4, pf0,pf1,pf2, ma1, ma1_0, ma1_1, ma1_2, ma2_0, ma2_1, ma2_2, ma3_0, ma3_1, ma3_2, ma4_0, ma4_1, ma4_2, ef_1, ef_2, ef_3, ef_4, Get, can_0, can_1, ene1, ene2, ene3, ene4, get,gt,gc;
     RECT t = { 50+200,696 + 10,210+200,696 + 60 + 10 };
     time_t bom = time(NULL), ts = time(NULL);
-    int ui = 0, uj = 0, uk = 0, uK = 0, ei = 0, ej = 0, pa = 0, Ei = 0, Ej = 0, ep = 0, EI = 0, EJ = 0, po = 0, uI = 0, numFrames,talkEnd=1,tE=0;
+    int ui = 0, uj = 0, uk = 0, uK = 0, ei = 0, ej = 0, pa = 0, Ei = 0, Ej = 0, ep = 0, EI = 0, EJ = 0, po = 0, uI = 0, numFrames,talkEnd=1,tE=0,TWtimes=0;
     loadimage(&t_block, L"./Game/picture/talkblockC.png", 0, 0, false);
     loadimage(&tri, L"./Game/picture/talktri.png", 0, 0, false);
     loadimage(&tri1, L"./Game/picture/talktri1.png", 0, 0, false);
@@ -2971,6 +2971,7 @@ void readeventjson(player* p, npc* n, flag* f, Map* m, BOX* Box, task* tk, m_fla
             int ubs = 0;
             int w = 0;
             int K = 0, W = 0;
+            TWtimes = 0;
             tE = 0;
             if (root["talk"][k]["cg"].asInt() != -1) {
                 IMAGE cg;
@@ -3834,6 +3835,7 @@ void readeventjson(player* p, npc* n, flag* f, Map* m, BOX* Box, task* tk, m_fla
                     LPCTSTR path = tt.c_str();
                     outtextxy(30 * W + 300, 765 + K * 50 , path);
                     W++;
+                    TWtimes++;        
                 }
                 w++;
             }
@@ -3935,13 +3937,15 @@ void readeventjson(player* p, npc* n, flag* f, Map* m, BOX* Box, task* tk, m_fla
                 FlushBatchDraw();
                 flushmessage(-1);
                 if ((GetAsyncKeyState(VK_LBUTTON) & 0x8000) && w == s.size() && pa == 0) {
+                    SEplay("SFX_TypeWriterMutiplev1", 2);
                     break;
                 }
                 if ((GetAsyncKeyState(VK_SPACE) & 0x8000) && w == s.size() && pa == 0) {
-
+                    SEplay("SFX_TypeWriterMutiplev1", 2);
                     break;
                 }
                 if (GetAsyncKeyState(VK_RETURN) & 0x8000 && w == s.size() && pa == 0) {
+                    SEplay("SFX_TypeWriterMutiplev1", 2);
                     break;
                 }
             }
